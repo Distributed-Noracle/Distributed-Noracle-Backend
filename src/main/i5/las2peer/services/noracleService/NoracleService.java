@@ -18,9 +18,9 @@ import javax.ws.rs.core.MediaType;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
+import i5.las2peer.api.execution.InvocationBadArgumentException;
 import i5.las2peer.api.execution.ResourceNotFoundException;
 import i5.las2peer.api.execution.ServiceAccessDeniedException;
-import i5.las2peer.api.execution.InvocationBadArgumentException;
 import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.api.execution.ServiceInvocationFailedException;
 import i5.las2peer.api.execution.ServiceMethodNotFoundException;
@@ -59,7 +59,7 @@ import io.swagger.annotations.SwaggerDefinition;
 public class NoracleService extends RESTService {
 
 	public static final String RESOURCE_NAME = "distributed-noracle";
-	public static final String API_VERSION = "0.1";
+	public static final String API_VERSION = "0.2";
 
 	@Override
 	protected void initResources() { // XXX possibly obsolete in near future
