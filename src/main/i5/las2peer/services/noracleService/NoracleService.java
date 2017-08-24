@@ -5,8 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
@@ -31,14 +31,8 @@ import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.services.noracleQuestionService.INoracleQuestionService;
-import i5.las2peer.services.noracleQuestionService.NoracleQuestionService;
-import i5.las2peer.services.noracleQuestionService.Question;
-import i5.las2peer.services.noracleQuestionService.QuestionRelation;
-import i5.las2peer.services.noracleQuestionService.QuestionRelationList;
-import i5.las2peer.services.noracleSpaceService.INoracleSpaceService;
-import i5.las2peer.services.noracleSpaceService.NoracleSpaceService;
-import i5.las2peer.services.noracleSpaceService.Space;
+import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
+import i5.las2peer.services.noracleService.pojo.RelateQuestionsPojo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -59,7 +53,7 @@ import io.swagger.annotations.SwaggerDefinition;
 public class NoracleService extends RESTService {
 
 	public static final String RESOURCE_NAME = "distributed-noracle";
-	public static final String API_VERSION = "0.2";
+	public static final String API_VERSION = "0.3";
 
 	@Override
 	protected void initResources() { // XXX possibly obsolete in near future
@@ -77,6 +71,7 @@ public class NoracleService extends RESTService {
 
 		@Override
 		@POST
+		@Consumes(MediaType.APPLICATION_JSON)
 		@Produces(MediaType.APPLICATION_JSON)
 		@ApiResponses({ @ApiResponse(
 				code = HttpURLConnection.HTTP_OK,
@@ -91,20 +86,20 @@ public class NoracleService extends RESTService {
 						message = "Internal Server Error",
 						response = ExceptionEntity.class) })
 		public Space createSpace() throws ServiceInvocationException {
-			ServiceNameVersion requestedService = new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(),
-					API_VERSION);
-			Serializable rmiResult = Context.get().invoke(requestedService, "createSpace");
+			Serializable rmiResult = Context.get().invoke(
+					new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), API_VERSION), "createSpace");
 			if (rmiResult instanceof Space) {
 				return (Space) rmiResult;
 			} else {
-				// XXX logging
-				throw new InternalServiceException("Unexpected result of RMI call");
+				throw new InternalServiceException(
+						"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 			}
 		}
 
 		@Override
 		@GET
 		@Path("/{spaceId}")
+		@Consumes(MediaType.APPLICATION_JSON)
 		@Produces(MediaType.APPLICATION_JSON)
 		@ApiResponses({ @ApiResponse(
 				code = HttpURLConnection.HTTP_OK,
@@ -127,15 +122,15 @@ public class NoracleService extends RESTService {
 						message = "Internal Server Error",
 						response = ExceptionEntity.class) })
 		public Space getSpace(@PathParam("spaceId") String spaceId) throws Exception {
-			ServiceNameVersion requestedService = new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(),
-					API_VERSION);
 			try {
-				Serializable rmiResult = Context.get().invoke(requestedService, "getSpace", spaceId);
+				Serializable rmiResult = Context.get().invoke(
+						new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), API_VERSION), "getSpace",
+						spaceId);
 				if (rmiResult instanceof Space) {
 					return (Space) rmiResult;
 				} else {
-					// XXX logging
-					throw new InternalServiceException("Unexpected result of RMI call");
+					throw new InternalServiceException(
+							"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 				}
 			} catch (InvocationBadArgumentException e) {
 				throw new BadRequestException(e.getMessage(), e.getCause());
@@ -155,8 +150,8 @@ public class NoracleService extends RESTService {
 
 		public class QuestionsResource implements INoracleQuestionService {
 
-			@Override
 			@POST
+			@Consumes(MediaType.APPLICATION_JSON)
 			@Produces(MediaType.APPLICATION_JSON)
 			@ApiResponses({ @ApiResponse(
 					code = HttpURLConnection.HTTP_OK,
@@ -174,15 +169,18 @@ public class NoracleService extends RESTService {
 							code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 							message = "Internal Server Error",
 							response = ExceptionEntity.class) })
-			public Question createQuestion(@FormParam("questionText") String questionText,
-					@PathParam("spaceId") String questionSpaceId)
-					throws ServiceNotFoundException, ServiceNotAvailableException, InternalServiceException,
-					ServiceMethodNotFoundException, ServiceInvocationFailedException, ServiceAccessDeniedException {
+			public Question createQuestion(@PathParam("spaceId") String questionSpaceId,
+					CreateQuestionPojo createQuestionPojo) throws ServiceInvocationException {
 				// TODO add more API responses for exceptions
-				ServiceNameVersion requestedService = new ServiceNameVersion(
-						NoracleQuestionService.class.getCanonicalName(), API_VERSION);
-				Serializable rmiResult = Context.get().invoke(requestedService, "createQuestion", questionText,
-						questionSpaceId);
+				return createQuestion(questionSpaceId, createQuestionPojo.getQuestionText());
+			}
+
+			@Override
+			public Question createQuestion(String questionText, String questionSpaceId)
+					throws ServiceInvocationException {
+				Serializable rmiResult = Context.get().invoke(
+						new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), API_VERSION),
+						"createQuestion", questionText, questionSpaceId);
 				if (rmiResult instanceof Question) {
 					return (Question) rmiResult;
 				} else if (rmiResult instanceof InvocationTargetException) {
@@ -197,14 +195,15 @@ public class NoracleService extends RESTService {
 						throw new InternalServerErrorException("Exception in RMI call", cause);
 					}
 				} else {
-					// XXX logging
-					throw new InternalServiceException("Unexpected result of RMI call");
+					throw new InternalServiceException(
+							"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 				}
 			}
 
 			@Override
 			@GET
 			@Path("/{questionId}")
+			@Consumes(MediaType.APPLICATION_JSON)
 			@Produces(MediaType.APPLICATION_JSON)
 			@ApiResponses({ @ApiResponse(
 					code = HttpURLConnection.HTTP_OK,
@@ -232,7 +231,7 @@ public class NoracleService extends RESTService {
 				// TODO add more API responses for exceptions
 				Serializable rmiResult = Context.get().invoke(
 						new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), API_VERSION),
-						getClass().getEnclosingMethod().getName(), getClass().getEnclosingMethod().getParameters());
+						"getQuestion", questionId);
 				if (rmiResult instanceof Question) {
 					return (Question) rmiResult;
 				} else if (rmiResult instanceof InvocationTargetException) {
@@ -247,14 +246,21 @@ public class NoracleService extends RESTService {
 						throw new InternalServerErrorException("Exception in RMI call", cause);
 					}
 				} else {
-					// XXX logging
-					throw new InternalServiceException("Unexpected result of RMI call");
+					throw new InternalServiceException(
+							"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 				}
 			}
+		}
 
-			@Override
+		@Path("/{spaceId}/relations")
+		public QuestionRelationsResource relations() {
+			return new QuestionRelationsResource();
+		}
+
+		public class QuestionRelationsResource implements INoracleQuestionRelationService {
+
 			@POST
-			@Path("/{questionId}/relate")
+			@Consumes(MediaType.APPLICATION_JSON)
 			@Produces(MediaType.APPLICATION_JSON)
 			@ApiResponses({ @ApiResponse(
 					code = HttpURLConnection.HTTP_OK,
@@ -268,15 +274,23 @@ public class NoracleService extends RESTService {
 							code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 							message = "Internal Server Error",
 							response = ExceptionEntity.class) })
-			public QuestionRelation relateQuestion(@PathParam("questionId") String questionId,
-					@FormParam("questionIdRelated") String questionIdRelated,
-					@FormParam("relationType") String relationType) throws ServiceNotFoundException,
+			public QuestionRelation postRelateQuestions(@PathParam("spaceId") String spaceId,
+					RelateQuestionsPojo relateQuestionsPojo) throws ServiceNotFoundException,
 					ServiceNotAvailableException, InternalServiceException, ServiceMethodNotFoundException,
 					ServiceInvocationFailedException, ServiceAccessDeniedException, SecurityException {
 				// TODO add more API responses for exceptions
+				return relateQuestions(spaceId, relateQuestionsPojo.getFirstQuestionId(),
+						relateQuestionsPojo.getSecondQuestionId(), relateQuestionsPojo.getRelationType());
+			}
+
+			@Override
+			public QuestionRelation relateQuestions(String spaceId, String firstQuestionId, String secondQuestionId,
+					String relationType) throws ServiceNotFoundException, ServiceNotAvailableException,
+					InternalServiceException, ServiceMethodNotFoundException, ServiceInvocationFailedException,
+					ServiceAccessDeniedException, SecurityException {
 				Serializable rmiResult = Context.get().invoke(
-						new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), API_VERSION),
-						getClass().getEnclosingMethod().getName(), getClass().getEnclosingMethod().getParameters());
+						new ServiceNameVersion(NoracleQuestionRelationService.class.getCanonicalName(), API_VERSION),
+						"relateQuestions", spaceId, firstQuestionId, secondQuestionId, relationType);
 				if (rmiResult instanceof QuestionRelation) {
 					return (QuestionRelation) rmiResult;
 				} else if (rmiResult instanceof InvocationTargetException) {
@@ -291,14 +305,15 @@ public class NoracleService extends RESTService {
 						throw new InternalServerErrorException("Exception in RMI call", cause);
 					}
 				} else {
-					// XXX logging
-					throw new InternalServiceException("Unexpected result of RMI call");
+					throw new InternalServiceException(
+							"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 				}
 			}
 
 			@Override
 			@GET
-			@Path("/{questionId}/relations")
+			@Path("/{questionId}")
+			@Consumes(MediaType.APPLICATION_JSON)
 			@Produces(MediaType.APPLICATION_JSON)
 			@ApiResponses({ @ApiResponse(
 					code = HttpURLConnection.HTTP_OK,
@@ -312,14 +327,14 @@ public class NoracleService extends RESTService {
 							code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 							message = "Internal Server Error",
 							response = ExceptionEntity.class) })
-			public QuestionRelationList getQuestionRelations(@PathParam("questionId") String questionId)
-					throws ServiceNotFoundException, ServiceNotAvailableException, InternalServiceException,
-					ServiceMethodNotFoundException, ServiceInvocationFailedException, ServiceAccessDeniedException,
-					SecurityException {
+			public QuestionRelationList getQuestionRelations(@PathParam("spaceId") String spaceId,
+					@PathParam("questionId") String questionId) throws ServiceNotFoundException,
+					ServiceNotAvailableException, InternalServiceException, ServiceMethodNotFoundException,
+					ServiceInvocationFailedException, ServiceAccessDeniedException, SecurityException {
 				// TODO add more API responses for exceptions
 				Serializable rmiResult = Context.get().invoke(
-						new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), API_VERSION),
-						getClass().getEnclosingMethod().getName(), getClass().getEnclosingMethod().getParameters());
+						new ServiceNameVersion(NoracleQuestionRelationService.class.getCanonicalName(), API_VERSION),
+						"getQuestionRelations", questionId);
 				if (rmiResult instanceof QuestionRelationList) {
 					return (QuestionRelationList) rmiResult;
 				} else if (rmiResult instanceof InvocationTargetException) {
@@ -334,11 +349,10 @@ public class NoracleService extends RESTService {
 						throw new InternalServerErrorException("Exception in RMI call", cause);
 					}
 				} else {
-					// XXX logging
-					throw new InternalServiceException("Unexpected result of RMI call");
+					throw new InternalServiceException(
+							"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 				}
 			}
-
 		}
 
 	}
