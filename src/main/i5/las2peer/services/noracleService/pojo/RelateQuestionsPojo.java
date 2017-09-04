@@ -4,7 +4,7 @@ public class RelateQuestionsPojo {
 
 	private String firstQuestionId;
 	private String secondQuestionId;
-	private String relationType;
+	private String name;
 
 	public String getFirstQuestionId() {
 		return firstQuestionId;
@@ -22,12 +22,12 @@ public class RelateQuestionsPojo {
 		this.secondQuestionId = secondQuestionId;
 	}
 
-	public String getRelationType() {
-		return relationType;
+	public String getName() {
+		return name;
 	}
 
-	public void setRelationType(String relationType) {
-		this.relationType = relationType;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }
