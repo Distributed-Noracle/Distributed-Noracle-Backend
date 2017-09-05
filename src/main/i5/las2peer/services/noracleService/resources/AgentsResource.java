@@ -90,7 +90,7 @@ public class AgentsResource implements INoracleAgentService {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"getSpaceSubscriptions", agentId);
-		if (rmiResult instanceof SpaceSubscription) {
+		if (rmiResult instanceof SpaceSubscriptionList) {
 			return (SpaceSubscriptionList) rmiResult;
 		} else {
 			throw new InternalServiceException(

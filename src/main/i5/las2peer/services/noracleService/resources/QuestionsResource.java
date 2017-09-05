@@ -1,16 +1,11 @@
 package i5.las2peer.services.noracleService.resources;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -21,14 +16,8 @@ import javax.ws.rs.core.MediaType;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
-import i5.las2peer.api.execution.ServiceAccessDeniedException;
 import i5.las2peer.api.execution.ServiceInvocationException;
-import i5.las2peer.api.execution.ServiceInvocationFailedException;
-import i5.las2peer.api.execution.ServiceMethodNotFoundException;
-import i5.las2peer.api.execution.ServiceNotAvailableException;
-import i5.las2peer.api.execution.ServiceNotFoundException;
 import i5.las2peer.api.p2p.ServiceNameVersion;
-import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.INoracleQuestionService;
 import i5.las2peer.services.noracleService.NoracleQuestionService;
@@ -37,7 +26,6 @@ import i5.las2peer.services.noracleService.Question;
 import i5.las2peer.services.noracleService.QuestionList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
-import i5.las2peer.services.noracleService.pojo.GetQuestionsPojo;
 import i5.las2peer.services.noracleService.pojo.GetQuestionsResponsePojo;
 import i5.las2peer.services.noracleService.pojo.LinkPojo;
 import io.swagger.annotations.ApiResponse;
@@ -70,23 +58,12 @@ public class QuestionsResource implements INoracleQuestionService {
 	}
 
 	@Override
-	public Question createQuestion(String questionText, String questionSpaceId) throws ServiceInvocationException {
+	public Question createQuestion(String questionSpaceId, String questionText) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"createQuestion", questionText, questionSpaceId);
+				"createQuestion", questionSpaceId, questionText);
 		if (rmiResult instanceof Question) {
 			return (Question) rmiResult;
-		} else if (rmiResult instanceof InvocationTargetException) {
-			Throwable cause = ((InvocationTargetException) rmiResult).getCause();
-			if (cause instanceof IllegalArgumentException) {
-				throw new BadRequestException(cause.getMessage(), cause);
-			} else if (cause instanceof ServiceAccessDeniedException) {
-				throw new ForbiddenException(cause.getMessage(), cause);
-			} else if (cause instanceof EnvelopeNotFoundException) {
-				throw new NotFoundException(cause.getMessage(), cause);
-			} else {
-				throw new InternalServerErrorException("Exception in RMI call", cause);
-			}
 		} else {
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
@@ -118,25 +95,12 @@ public class QuestionsResource implements INoracleQuestionService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Question getQuestion(@PathParam("questionId") String questionId) throws ServiceNotFoundException,
-			ServiceNotAvailableException, InternalServiceException, ServiceMethodNotFoundException,
-			ServiceInvocationFailedException, ServiceAccessDeniedException, SecurityException {
+	public Question getQuestion(@PathParam("questionId") String questionId) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"getQuestion", questionId);
 		if (rmiResult instanceof Question) {
 			return (Question) rmiResult;
-		} else if (rmiResult instanceof InvocationTargetException) {
-			Throwable cause = ((InvocationTargetException) rmiResult).getCause();
-			if (cause instanceof IllegalArgumentException) {
-				throw new BadRequestException(cause.getMessage(), cause);
-			} else if (cause instanceof ServiceAccessDeniedException) {
-				throw new ForbiddenException(cause.getMessage(), cause);
-			} else if (cause instanceof EnvelopeNotFoundException) {
-				throw new NotFoundException(cause.getMessage(), cause);
-			} else {
-				throw new InternalServerErrorException("Exception in RMI call", cause);
-			}
 		} else {
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
@@ -144,7 +108,6 @@ public class QuestionsResource implements INoracleQuestionService {
 	}
 
 	@GET
-	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
@@ -166,30 +129,35 @@ public class QuestionsResource implements INoracleQuestionService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public GetQuestionsResponsePojo getQuestions(@PathParam("spaceId") String spaceId,
-			@QueryParam("order") String paramOrder, @QueryParam("limit") Integer paramLimit,
-			@QueryParam("startAt") Integer paramStartAt, GetQuestionsPojo getQuestionsPojo)
-			throws ServiceInvocationException {
-		String order = getQuestionsPojo.getOrder();
-		if (order == null || order.isEmpty()) {
-			order = paramOrder;
-		}
-		Integer limit = getQuestionsPojo.getLimit();
-		if (limit == null) {
-			limit = paramLimit;
-		}
-		Integer startAt = getQuestionsPojo.getStartAt();
-		if (startAt == null) {
-			startAt = paramStartAt;
-		}
+	public GetQuestionsResponsePojo getQuestionsWeb(@PathParam("spaceId") String spaceId,
+			@QueryParam("order") String order, @QueryParam("limit") Integer limit,
+			@QueryParam("startat") Integer startAt) throws ServiceInvocationException {
 		QuestionList questionList = getQuestions(spaceId, order, limit, startAt);
 		GetQuestionsResponsePojo response = new GetQuestionsResponsePojo();
 		response.setContent(questionList);
 		ArrayList<LinkPojo> links = new ArrayList<>();
-		String queryOrder = order != null ? order : "";
-		String queryLimit = limit != null ? Integer.toString(limit) : "";
-		String queryStartAt = startAt != null ? Integer.toString(startAt) : "";
-		LinkPojo nextLink = new LinkPojo("next", "?" + String.join("&", queryOrder, queryLimit, queryStartAt));
+		String queryOrder = order != null ? "order=" + order : "";
+		String queryLimit = limit != null ? "limit=" + Integer.toString(limit) : "";
+		String queryStartAt = "";
+		if (startAt != null && limit != null) {
+			if (order.equalsIgnoreCase("desc")) {
+				queryStartAt = "startat=" + Integer.toString(startAt - limit);
+			} else {
+				queryStartAt = "startat=" + Integer.toString(startAt + limit);
+			}
+		}
+		String nextLinkStr = "";
+		for (String param : new String[] { queryOrder, queryLimit, queryStartAt }) {
+			if (param != null && !param.isEmpty()) {
+				if (nextLinkStr.isEmpty()) {
+					nextLinkStr += "?";
+				} else {
+					nextLinkStr += "&";
+				}
+				nextLinkStr += param;
+			}
+		}
+		LinkPojo nextLink = new LinkPojo("next", nextLinkStr);
 		links.add(nextLink);
 		response.setLinks(links);
 		return response;
@@ -242,7 +210,7 @@ public class QuestionsResource implements INoracleQuestionService {
 	public Question changeQuestionText(String questionId, String questionText) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"changeQuestion", questionId, questionText);
+				"changeQuestionText", questionId, questionText);
 		if (rmiResult instanceof Question) {
 			return (Question) rmiResult;
 		} else {

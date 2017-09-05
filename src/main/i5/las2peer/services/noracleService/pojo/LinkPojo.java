@@ -5,6 +5,9 @@ public class LinkPojo {
 	private String rel;
 	private String href;
 
+	public LinkPojo() { // used in tests
+	}
+
 	public LinkPojo(String rel, String href) {
 		this.rel = rel;
 		this.href = href;
