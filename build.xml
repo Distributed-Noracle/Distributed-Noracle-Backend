@@ -15,7 +15,6 @@
 
 	<property name="tmp" location="tmp" />
 	<property name="tmp.classes" location="${tmp}/classes" />
-	<property name="tmp.bundle" location="${tmp}/bundle" />
 	<property name="tmp.junit" location="${tmp}/test" />
 
 	<property name="lib" location="lib" />
@@ -64,7 +63,6 @@
 			<credentials host="role.dbis.rwth-aachen.de:9911/archiva" realm="Repository internal" />
 		</ivy:settings>
 		<ivy:retrieve type="jar, bundle" conf="*" pattern="${lib}/[artifact]-[revision].[ext]" />
-		<ivy:retrieve type="jar, bundle" conf="bundle" pattern="${tmp.bundle}/[artifact]-[revision].[ext]" />
 	</target>
 
 
@@ -73,7 +71,6 @@
 		<mkdir dir="${tmp}" />
 		<mkdir dir="${tmp.classes}" />
 		<mkdir dir="${tmp.junit}" />
-		<mkdir dir="${tmp.bundle}" />
 	</target>
 
 
@@ -102,7 +99,6 @@
 		<delete file="${service}/${service.name}-${service.version}.jar" />
 		<jar jarfile="${service}/${service.name}-${service.version}.jar">
 			<fileset dir="${tmp.classes}" />
-			<zipgroupfileset dir="${tmp.bundle}" />
 			<manifest>
 				<attribute name="las2peer-service-name" value="${service.name}" />
 				<attribute name="las2peer-service-version" value="${service.version}" />
