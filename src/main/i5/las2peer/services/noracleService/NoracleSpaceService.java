@@ -76,7 +76,7 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 			throw new InternalServiceException("Could not create envelope for space", e);
 		}
 		env.addReader(spaceMemberGroupAgent);
-		Space space = new Space(spaceId, name, mainAgent.getIdentifier());
+		Space space = new Space(spaceId, name, mainAgent.getIdentifier(), spaceMemberGroupAgent.getIdentifier());
 		env.setContent(space);
 		try {
 			Context.get().storeEnvelope(env, mainAgent);

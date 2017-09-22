@@ -228,6 +228,45 @@ public class NoracleServiceTest {
 	}
 
 	@Test
+	public void testQuestionReadPermission() {
+		try {
+			String testSpaceId = createAndFetchTestSpace();
+			// create question in space
+			CreateQuestionPojo body = new CreateQuestionPojo();
+			body.setQuestionText("How are you?");
+			WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			Response response = request.post(Entity.json(body));
+			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+			Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
+			// check if non space member has read permission
+			String locationHeader = response.getHeaderString(HttpHeaders.LOCATION);
+			WebTarget targetQuestion = webClient.target(locationHeader);
+			Builder requestQuestion = targetQuestion.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+			Response responseQuestion = requestQuestion.get();
+			Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), responseQuestion.getStatus());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+	}
+
+	@Test
+	public void testQuestionNonExistentSpace() {
+		try {
+			CreateQuestionPojo body = new CreateQuestionPojo();
+			body.setQuestionText("How are you?");
+			WebTarget target = webClient.target(baseUrl + "/spaces/xxxxx/questions");
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			Response response = request.post(Entity.json(body));
+			Assert.assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+	}
+
+	@Test
 	public void testChangeQuestion() {
 		try {
 			String testSpaceId = createAndFetchTestSpace();

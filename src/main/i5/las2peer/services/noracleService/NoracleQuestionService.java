@@ -1,5 +1,6 @@
 package i5.las2peer.services.noracleService;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Random;
 
@@ -11,15 +12,21 @@ import i5.las2peer.api.execution.ResourceNotFoundException;
 import i5.las2peer.api.execution.ServiceAccessDeniedException;
 import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.api.execution.ServiceNotAuthorizedException;
+import i5.las2peer.api.p2p.ServiceNameVersion;
 import i5.las2peer.api.persistency.Envelope;
 import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
 import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
 import i5.las2peer.api.security.Agent;
+import i5.las2peer.api.security.AgentAccessDeniedException;
+import i5.las2peer.api.security.AgentNotFoundException;
+import i5.las2peer.api.security.AgentOperationFailedException;
 import i5.las2peer.api.security.AnonymousAgent;
+import i5.las2peer.api.security.GroupAgent;
 import i5.las2peer.services.noracleService.api.INoracleQuestionService;
 import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionList;
+import i5.las2peer.services.noracleService.model.Space;
 
 /**
  * Noracle Question Service
@@ -47,6 +54,27 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		} else if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceNotAuthorizedException("You have to be logged in to create a question");
 		}
+		Space targetSpace;
+		Serializable rmiResult = Context.get().invoke(
+				new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"getSpace", questionSpaceId);
+		if (rmiResult instanceof Space) {
+			targetSpace = (Space) rmiResult;
+		} else {
+			throw new InternalServiceException(
+					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+		}
+		String targetReaderGroupId = targetSpace.getSpaceReaderGroupId();
+		GroupAgent targetReaderGroup;
+		try {
+			targetReaderGroup = (GroupAgent) Context.get().requestAgent(targetReaderGroupId, mainAgent);
+		} catch (AgentNotFoundException | AgentOperationFailedException e) {
+			throw new InternalServiceException("Could not fetch reader group agent for space", e);
+		} catch (ClassCastException e) {
+			throw new InternalServiceException("Agent for space reader group is not a GroupAgent", e);
+		} catch (AgentAccessDeniedException e) {
+			throw new ServiceAccessDeniedException("Agent not in space reader group", e);
+		}
 		String questionId = buildQuestionId();
 		Envelope env;
 		try {
@@ -56,7 +84,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not create envelope for question", e);
 		}
-		env.setPublic();
+		env.addReader(targetReaderGroup);
 		Question question = new Question(questionId, questionText, questionSpaceId, mainAgent.getIdentifier(),
 				Instant.now().toString());
 		env.setContent(question);

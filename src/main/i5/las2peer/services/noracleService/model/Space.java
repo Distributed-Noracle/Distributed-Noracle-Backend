@@ -9,14 +9,16 @@ public class Space implements Serializable {
 	private String spaceId;
 	private String name;
 	private String spaceOwnerId;
+	private String spaceReaderGroupId;
 
 	public Space() { // used in tests
 	}
 
-	public Space(String spaceId, String name, String spaceOwnerId) {
+	public Space(String spaceId, String name, String spaceOwnerId, String spaceReaderGroupId) {
 		this.setSpaceId(spaceId);
 		this.setName(name);
 		this.setSpaceOwnerId(spaceOwnerId);
+		this.setSpaceReaderGroupId(spaceReaderGroupId);
 	}
 
 	public String getSpaceId() {
@@ -41,6 +43,14 @@ public class Space implements Serializable {
 
 	public void setSpaceOwnerId(String spaceOwnerId) {
 		this.spaceOwnerId = spaceOwnerId;
+	}
+
+	public String getSpaceReaderGroupId() {
+		return spaceReaderGroupId;
+	}
+
+	public void setSpaceReaderGroupId(String spaceReaderGroupId) {
+		this.spaceReaderGroupId = spaceReaderGroupId;
 	}
 
 }
