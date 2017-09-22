@@ -30,12 +30,14 @@ import i5.las2peer.security.UserAgentImpl;
 import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionList;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
+import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.model.Space;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
 import i5.las2peer.services.noracleService.pojo.CreateSpacePojo;
+import i5.las2peer.services.noracleService.pojo.GetQuestionRelationsResponsePojo;
 import i5.las2peer.services.noracleService.pojo.GetQuestionsResponsePojo;
 import i5.las2peer.services.noracleService.pojo.LinkPojo;
 import i5.las2peer.testing.MockAgentFactory;
@@ -290,7 +292,11 @@ public class NoracleServiceTest {
 			Response responseQuestionRelation = requestQuestionRelation.get();
 			Assert.assertEquals(Status.OK.getStatusCode(), responseQuestionRelation.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, responseQuestionRelation.getMediaType());
-			QuestionRelation questionRelation = responseQuestionRelation.readEntity(QuestionRelation.class);
+			GetQuestionRelationsResponsePojo entity = responseQuestionRelation
+					.readEntity(GetQuestionRelationsResponsePojo.class);
+			QuestionRelationList questionRelationList = entity.getContent();
+			Assert.assertEquals(1, questionRelationList.size());
+			QuestionRelation questionRelation = questionRelationList.get(0);
 			Assert.assertEquals("duplicate", questionRelation.getName());
 			Assert.assertEquals(questionId1, questionRelation.getFirstQuestionId());
 			Assert.assertEquals(questionId2, questionRelation.getSecondQuestionId());

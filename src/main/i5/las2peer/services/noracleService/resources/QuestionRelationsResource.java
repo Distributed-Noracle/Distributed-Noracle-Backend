@@ -27,7 +27,6 @@ import i5.las2peer.services.noracleService.NoracleQuestionRelationService;
 import i5.las2peer.services.noracleService.NoracleService;
 import i5.las2peer.services.noracleService.api.INoracleQuestionRelationService;
 import i5.las2peer.services.noracleService.model.Question;
-import i5.las2peer.services.noracleService.model.QuestionList;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionRelationPojo;
@@ -158,7 +157,7 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 		Serializable rmiResult = Context.get()
 				.invoke(new ServiceNameVersion(NoracleQuestionRelationService.class.getCanonicalName(),
 						NoracleService.API_VERSION), "getQuestionRelations", spaceId, order, limit, startAt);
-		if (rmiResult instanceof QuestionList) {
+		if (rmiResult instanceof QuestionRelationList) {
 			return (QuestionRelationList) rmiResult;
 		} else {
 			throw new InternalServiceException(
