@@ -15,5 +15,6 @@
         <dependency org="junit" name="junit" rev="4.12" conf="platform->*" />
 
         <!-- service dependencies -->
+        <dependency org="org.glassfish.jersey.media" name="jersey-media-json-jackson" rev="2.25.1" conf="platform->*" />
     </dependencies>
 </ivy-module>
