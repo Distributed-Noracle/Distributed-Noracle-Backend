@@ -8,7 +8,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -22,7 +21,6 @@ import i5.las2peer.api.execution.InvocationBadArgumentException;
 import i5.las2peer.api.execution.ResourceNotFoundException;
 import i5.las2peer.api.execution.ServiceAccessDeniedException;
 import i5.las2peer.api.execution.ServiceInvocationException;
-import i5.las2peer.api.execution.ServiceNotAuthorizedException;
 import i5.las2peer.api.p2p.ServiceNameVersion;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleService;
@@ -54,11 +52,7 @@ public class SpacesResource implements INoracleSpaceService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public Space createSpace(CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
-		try {
-			return createSpace(createSpacePojo.getName());
-		} catch (ServiceNotAuthorizedException e) {
-			throw new NotAuthorizedException(e);
-		}
+		return createSpace(createSpacePojo.getName());
 	}
 
 	@Override
