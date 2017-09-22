@@ -33,7 +33,6 @@ import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionRelationPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
 import i5.las2peer.services.noracleService.pojo.GetQuestionRelationsResponsePojo;
-import i5.las2peer.services.noracleService.pojo.GetRelationsPojo;
 import i5.las2peer.services.noracleService.pojo.LinkPojo;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -138,21 +137,8 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public GetQuestionRelationsResponsePojo getQuestions(@PathParam("spaceId") String spaceId,
-			@QueryParam("order") String paramOrder, @QueryParam("limit") Integer paramLimit,
-			@QueryParam("startAt") Integer paramStartAt, GetRelationsPojo getRelationsPojo)
-			throws ServiceInvocationException {
-		String order = getRelationsPojo.getOrder();
-		if (order == null || order.isEmpty()) {
-			order = paramOrder;
-		}
-		Integer limit = getRelationsPojo.getLimit();
-		if (limit == null) {
-			limit = paramLimit;
-		}
-		Integer startAt = getRelationsPojo.getStartAt();
-		if (startAt == null) {
-			startAt = paramStartAt;
-		}
+			@QueryParam("order") String order, @QueryParam("limit") Integer limit,
+			@QueryParam("startAt") Integer startAt) throws ServiceInvocationException {
 		QuestionRelationList questionRelationList = getQuestionRelations(spaceId, order, limit, startAt);
 		GetQuestionRelationsResponsePojo response = new GetQuestionRelationsResponsePojo();
 		response.setContent(questionRelationList);
