@@ -37,6 +37,10 @@ import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
 import i5.las2peer.services.noracleService.pojo.CreateSpacePojo;
+import i5.las2peer.services.noracleService.resources.AgentsResource;
+import i5.las2peer.services.noracleService.resources.QuestionRelationsResource;
+import i5.las2peer.services.noracleService.resources.QuestionsResource;
+import i5.las2peer.services.noracleService.resources.SpacesResource;
 import i5.las2peer.testing.MockAgentFactory;
 import i5.las2peer.testing.TestSuite;
 
@@ -116,7 +120,7 @@ public class NoracleServiceTest {
 		try {
 			CreateSpacePojo body = new CreateSpacePojo();
 			body.setName(TEST_SPACE_NAME);
-			WebTarget target = webClient.target(baseUrl + "/spaces");
+			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME);
 			Response response = target.request().post(Entity.json(body));
 			Assert.assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
 		} catch (Exception e) {
@@ -129,7 +133,7 @@ public class NoracleServiceTest {
 		// create test space
 		CreateSpacePojo body = new CreateSpacePojo();
 		body.setName(TEST_SPACE_NAME);
-		WebTarget target = webClient.target(baseUrl + "/spaces");
+		WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME);
 		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 		Response response = request.post(Entity.json(body));
 		Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
@@ -151,7 +155,7 @@ public class NoracleServiceTest {
 			// create test space with first test user
 			CreateSpacePojo body = new CreateSpacePojo();
 			body.setName(TEST_SPACE_NAME);
-			WebTarget target = webClient.target(baseUrl + "/spaces");
+			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 			Response response = request.post(Entity.json(body));
 			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
@@ -173,8 +177,8 @@ public class NoracleServiceTest {
 		try {
 			String testSpaceId = createAndFetchTestSpace();
 			// check if agent is auto-subscribed
-			WebTarget target = webClient
-					.target(baseUrl + "/agents/" + testAgent.getIdentifier() + "/spacesubscriptions");
+			WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
+					+ testAgent.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 			Response response = request.get();
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
@@ -196,7 +200,8 @@ public class NoracleServiceTest {
 			// create question in space
 			CreateQuestionPojo body = new CreateQuestionPojo();
 			body.setQuestionText(TEST_QUESTION_TEXT);
-			WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
+			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+					+ QuestionsResource.RESOURCE_NAME);
 			Response response = target.request().post(Entity.json(body));
 			Assert.assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
 		} catch (Exception e) {
@@ -209,7 +214,8 @@ public class NoracleServiceTest {
 		// create question in space
 		CreateQuestionPojo body = new CreateQuestionPojo();
 		body.setQuestionText(TEST_QUESTION_TEXT);
-		WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
+		WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+				+ QuestionsResource.RESOURCE_NAME);
 		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 		Response response = request.post(Entity.json(body));
 		Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
@@ -235,7 +241,8 @@ public class NoracleServiceTest {
 			// create question in space
 			CreateQuestionPojo body = new CreateQuestionPojo();
 			body.setQuestionText(TEST_QUESTION_TEXT);
-			WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
+			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+					+ QuestionsResource.RESOURCE_NAME);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 			Response response = request.post(Entity.json(body));
 			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
@@ -257,7 +264,8 @@ public class NoracleServiceTest {
 		try {
 			CreateQuestionPojo body = new CreateQuestionPojo();
 			body.setQuestionText(TEST_QUESTION_TEXT);
-			WebTarget target = webClient.target(baseUrl + "/spaces/xxxxx/questions");
+			WebTarget target = webClient
+					.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/xxxxx/" + QuestionsResource.RESOURCE_NAME);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 			Response response = request.post(Entity.json(body));
 			Assert.assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
@@ -274,7 +282,8 @@ public class NoracleServiceTest {
 			String questionId = createTestQuestion(testSpaceId);
 			ChangeQuestionPojo body = new ChangeQuestionPojo();
 			body.setQuestionText("How much is the fish?");
-			WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions/" + questionId);
+			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+					+ QuestionsResource.RESOURCE_NAME + "/" + questionId);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 			Response response = request.put(Entity.json(body));
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
@@ -298,7 +307,8 @@ public class NoracleServiceTest {
 			String questionId2 = createTestQuestion(testSpaceId);
 			String questionId3 = createTestQuestion(testSpaceId);
 			// no params at all
-			WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
+			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+					+ QuestionsResource.RESOURCE_NAME);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 			Response response = request.get();
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
@@ -311,7 +321,8 @@ public class NoracleServiceTest {
 			String linkHeader = response.getHeaderString(HttpHeaders.LINK);
 			Assert.assertNull(linkHeader);
 			// inverse order
-			target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
+			target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+					+ QuestionsResource.RESOURCE_NAME);
 			request = target.queryParam("order", "desc").queryParam("startat", "3").request();
 			response = request.header(HttpHeaders.AUTHORIZATION, basicAuthHeader).get();
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
@@ -341,7 +352,8 @@ public class NoracleServiceTest {
 			body.setName("duplicate");
 			body.setQuestionId1(questionId1);
 			body.setQuestionId2(questionId2);
-			WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/relations");
+			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+					+ QuestionRelationsResource.RESOURCE_NAME);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 			Response response = request.post(Entity.json(body));
 			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());

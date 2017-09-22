@@ -36,6 +36,8 @@ import io.swagger.annotations.ApiResponses;
 
 public class QuestionsResource implements INoracleQuestionService {
 
+	public static final String RESOURCE_NAME = "questions";
+
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_HTML)
@@ -58,9 +60,8 @@ public class QuestionsResource implements INoracleQuestionService {
 			throws ServiceInvocationException {
 		Question question = createQuestion(questionSpaceId, createQuestionPojo.getQuestionText());
 		try {
-			return Response.created(
-					new URI(null, null, "spaces/" + questionSpaceId + "/questions/" + question.getQuestionId(), null))
-					.build();
+			return Response.created(new URI(null, null, SpacesResource.RESOURCE_NAME + "/" + questionSpaceId + "/"
+					+ RESOURCE_NAME + "/" + question.getQuestionId(), null)).build();
 		} catch (URISyntaxException e) {
 			throw new InternalServerErrorException(e);
 		}

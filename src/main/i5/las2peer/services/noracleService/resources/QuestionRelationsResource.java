@@ -37,6 +37,8 @@ import io.swagger.annotations.ApiResponses;
 
 public class QuestionRelationsResource implements INoracleQuestionRelationService {
 
+	public static final String RESOURCE_NAME = "relations";
+
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_HTML)
@@ -56,7 +58,9 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 		createQuestionRelation(spaceId, createRelationPojo.getName(), createRelationPojo.getQuestionId1(),
 				createRelationPojo.getQuestionId2(), createRelationPojo.isDirected());
 		try {
-			return Response.created(new URI(null, null, "spaces/" + spaceId + "/relations", null)).build();
+			return Response.created(
+					new URI(null, null, SpacesResource.RESOURCE_NAME + "/" + spaceId + "/" + RESOURCE_NAME, null))
+					.build();
 		} catch (URISyntaxException e) {
 			throw new InternalServerErrorException(e);
 		}

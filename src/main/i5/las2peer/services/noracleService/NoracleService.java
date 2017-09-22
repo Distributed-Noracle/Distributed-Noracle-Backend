@@ -37,12 +37,12 @@ public class NoracleService extends RESTService {
 		getResourceConfig().register(AgentsResource.class);
 	}
 
-	@Path("/spaces")
+	@Path("/" + SpacesResource.RESOURCE_NAME)
 	public SpacesResource spaces() {
 		return new SpacesResource();
 	}
 
-	@Path("/agents/{agentid}")
+	@Path("/" + AgentsResource.RESOURCE_NAME + "/{agentid}")
 	public AgentsResource agents() {
 		return new AgentsResource();
 	}

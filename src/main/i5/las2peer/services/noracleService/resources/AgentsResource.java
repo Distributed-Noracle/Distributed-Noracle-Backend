@@ -34,8 +34,11 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @Api(
-		tags = { "agents" })
+		tags = { AgentsResource.RESOURCE_NAME })
 public class AgentsResource implements INoracleAgentService {
+
+	public static final String RESOURCE_NAME = "agents";
+	public static final String SUBSCRIPTIONS_RESOURCE_NAME = "spacesubscriptions";
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -59,7 +62,7 @@ public class AgentsResource implements INoracleAgentService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	@Path("/spacesubscriptions")
+	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
 	public Response subscribeToSpace(@PathParam("agentid") String agentId, SubscribeSpacePojo subscribeSpacePojo)
 			throws ServiceInvocationException {
 		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
@@ -67,7 +70,9 @@ public class AgentsResource implements INoracleAgentService {
 		}
 		subscribeToSpace(subscribeSpacePojo.getSpaceId(), subscribeSpacePojo.getName());
 		try {
-			return Response.created(new URI(null, null, "agents/" + agentId + "/spacesubscriptions", null)).build();
+			return Response.created(
+					new URI(null, null, RESOURCE_NAME + "/" + agentId + "/" + SUBSCRIPTIONS_RESOURCE_NAME, null))
+					.build();
 		} catch (URISyntaxException e) {
 			throw new InternalServerErrorException(e);
 		}
@@ -108,7 +113,7 @@ public class AgentsResource implements INoracleAgentService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	@Path("/spacesubscriptions")
+	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
 	public Response unsubscribeFromSpace(@PathParam("agentid") String agentId,
 			UnsubscribeSpacePojo unsubscribeSpacePojo) throws ServiceInvocationException {
 		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
@@ -137,7 +142,7 @@ public class AgentsResource implements INoracleAgentService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	@Path("/spacesubscriptions")
+	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
 	public SpaceSubscriptionList getSpaceSubscriptions(@PathParam("agentid") String agentId)
 			throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(

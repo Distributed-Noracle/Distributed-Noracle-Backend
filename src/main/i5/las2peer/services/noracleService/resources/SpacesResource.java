@@ -36,8 +36,10 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @Api(
-		tags = { "spaces" })
+		tags = { SpacesResource.RESOURCE_NAME })
 public class SpacesResource implements INoracleSpaceService {
+
+	public static final String RESOURCE_NAME = "spaces";
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -56,7 +58,7 @@ public class SpacesResource implements INoracleSpaceService {
 	public Response createSpace(CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
 		Space space = createSpace(createSpacePojo.getName());
 		try {
-			return Response.created(new URI(null, null, "spaces/" + space.getSpaceId(), null)).build();
+			return Response.created(new URI(null, null, RESOURCE_NAME + "/" + space.getSpaceId(), null)).build();
 		} catch (URISyntaxException e) {
 			throw new InternalServerErrorException(e);
 		}
@@ -125,12 +127,12 @@ public class SpacesResource implements INoracleSpaceService {
 		}
 	}
 
-	@Path("/{spaceId}/questions")
+	@Path("/{spaceId}/" + QuestionsResource.RESOURCE_NAME)
 	public QuestionsResource questions() {
 		return new QuestionsResource();
 	}
 
-	@Path("/{spaceId}/relations")
+	@Path("/{spaceId}/" + QuestionRelationsResource.RESOURCE_NAME)
 	public QuestionRelationsResource relations() {
 		return new QuestionRelationsResource();
 	}
