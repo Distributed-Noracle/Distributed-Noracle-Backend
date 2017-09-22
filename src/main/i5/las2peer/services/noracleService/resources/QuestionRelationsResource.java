@@ -86,7 +86,7 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					message = "No relation id given",
 					response = ExceptionEntity.class),
 			@ApiResponse(
-					code = HttpURLConnection.HTTP_UNAUTHORIZED,
+					code = HttpURLConnection.HTTP_FORBIDDEN,
 					message = "Access Denied",
 					response = ExceptionEntity.class),
 			@ApiResponse(
@@ -120,10 +120,6 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_BAD_REQUEST,
 					message = "No space id given",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_UNAUTHORIZED,
-					message = "Not logged in",
 					response = ExceptionEntity.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_FORBIDDEN,
@@ -189,12 +185,12 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					message = "No relation id given",
 					response = ExceptionEntity.class),
 			@ApiResponse(
-					code = HttpURLConnection.HTTP_UNAUTHORIZED,
-					message = "Not logged in",
-					response = ExceptionEntity.class),
-			@ApiResponse(
 					code = HttpURLConnection.HTTP_FORBIDDEN,
 					message = "Access Denied",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_NOT_FOUND,
+					message = "Relation Not Found",
 					response = ExceptionEntity.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,

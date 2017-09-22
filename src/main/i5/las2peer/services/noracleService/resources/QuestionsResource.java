@@ -84,7 +84,7 @@ public class QuestionsResource implements INoracleQuestionService {
 					message = "No question id given",
 					response = ExceptionEntity.class),
 			@ApiResponse(
-					code = HttpURLConnection.HTTP_UNAUTHORIZED,
+					code = HttpURLConnection.HTTP_FORBIDDEN,
 					message = "Access Denied",
 					response = ExceptionEntity.class),
 			@ApiResponse(
@@ -116,10 +116,6 @@ public class QuestionsResource implements INoracleQuestionService {
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_BAD_REQUEST,
 					message = "No space id given",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_UNAUTHORIZED,
-					message = "Not logged in",
 					response = ExceptionEntity.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_FORBIDDEN,
@@ -190,12 +186,12 @@ public class QuestionsResource implements INoracleQuestionService {
 					message = "No question id given",
 					response = ExceptionEntity.class),
 			@ApiResponse(
-					code = HttpURLConnection.HTTP_UNAUTHORIZED,
-					message = "Not logged in",
-					response = ExceptionEntity.class),
-			@ApiResponse(
 					code = HttpURLConnection.HTTP_FORBIDDEN,
 					message = "Access Denied",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_NOT_FOUND,
+					message = "Question Not Found",
 					response = ExceptionEntity.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
