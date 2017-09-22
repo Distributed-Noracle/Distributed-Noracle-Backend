@@ -55,17 +55,17 @@ public class SpacesResource implements INoracleSpaceService {
 					response = ExceptionEntity.class) })
 	public Space createSpace(CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
 		try {
-			return createSpace(createSpacePojo.getSpaceId(), createSpacePojo.getName());
+			return createSpace(createSpacePojo.getName());
 		} catch (ServiceNotAuthorizedException e) {
 			throw new NotAuthorizedException(e);
 		}
 	}
 
 	@Override
-	public Space createSpace(String spaceId, String name) throws ServiceInvocationException {
+	public Space createSpace(String name) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"createSpace", spaceId, name);
+				"createSpace", name);
 		Space space;
 		if (rmiResult instanceof Space) {
 			space = (Space) rmiResult;
