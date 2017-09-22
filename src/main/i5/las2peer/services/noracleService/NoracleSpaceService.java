@@ -49,6 +49,7 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		}
 		SpaceInviteAgent spaceInviteAgent;
 		try {
+			// FIXME use secure secret
 			spaceInviteAgent = new SpaceInviteAgent("topsecret");
 			spaceInviteAgent.unlock("topsecret");
 			Context.get().storeAgent(spaceInviteAgent);
