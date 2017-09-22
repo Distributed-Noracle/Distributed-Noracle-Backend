@@ -129,7 +129,7 @@ public class NoracleServiceTest {
 		}
 	}
 
-	protected String createAndFetchTestSpace() throws Exception {
+	protected Space createAndFetchTestSpace() throws Exception {
 		// create test space
 		CreateSpacePojo body = new CreateSpacePojo();
 		body.setName(TEST_SPACE_NAME);
@@ -146,7 +146,7 @@ public class NoracleServiceTest {
 		Assert.assertEquals(Status.OK.getStatusCode(), responseSpace.getStatus());
 		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, responseSpace.getMediaType());
 		Space space = responseSpace.readEntity(Space.class);
-		return space.getSpaceId();
+		return space;
 	}
 
 	@Test
@@ -175,7 +175,7 @@ public class NoracleServiceTest {
 	@Test
 	public void testAutoSubscribe() {
 		try {
-			String testSpaceId = createAndFetchTestSpace();
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			// check if agent is auto-subscribed
 			WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
 					+ testAgent.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
@@ -196,7 +196,7 @@ public class NoracleServiceTest {
 	@Test
 	public void testCreateQuestionNoLogin() {
 		try {
-			String testSpaceId = createAndFetchTestSpace();
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			// create question in space
 			CreateQuestionPojo body = new CreateQuestionPojo();
 			body.setQuestionText(TEST_QUESTION_TEXT);
@@ -237,7 +237,7 @@ public class NoracleServiceTest {
 	@Test
 	public void testQuestionReadPermission() {
 		try {
-			String testSpaceId = createAndFetchTestSpace();
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			// create question in space
 			CreateQuestionPojo body = new CreateQuestionPojo();
 			body.setQuestionText(TEST_QUESTION_TEXT);
@@ -278,7 +278,7 @@ public class NoracleServiceTest {
 	@Test
 	public void testChangeQuestion() {
 		try {
-			String testSpaceId = createAndFetchTestSpace();
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			String questionId = createTestQuestion(testSpaceId);
 			ChangeQuestionPojo body = new ChangeQuestionPojo();
 			body.setQuestionText("How much is the fish?");
@@ -302,7 +302,7 @@ public class NoracleServiceTest {
 	@Test
 	public void testGetQuestions() {
 		try {
-			String testSpaceId = createAndFetchTestSpace();
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			String questionId1 = createTestQuestion(testSpaceId);
 			String questionId2 = createTestQuestion(testSpaceId);
 			String questionId3 = createTestQuestion(testSpaceId);
@@ -344,7 +344,7 @@ public class NoracleServiceTest {
 	@Test
 	public void testQuestionRelations() {
 		try {
-			String testSpaceId = createAndFetchTestSpace();
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			String questionId1 = createTestQuestion(testSpaceId);
 			String questionId2 = createTestQuestion(testSpaceId);
 			// create test question relation
