@@ -9,16 +9,18 @@ public class Question implements Serializable {
 	private String questionId;
 	private String text;
 	private String spaceId;
+	private String authorId;
 	private String timestampCreated;
 	private String timestampLastModified;
 
 	public Question() { // used in tests
 	}
 
-	public Question(String questionId, String text, String spaceId, String timestampCreated) {
+	public Question(String questionId, String text, String spaceId, String authorId, String timestampCreated) {
 		this.questionId = questionId;
 		this.text = text;
 		this.spaceId = spaceId;
+		this.authorId = authorId;
 		this.timestampCreated = timestampCreated;
 		this.timestampLastModified = timestampCreated;
 	}
@@ -45,6 +47,14 @@ public class Question implements Serializable {
 
 	public void setSpaceId(String spaceId) {
 		this.spaceId = spaceId;
+	}
+
+	public String getAuthorId() {
+		return authorId;
+	}
+
+	public void setAuthorId(String authorId) {
+		this.authorId = authorId;
 	}
 
 	public String getTimestampCreated() {

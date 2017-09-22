@@ -15,6 +15,7 @@ import i5.las2peer.api.persistency.Envelope;
 import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
 import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
+import i5.las2peer.api.security.Agent;
 import i5.las2peer.api.security.AnonymousAgent;
 import i5.las2peer.services.noracleService.api.INoracleQuestionService;
 import i5.las2peer.services.noracleService.model.Question;
@@ -38,27 +39,29 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 
 	@Override
 	public Question createQuestion(String questionSpaceId, String questionText) throws ServiceInvocationException {
+		Agent mainAgent = Context.get().getMainAgent();
 		if (questionSpaceId == null || questionSpaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No question space id given");
 		} else if (questionText == null || questionText.isEmpty()) {
 			throw new InvocationBadArgumentException("No question text given");
-		} else if (Context.get().getMainAgent() instanceof AnonymousAgent) {
+		} else if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceNotAuthorizedException("You have to be logged in to create a question");
 		}
 		String questionId = buildQuestionId();
 		Envelope env;
 		try {
-			env = Context.get().createEnvelope(getQuestionEnvelopeIdentifier(questionId));
+			env = Context.get().createEnvelope(getQuestionEnvelopeIdentifier(questionId), mainAgent);
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not create envelope for question", e);
 		}
 		env.setPublic();
-		Question question = new Question(questionId, questionText, questionSpaceId, Instant.now().toString());
+		Question question = new Question(questionId, questionText, questionSpaceId, mainAgent.getIdentifier(),
+				Instant.now().toString());
 		env.setContent(question);
 		try {
-			Context.get().storeEnvelope(env, Context.get().getMainAgent());
+			Context.get().storeEnvelope(env, mainAgent);
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
 		} catch (EnvelopeOperationFailedException e) {
@@ -150,42 +153,47 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 			startAt = 1;
 		}
 		QuestionList result = new QuestionList();
-		if (order.equalsIgnoreCase("desc")) {
-			for (int questionNumber = startAt; questionNumber > startAt - limit; questionNumber--) {
-				try {
-					Envelope spaceQuestionEnv;
-					try {
-						spaceQuestionEnv = Context.get()
-								.requestEnvelope(buildSpaceQuestionNumberId(spaceId, questionNumber));
-					} catch (EnvelopeNotFoundException e) {
-						break;
+		try {
+			if (order.equalsIgnoreCase("desc")) {
+				for (int questionNumber = startAt; questionNumber > startAt - limit; questionNumber--) {
+					if (!retrieveQuestion(result, spaceId, questionNumber)) {
+						limit++;
 					}
-					String questionId = (String) spaceQuestionEnv.getContent();
-					Envelope questionEnv = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
-					result.add((Question) questionEnv.getContent());
-				} catch (Exception e) {
-					// XXX logging
+				}
+			} else {
+				for (int questionNumber = startAt; questionNumber < startAt + limit; questionNumber++) {
+					if (!retrieveQuestion(result, spaceId, questionNumber)) {
+						limit++;
+					}
 				}
 			}
-		} else {
-			for (int questionNumber = startAt; questionNumber < startAt + limit; questionNumber++) {
-				try {
-					Envelope spaceQuestionEnv;
-					try {
-						spaceQuestionEnv = Context.get()
-								.requestEnvelope(buildSpaceQuestionNumberId(spaceId, questionNumber));
-					} catch (EnvelopeNotFoundException e) {
-						break;
-					}
-					String questionId = (String) spaceQuestionEnv.getContent();
-					Envelope questionEnv = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
-					result.add((Question) questionEnv.getContent());
-				} catch (Exception e) {
-					// XXX logging
-				}
-			}
+		} catch (EnvelopeNotFoundException e) {
+			// done
 		}
 		return result;
+	}
+
+	private boolean retrieveQuestion(QuestionList result, String spaceId, int questionNumber)
+			throws EnvelopeNotFoundException {
+		try {
+			Envelope spaceQuestionEnv = Context.get()
+					.requestEnvelope(buildSpaceQuestionNumberId(spaceId, questionNumber));
+			String questionId = (String) spaceQuestionEnv.getContent();
+			Envelope questionEnv = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
+			Question question = (Question) questionEnv.getContent();
+			// TODO check if author is a member of this space?
+//			String authorId = question.getAuthorId();
+//			if (authorId == null || authorId.isEmpty()) {
+//				return false;
+//			}
+			result.add(question);
+			return true;
+		} catch (EnvelopeNotFoundException e) {
+			throw e;
+		} catch (Exception e) {
+			// XXX logging
+		}
+		return false;
 	}
 
 	@Override
