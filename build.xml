@@ -1,4 +1,4 @@
-<project name="Noracle-Bundle-Service" default="jar" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name="Distributed-Noracle-Service" default="jar" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
 
 	<property name="core.version" value="0.7-SNAPSHOT" />
 
