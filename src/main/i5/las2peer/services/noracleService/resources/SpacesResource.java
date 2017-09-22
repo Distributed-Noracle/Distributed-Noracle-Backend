@@ -76,7 +76,7 @@ public class SpacesResource implements INoracleSpaceService {
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 		}
-		new AgentsResource().subscribeToSpace(space.getSpaceId(), space.getName());
+		new AgentsResource().subscribeToSpace(space.getSpaceId(), space.getName(), space.getSpaceSecret());
 		return space;
 	}
 

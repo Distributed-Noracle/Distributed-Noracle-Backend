@@ -1,5 +1,6 @@
 package i5.las2peer.services.noracleService;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
 import i5.las2peer.api.Context;
@@ -20,7 +21,9 @@ import i5.las2peer.api.security.AgentAlreadyExistsException;
 import i5.las2peer.api.security.AgentLockedException;
 import i5.las2peer.api.security.AgentOperationFailedException;
 import i5.las2peer.api.security.AnonymousAgent;
+import i5.las2peer.api.security.GroupAgent;
 import i5.las2peer.security.GroupAgentImpl;
+import i5.las2peer.security.UserAgentImpl;
 import i5.las2peer.serialization.SerializationException;
 import i5.las2peer.services.noracleService.api.INoracleSpaceService;
 import i5.las2peer.services.noracleService.model.Space;
@@ -36,9 +39,11 @@ import i5.las2peer.tools.CryptoException;
 public class NoracleSpaceService extends Service implements INoracleSpaceService {
 
 	private final Random myRandom;
+	private final SecureRandom secureRandom;
 
 	public NoracleSpaceService() {
 		myRandom = new Random();
+		secureRandom = new SecureRandom();
 	}
 
 	@Override
@@ -47,16 +52,25 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceNotAuthorizedException("You have to be logged in to create a space");
 		}
+		String spaceId = buildSpaceId();
+		String spaceSecret = generateSpaceSecret();
 		SpaceInviteAgent spaceInviteAgent;
 		try {
-			// FIXME use secure secret
-			spaceInviteAgent = new SpaceInviteAgent("topsecret");
-			spaceInviteAgent.unlock("topsecret");
+			spaceInviteAgent = new SpaceInviteAgent(spaceSecret);
+			spaceInviteAgent.unlock(spaceSecret);
 			Context.get().storeAgent(spaceInviteAgent);
 		} catch (AgentOperationFailedException | CryptoException e) {
 			throw new InternalServiceException("Could not create space invite agent", e);
 		} catch (AgentAccessDeniedException | AgentAlreadyExistsException | AgentLockedException e) {
 			throw new InternalServiceException("Could not store space invite agent", e);
+		}
+		try {
+			Envelope envInviteMapping = Context.get().createEnvelope(getInviteMappingIdentifier(spaceId));
+			envInviteMapping.setPublic();
+			envInviteMapping.setContent(spaceInviteAgent.getIdentifier());
+			Context.get().storeEnvelope(envInviteMapping);
+		} catch (EnvelopeOperationFailedException | EnvelopeAccessDeniedException e) {
+			throw new InternalServiceException("Could not store space invite mapping", e);
 		}
 		GroupAgentImpl spaceMemberGroupAgent;
 		try {
@@ -68,7 +82,14 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		} catch (AgentAccessDeniedException | AgentAlreadyExistsException | AgentLockedException e) {
 			throw new InternalServiceException("Could not store space member group agent", e);
 		}
-		String spaceId = buildSpaceId();
+		try {
+			Envelope envGroupMapping = Context.get().createEnvelope(getMemberMappingIdentifier(spaceId));
+			envGroupMapping.setPublic();
+			envGroupMapping.setContent(spaceMemberGroupAgent.getIdentifier());
+			Context.get().storeEnvelope(envGroupMapping);
+		} catch (EnvelopeOperationFailedException | EnvelopeAccessDeniedException e) {
+			throw new InternalServiceException("Could not store space group member mapping", e);
+		}
 		Envelope env;
 		try {
 			env = Context.get().createEnvelope(getSpaceEnvelopeIdentifier(spaceId), mainAgent);
@@ -76,7 +97,8 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 			throw new InternalServiceException("Could not create envelope for space", e);
 		}
 		env.addReader(spaceMemberGroupAgent);
-		Space space = new Space(spaceId, name, mainAgent.getIdentifier(), spaceMemberGroupAgent.getIdentifier());
+		Space space = new Space(spaceId, spaceSecret, name, mainAgent.getIdentifier(),
+				spaceMemberGroupAgent.getIdentifier());
 		env.setContent(space);
 		try {
 			Context.get().storeEnvelope(env, mainAgent);
@@ -105,12 +127,54 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		return space;
 	}
 
+	public void joinSpace(String spaceId, String spaceSecret) throws ServiceInvocationException {
+		if (spaceId == null || spaceId.isEmpty()) {
+			throw new InvocationBadArgumentException("No space id given");
+		} else if (spaceSecret == null || spaceSecret.isEmpty()) {
+			throw new ServiceAccessDeniedException("No space secret given");
+		}
+		try {
+			String inviteAgentEnvelopeId = getInviteMappingIdentifier(spaceId);
+			Envelope inviteAgentMapping = Context.get().requestEnvelope(inviteAgentEnvelopeId);
+			String inviteAgentId = (String) inviteAgentMapping.getContent();
+			UserAgentImpl inviteAgent = (UserAgentImpl) Context.get().fetchAgent(inviteAgentId);
+			inviteAgent.unlock(spaceSecret);
+			String memberAgentEnvelopeId = getMemberMappingIdentifier(spaceId);
+			Envelope memberAgentMapping = Context.get().requestEnvelope(memberAgentEnvelopeId);
+			String memberAgentId = (String) memberAgentMapping.getContent();
+			GroupAgent memberAgent = (GroupAgent) Context.get().fetchAgent(memberAgentId);
+			memberAgent.unlock(inviteAgent);
+			memberAgent.addMember(Context.get().getMainAgent());
+			Context.get().storeAgent(memberAgent);
+		} catch (AgentAccessDeniedException e) {
+			throw new ServiceAccessDeniedException("Could not unlock agent", e);
+		} catch (Exception e) {
+			throw new ServiceInvocationException("Could not join space", e);
+		}
+	}
+
 	private String buildSpaceId() {
 		String result = "";
 		for (int c = 0; c < 10; c++) {
 			result += myRandom.nextInt(10);
 		}
 		return result;
+	}
+
+	private String generateSpaceSecret() {
+		String result = "";
+		for (int c = 0; c < 20; c++) {
+			result += secureRandom.nextInt(10);
+		}
+		return result;
+	}
+
+	private String getInviteMappingIdentifier(String spaceId) {
+		return "invite-" + spaceId;
+	}
+
+	private String getMemberMappingIdentifier(String spaceId) {
+		return "group-" + spaceId;
 	}
 
 	private String getSpaceEnvelopeIdentifier(String questionId) {

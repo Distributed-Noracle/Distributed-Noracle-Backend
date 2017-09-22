@@ -7,6 +7,7 @@ public class Space implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String spaceId;
+	private String spaceSecret;
 	private String name;
 	private String spaceOwnerId;
 	private String spaceReaderGroupId;
@@ -14,8 +15,9 @@ public class Space implements Serializable {
 	public Space() { // used in tests
 	}
 
-	public Space(String spaceId, String name, String spaceOwnerId, String spaceReaderGroupId) {
+	public Space(String spaceId, String spaceSecret, String name, String spaceOwnerId, String spaceReaderGroupId) {
 		this.setSpaceId(spaceId);
+		this.setSpaceSecret(spaceSecret);
 		this.setName(name);
 		this.setSpaceOwnerId(spaceOwnerId);
 		this.setSpaceReaderGroupId(spaceReaderGroupId);
@@ -27,6 +29,14 @@ public class Space implements Serializable {
 
 	public void setSpaceId(String spaceId) {
 		this.spaceId = spaceId;
+	}
+
+	public String getSpaceSecret() {
+		return spaceSecret;
+	}
+
+	public void setSpaceSecret(String spaceSecret) {
+		this.spaceSecret = spaceSecret;
 	}
 
 	public String getName() {

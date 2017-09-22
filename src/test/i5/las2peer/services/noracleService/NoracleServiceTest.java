@@ -37,6 +37,7 @@ import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
 import i5.las2peer.services.noracleService.pojo.CreateSpacePojo;
+import i5.las2peer.services.noracleService.pojo.SubscribeSpacePojo;
 import i5.las2peer.services.noracleService.resources.AgentsResource;
 import i5.las2peer.services.noracleService.resources.QuestionRelationsResource;
 import i5.las2peer.services.noracleService.resources.QuestionsResource;
@@ -187,6 +188,60 @@ public class NoracleServiceTest {
 			Assert.assertEquals(result2.size(), 1);
 			Assert.assertEquals(testSpaceId, result2.get(0).getSpaceId());
 			Assert.assertEquals(TEST_SPACE_NAME, result2.get(0).getName());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+	}
+
+	@Test
+	public void testSpaceForeignSubscribeNoSecret() {
+		try {
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
+			SubscribeSpacePojo body = new SubscribeSpacePojo();
+			body.setSpaceId(testSpaceId);
+			WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
+					+ testAgent2.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+			Response response = request.post(Entity.json(body));
+			Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+	}
+
+	@Test
+	public void testSpaceForeignSubscribeIncorrectSecret() {
+		try {
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
+			SubscribeSpacePojo body = new SubscribeSpacePojo();
+			body.setSpaceId(testSpaceId);
+			body.setSpaceSecret("xxx");
+			WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
+					+ testAgent2.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+			Response response = request.post(Entity.json(body));
+			Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+	}
+
+	@Test
+	public void testSpaceForeignSubscribe() {
+		try {
+			Space testSpace = createAndFetchTestSpace();
+			SubscribeSpacePojo body = new SubscribeSpacePojo();
+			body.setSpaceId(testSpace.getSpaceId());
+			body.setSpaceSecret(testSpace.getSpaceSecret());
+			WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
+					+ testAgent2.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+			Response response = request.post(Entity.json(body));
+			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+			Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());

@@ -8,6 +8,7 @@ import i5.las2peer.api.execution.InternalServiceException;
 import i5.las2peer.api.execution.InvocationBadArgumentException;
 import i5.las2peer.api.execution.ServiceAccessDeniedException;
 import i5.las2peer.api.execution.ServiceInvocationException;
+import i5.las2peer.api.p2p.ServiceNameVersion;
 import i5.las2peer.api.persistency.Envelope;
 import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
 import i5.las2peer.api.persistency.EnvelopeNotFoundException;
@@ -27,13 +28,17 @@ import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 public class NoracleAgentService extends Service implements INoracleAgentService {
 
 	@Override
-	public SpaceSubscription subscribeToSpace(String spaceId, String name) throws ServiceInvocationException {
+	public SpaceSubscription subscribeToSpace(String spaceId, String name, String spaceSecret)
+			throws ServiceInvocationException {
 		Agent mainAgent = Context.get().getMainAgent();
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");
 		} else if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceAccessDeniedException("You have to be logged in to subscribe to a space");
 		}
+		Context.get().invoke(
+				new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"joinSpace", spaceId, spaceSecret);
 		SpaceSubscription subscription = new SpaceSubscription(spaceId, name);
 		String envIdentifier = buildSubscriptionId(mainAgent.getIdentifier());
 		Envelope env;

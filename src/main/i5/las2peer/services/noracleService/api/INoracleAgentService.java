@@ -6,7 +6,8 @@ import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 
 public interface INoracleAgentService {
 
-	public SpaceSubscription subscribeToSpace(String spaceId, String name) throws ServiceInvocationException;
+	public SpaceSubscription subscribeToSpace(String spaceId, String name, String spaceSecret)
+			throws ServiceInvocationException;
 
 	public void unsubscribeFromSpace(String spaceId) throws ServiceInvocationException;
 

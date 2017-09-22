@@ -8,6 +8,7 @@ public class SubscribeSpacePojo implements Serializable {
 
 	private String spaceId;
 	private String name;
+	private String spaceSecret;
 
 	public String getSpaceId() {
 		return spaceId;
@@ -23,6 +24,14 @@ public class SubscribeSpacePojo implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getSpaceSecret() {
+		return spaceSecret;
+	}
+
+	public void setSpaceSecret(String spaceSecret) {
+		this.spaceSecret = spaceSecret;
 	}
 
 }

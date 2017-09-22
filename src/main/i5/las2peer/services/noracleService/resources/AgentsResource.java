@@ -14,6 +14,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -68,7 +69,47 @@ public class AgentsResource implements INoracleAgentService {
 		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
 			throw new ForbiddenException("You can only subscribe yourself to a space");
 		}
-		subscribeToSpace(subscribeSpacePojo.getSpaceId(), subscribeSpacePojo.getName());
+		subscribeToSpace(subscribeSpacePojo.getSpaceId(), subscribeSpacePojo.getName(),
+				subscribeSpacePojo.getSpaceSecret());
+		try {
+			return Response.created(
+					new URI(null, null, RESOURCE_NAME + "/" + agentId + "/" + SUBSCRIPTIONS_RESOURCE_NAME, null))
+					.build();
+		} catch (URISyntaxException e) {
+			throw new InternalServerErrorException(e);
+		}
+	}
+
+	@GET
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_HTML)
+	@ApiResponses({ @ApiResponse(
+			code = HttpURLConnection.HTTP_CREATED,
+			message = "Subscription successfully created"),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_BAD_REQUEST,
+					message = "No space id given",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_UNAUTHORIZED,
+					message = "You have to be logged in to subscribe to a space",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_FORBIDDEN,
+					message = "You can only subscribe yourself to a space",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
+					message = "Internal Server Error",
+					response = ExceptionEntity.class) })
+	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
+	public Response subscribeToSpace(@PathParam("agentid") String agentId, @QueryParam("spaceId") String spaceId,
+			@QueryParam("name") String name, @QueryParam("spaceSecret") String spaceSecret)
+			throws ServiceInvocationException {
+		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
+			throw new ForbiddenException("You can only subscribe yourself to a space");
+		}
+		subscribeToSpace(spaceId, name, spaceSecret);
 		try {
 			return Response.created(
 					new URI(null, null, RESOURCE_NAME + "/" + agentId + "/" + SUBSCRIPTIONS_RESOURCE_NAME, null))
@@ -79,10 +120,11 @@ public class AgentsResource implements INoracleAgentService {
 	}
 
 	@Override
-	public SpaceSubscription subscribeToSpace(String spaceId, String name) throws ServiceInvocationException {
+	public SpaceSubscription subscribeToSpace(String spaceId, String name, String spaceSecret)
+			throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"subscribeToSpace", spaceId, name);
+				"subscribeToSpace", spaceId, name, spaceSecret);
 		if (rmiResult instanceof SpaceSubscription) {
 			return (SpaceSubscription) rmiResult;
 		} else {
