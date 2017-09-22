@@ -1,6 +1,7 @@
-package i5.las2peer.services.noracleService;
+package i5.las2peer.services.noracleService.api;
 
 import i5.las2peer.api.execution.ServiceInvocationException;
+import i5.las2peer.services.noracleService.model.Space;
 
 public interface INoracleSpaceService {
 

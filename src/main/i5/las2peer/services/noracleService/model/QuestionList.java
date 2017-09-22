@@ -1,4 +1,4 @@
-package i5.las2peer.services.noracleService;
+package i5.las2peer.services.noracleService.model;
 
 import java.util.ArrayList;
 

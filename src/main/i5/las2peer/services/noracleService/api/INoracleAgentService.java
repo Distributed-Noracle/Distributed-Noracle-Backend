@@ -1,6 +1,8 @@
-package i5.las2peer.services.noracleService;
+package i5.las2peer.services.noracleService.api;
 
 import i5.las2peer.api.execution.ServiceInvocationException;
+import i5.las2peer.services.noracleService.model.SpaceSubscription;
+import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 
 public interface INoracleAgentService {
 

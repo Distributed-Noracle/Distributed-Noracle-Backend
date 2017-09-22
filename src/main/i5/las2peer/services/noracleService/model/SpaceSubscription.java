@@ -1,18 +1,18 @@
-package i5.las2peer.services.noracleService;
+package i5.las2peer.services.noracleService.model;
 
 import java.io.Serializable;
 
-public class Space implements Serializable {
+public class SpaceSubscription implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	private String spaceId;
 	private String name;
 
-	public Space() { // used in tests
+	public SpaceSubscription() { // used in tests
 	}
 
-	public Space(String spaceId, String name) {
+	public SpaceSubscription(String spaceId, String name) {
 		this.setSpaceId(spaceId);
 		this.setName(name);
 	}

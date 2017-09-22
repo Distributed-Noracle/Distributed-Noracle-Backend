@@ -2,7 +2,7 @@ package i5.las2peer.services.noracleService.pojo;
 
 import java.util.ArrayList;
 
-import i5.las2peer.services.noracleService.QuestionRelationList;
+import i5.las2peer.services.noracleService.model.QuestionRelationList;
 
 public class GetQuestionRelationsResponsePojo {
 

@@ -14,6 +14,9 @@ import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
 import i5.las2peer.api.security.Agent;
 import i5.las2peer.api.security.AnonymousAgent;
+import i5.las2peer.services.noracleService.api.INoracleAgentService;
+import i5.las2peer.services.noracleService.model.SpaceSubscription;
+import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 
 /**
  * Noracle Agents Service

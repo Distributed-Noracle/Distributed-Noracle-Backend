@@ -15,6 +15,9 @@ import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
 import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
 import i5.las2peer.api.security.AnonymousAgent;
+import i5.las2peer.services.noracleService.api.INoracleQuestionRelationService;
+import i5.las2peer.services.noracleService.model.QuestionRelation;
+import i5.las2peer.services.noracleService.model.QuestionRelationList;
 
 /**
  * Noracle QuestionRelation Relation Service
