@@ -14,9 +14,17 @@ import i5.las2peer.api.persistency.Envelope;
 import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
 import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
+import i5.las2peer.api.security.Agent;
+import i5.las2peer.api.security.AgentAccessDeniedException;
+import i5.las2peer.api.security.AgentAlreadyExistsException;
+import i5.las2peer.api.security.AgentLockedException;
+import i5.las2peer.api.security.AgentOperationFailedException;
 import i5.las2peer.api.security.AnonymousAgent;
+import i5.las2peer.security.GroupAgentImpl;
+import i5.las2peer.serialization.SerializationException;
 import i5.las2peer.services.noracleService.api.INoracleSpaceService;
 import i5.las2peer.services.noracleService.model.Space;
+import i5.las2peer.tools.CryptoException;
 
 /**
  * Noracle Space Service
@@ -34,21 +42,32 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 
 	@Override
 	public Space createSpace(String name) throws ServiceInvocationException {
-		if (Context.get().getMainAgent() instanceof AnonymousAgent) {
+		Agent mainAgent = Context.get().getMainAgent();
+		if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceNotAuthorizedException("You have to be logged in to create a space");
+		}
+		GroupAgentImpl spaceMemberGroupAgent;
+		try {
+			spaceMemberGroupAgent = GroupAgentImpl.createGroupAgent(new Agent[] { mainAgent });
+			spaceMemberGroupAgent.unlock(mainAgent);
+			Context.get().storeAgent(spaceMemberGroupAgent);
+		} catch (AgentOperationFailedException | CryptoException | SerializationException e) {
+			throw new InternalServiceException("Could not create space member group agent", e);
+		} catch (AgentAccessDeniedException | AgentAlreadyExistsException | AgentLockedException e) {
+			throw new InternalServiceException("Could not store space member group agent", e);
 		}
 		String spaceId = buildSpaceId();
 		Envelope env;
 		try {
-			env = Context.get().createEnvelope(getSpaceEnvelopeIdentifier(spaceId));
+			env = Context.get().createEnvelope(getSpaceEnvelopeIdentifier(spaceId), mainAgent);
 		} catch (EnvelopeOperationFailedException | EnvelopeAccessDeniedException e) {
 			throw new InternalServiceException("Could not create envelope for space", e);
 		}
-		env.setPublic();
-		Space space = new Space(spaceId, name);
+		env.addReader(spaceMemberGroupAgent);
+		Space space = new Space(spaceId, name, mainAgent.getIdentifier());
 		env.setContent(space);
 		try {
-			Context.get().storeEnvelope(env, Context.get().getMainAgent());
+			Context.get().storeEnvelope(env, mainAgent);
 		} catch (EnvelopeAccessDeniedException | EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not store space envelope", e);
 		}

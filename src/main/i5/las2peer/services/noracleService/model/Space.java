@@ -8,13 +8,15 @@ public class Space implements Serializable {
 
 	private String spaceId;
 	private String name;
+	private String spaceOwnerId;
 
 	public Space() { // used in tests
 	}
 
-	public Space(String spaceId, String name) {
+	public Space(String spaceId, String name, String spaceOwnerId) {
 		this.setSpaceId(spaceId);
 		this.setName(name);
+		this.setSpaceOwnerId(spaceOwnerId);
 	}
 
 	public String getSpaceId() {
@@ -31,6 +33,14 @@ public class Space implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getSpaceOwnerId() {
+		return spaceOwnerId;
+	}
+
+	public void setSpaceOwnerId(String spaceOwnerId) {
+		this.spaceOwnerId = spaceOwnerId;
 	}
 
 }

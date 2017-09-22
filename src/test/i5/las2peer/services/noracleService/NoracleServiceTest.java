@@ -49,7 +49,9 @@ public class NoracleServiceTest {
 	protected WebConnector connector;
 	protected Client webClient;
 	protected UserAgentImpl testAgent;
+	protected UserAgentImpl testAgent2;
 	protected String basicAuthHeader;
+	protected String basicAuthHeader2;
 	protected String baseUrl;
 
 	@Before
@@ -77,6 +79,11 @@ public class NoracleServiceTest {
 			activeNode.storeAgent(testAgent);
 			basicAuthHeader = "basic " + Base64.getEncoder()
 					.encodeToString((testAgent.getLoginName() + ":" + "adamspass").getBytes(StandardCharsets.UTF_8));
+			testAgent2 = MockAgentFactory.getEve();
+			testAgent2.unlock("evespass");
+			activeNode.storeAgent(testAgent2);
+			basicAuthHeader2 = "basic " + Base64.getEncoder()
+					.encodeToString((testAgent2.getLoginName() + ":" + "evespass").getBytes(StandardCharsets.UTF_8));
 			baseUrl = connector.getHttpEndpoint() + "/" + NoracleService.RESOURCE_NAME + "/v"
 					+ NoracleService.API_VERSION + ".0";
 		} catch (Exception e) {
@@ -135,6 +142,29 @@ public class NoracleServiceTest {
 		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, responseSpace.getMediaType());
 		Space space = responseSpace.readEntity(Space.class);
 		return space.getSpaceId();
+	}
+
+	@Test
+	public void testSpaceReadPermission() {
+		try {
+			// create test space with first test user
+			CreateSpacePojo body = new CreateSpacePojo();
+			body.setName(TEST_SPACE_NAME);
+			WebTarget target = webClient.target(baseUrl + "/spaces");
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			Response response = request.post(Entity.json(body));
+			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+			Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
+			// check if non space member has read permission
+			String locationHeader = response.getHeaderString(HttpHeaders.LOCATION);
+			WebTarget targetSpace = webClient.target(locationHeader);
+			Builder requestSpace = targetSpace.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+			Response responseSpace = requestSpace.get();
+			Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), responseSpace.getStatus());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
 	}
 
 	@Test
