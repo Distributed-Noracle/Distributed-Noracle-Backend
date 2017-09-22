@@ -24,6 +24,7 @@ import i5.las2peer.security.GroupAgentImpl;
 import i5.las2peer.serialization.SerializationException;
 import i5.las2peer.services.noracleService.api.INoracleSpaceService;
 import i5.las2peer.services.noracleService.model.Space;
+import i5.las2peer.services.noracleService.model.SpaceInviteAgent;
 import i5.las2peer.tools.CryptoException;
 
 /**
@@ -46,9 +47,19 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceNotAuthorizedException("You have to be logged in to create a space");
 		}
+		SpaceInviteAgent spaceInviteAgent;
+		try {
+			spaceInviteAgent = new SpaceInviteAgent("topsecret");
+			spaceInviteAgent.unlock("topsecret");
+			Context.get().storeAgent(spaceInviteAgent);
+		} catch (AgentOperationFailedException | CryptoException e) {
+			throw new InternalServiceException("Could not create space invite agent", e);
+		} catch (AgentAccessDeniedException | AgentAlreadyExistsException | AgentLockedException e) {
+			throw new InternalServiceException("Could not store space invite agent", e);
+		}
 		GroupAgentImpl spaceMemberGroupAgent;
 		try {
-			spaceMemberGroupAgent = GroupAgentImpl.createGroupAgent(new Agent[] { mainAgent });
+			spaceMemberGroupAgent = GroupAgentImpl.createGroupAgent(new Agent[] { spaceInviteAgent, mainAgent });
 			spaceMemberGroupAgent.unlock(mainAgent);
 			Context.get().storeAgent(spaceMemberGroupAgent);
 		} catch (AgentOperationFailedException | CryptoException | SerializationException e) {
