@@ -6,9 +6,5 @@
 	<classpathentry kind="lib" path="lib/junit-4.12.jar"/>
 	<classpathentry kind="lib" path="lib/hamcrest-core-1.3.jar"/>
 	<classpathentry kind="lib" path="lib/las2peer-bundle-0.7-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="lib/i5.las2peer.services.noracleSpaceService-0.4.0.jar"/>
-	<classpathentry kind="lib" path="lib/i5.las2peer.services.noracleQuestionService-0.4.0.jar"/>
-	<classpathentry kind="lib" path="lib/i5.las2peer.services.noracleQuestionRelationService-0.4.0.jar"/>
-	<classpathentry kind="lib" path="lib/i5.las2peer.services.noracleAgentService-0.4.0.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
