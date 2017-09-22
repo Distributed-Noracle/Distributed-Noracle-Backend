@@ -69,7 +69,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");
 		} else if (agent instanceof AnonymousAgent) {
-			throw new ServiceAccessDeniedException("You have to be logged in to subscribe to a space");
+			throw new ServiceAccessDeniedException("You have to be logged in to unsubscribe to a space");
 		}
 		String envIdentifier = buildSubscriptionId(agent.getIdentifier());
 		Envelope env;
@@ -84,7 +84,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
 		} catch (EnvelopeOperationFailedException e) {
-			throw new InternalServiceException("Could not create envelope for space subscription", e);
+			throw new InternalServiceException("Could not read envelope for space unsubscription", e);
 		}
 		Iterator<SpaceSubscription> itSubscription = subscriptionList.iterator();
 		while (itSubscription.hasNext()) {
@@ -112,7 +112,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
 		} catch (EnvelopeOperationFailedException e) {
-			throw new InternalServiceException("Could not fetch question envelope", e);
+			throw new InternalServiceException("Could not fetch space subscription envelope", e);
 		} catch (EnvelopeNotFoundException e) {
 			return new SpaceSubscriptionList();
 		}
