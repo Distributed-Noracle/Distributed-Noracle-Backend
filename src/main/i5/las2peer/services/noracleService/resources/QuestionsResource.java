@@ -2,10 +2,13 @@ package i5.las2peer.services.noracleService.resources;
 
 import java.io.Serializable;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -13,6 +16,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
@@ -35,11 +39,10 @@ public class QuestionsResource implements INoracleQuestionService {
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_HTML)
 	@ApiResponses({ @ApiResponse(
-			code = HttpURLConnection.HTTP_OK,
-			message = "Question successfully created",
-			response = Question.class),
+			code = HttpURLConnection.HTTP_CREATED,
+			message = "Question successfully created"),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_BAD_REQUEST,
 					message = "No question text given",
@@ -52,9 +55,16 @@ public class QuestionsResource implements INoracleQuestionService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Question createQuestion(@PathParam("spaceId") String questionSpaceId, CreateQuestionPojo createQuestionPojo)
+	public Response createQuestion(@PathParam("spaceId") String questionSpaceId, CreateQuestionPojo createQuestionPojo)
 			throws ServiceInvocationException {
-		return createQuestion(questionSpaceId, createQuestionPojo.getQuestionText());
+		Question question = createQuestion(questionSpaceId, createQuestionPojo.getQuestionText());
+		try {
+			return Response.created(
+					new URI(null, null, "spaces/" + questionSpaceId + "/questions/" + question.getQuestionId(), null))
+					.build();
+		} catch (URISyntaxException e) {
+			throw new InternalServerErrorException(e);
+		}
 	}
 
 	@Override

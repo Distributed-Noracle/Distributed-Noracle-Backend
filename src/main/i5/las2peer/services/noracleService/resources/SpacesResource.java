@@ -2,6 +2,8 @@ package i5.las2peer.services.noracleService.resources;
 
 import java.io.Serializable;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -14,6 +16,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
@@ -38,11 +41,10 @@ public class SpacesResource implements INoracleSpaceService {
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_HTML)
 	@ApiResponses({ @ApiResponse(
-			code = HttpURLConnection.HTTP_OK,
-			message = "Space successfully created",
-			response = Space.class),
+			code = HttpURLConnection.HTTP_CREATED,
+			message = "Space successfully created"),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_UNAUTHORIZED,
 					message = "You have to be logged in to create a space",
@@ -51,8 +53,13 @@ public class SpacesResource implements INoracleSpaceService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Space createSpace(CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
-		return createSpace(createSpacePojo.getName());
+	public Response createSpace(CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
+		Space space = createSpace(createSpacePojo.getName());
+		try {
+			return Response.created(new URI(null, null, "spaces/" + space.getSpaceId(), null)).build();
+		} catch (URISyntaxException e) {
+			throw new InternalServerErrorException(e);
+		}
 	}
 
 	@Override

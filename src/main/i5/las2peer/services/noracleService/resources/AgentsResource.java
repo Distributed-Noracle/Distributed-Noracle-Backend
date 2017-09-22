@@ -2,15 +2,19 @@ package i5.las2peer.services.noracleService.resources;
 
 import java.io.Serializable;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
@@ -33,11 +37,14 @@ public class AgentsResource implements INoracleAgentService {
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_HTML)
 	@ApiResponses({ @ApiResponse(
-			code = HttpURLConnection.HTTP_OK,
-			message = "Subscription successfully created",
-			response = SpaceSubscription.class),
+			code = HttpURLConnection.HTTP_CREATED,
+			message = "Subscription successfully created"),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_BAD_REQUEST,
+					message = "No space id given",
+					response = ExceptionEntity.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_UNAUTHORIZED,
 					message = "You have to be logged in to subscribe to a space",
@@ -51,12 +58,17 @@ public class AgentsResource implements INoracleAgentService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	@Path("/spacesubscriptions")
-	public SpaceSubscription subscribeToSpace(@PathParam("agentid") String agentId,
-			SubscribeSpacePojo subscribeSpacePojo) throws ServiceInvocationException {
+	public Response subscribeToSpace(@PathParam("agentid") String agentId, SubscribeSpacePojo subscribeSpacePojo)
+			throws ServiceInvocationException {
 		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
 			throw new ForbiddenException("You can only subscribe yourself to a space");
 		}
-		return subscribeToSpace(subscribeSpacePojo.getSpaceId(), subscribeSpacePojo.getName());
+		subscribeToSpace(subscribeSpacePojo.getSpaceId(), subscribeSpacePojo.getName());
+		try {
+			return Response.created(new URI(null, null, "agents/" + agentId + "/spacesubscriptions", null)).build();
+		} catch (URISyntaxException e) {
+			throw new InternalServerErrorException(e);
+		}
 	}
 
 	@Override
