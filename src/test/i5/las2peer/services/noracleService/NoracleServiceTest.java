@@ -37,9 +37,6 @@ import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
 import i5.las2peer.services.noracleService.pojo.CreateSpacePojo;
-import i5.las2peer.services.noracleService.pojo.GetQuestionRelationsResponsePojo;
-import i5.las2peer.services.noracleService.pojo.GetQuestionsResponsePojo;
-import i5.las2peer.services.noracleService.pojo.LinkPojo;
 import i5.las2peer.testing.MockAgentFactory;
 import i5.las2peer.testing.TestSuite;
 
@@ -236,32 +233,27 @@ public class NoracleServiceTest {
 			Response response = request.get();
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
-			GetQuestionsResponsePojo result = response.readEntity(GetQuestionsResponsePojo.class);
-			QuestionList questionList = result.getContent();
+			QuestionList questionList = response.readEntity(QuestionList.class);
 			Assert.assertEquals(3, questionList.size());
 			Assert.assertEquals(questionList.get(0).getQuestionId(), questionId1);
 			Assert.assertEquals(questionList.get(1).getQuestionId(), questionId2);
 			Assert.assertEquals(questionList.get(2).getQuestionId(), questionId3);
-			ArrayList<LinkPojo> links = result.getLinks();
-			Assert.assertEquals(1, links.size());
-			Assert.assertEquals("next", links.get(0).getRel());
-			Assert.assertEquals("", links.get(0).getHref());
+			String linkHeader = response.getHeaderString(HttpHeaders.LINK);
+			Assert.assertNull(linkHeader);
 			// inverse order
 			target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
 			request = target.queryParam("order", "desc").queryParam("startat", "3").request();
 			response = request.header(HttpHeaders.AUTHORIZATION, basicAuthHeader).get();
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
-			result = response.readEntity(GetQuestionsResponsePojo.class);
-			questionList = result.getContent();
+			questionList = response.readEntity(QuestionList.class);
 			Assert.assertEquals(3, questionList.size());
 			Assert.assertEquals(questionList.get(0).getQuestionId(), questionId3);
 			Assert.assertEquals(questionList.get(1).getQuestionId(), questionId2);
 			Assert.assertEquals(questionList.get(2).getQuestionId(), questionId1);
-			links = result.getLinks();
-			Assert.assertEquals(1, links.size());
-			Assert.assertEquals("next", links.get(0).getRel());
-			Assert.assertEquals("?order=desc", links.get(0).getHref());
+			linkHeader = response.getHeaderString(HttpHeaders.LINK);
+			Assert.assertNotNull(linkHeader);
+			Assert.assertEquals("<?order=desc>; rel=\"next\"", linkHeader);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
@@ -292,15 +284,15 @@ public class NoracleServiceTest {
 			Response responseQuestionRelation = requestQuestionRelation.get();
 			Assert.assertEquals(Status.OK.getStatusCode(), responseQuestionRelation.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, responseQuestionRelation.getMediaType());
-			GetQuestionRelationsResponsePojo entity = responseQuestionRelation
-					.readEntity(GetQuestionRelationsResponsePojo.class);
-			QuestionRelationList questionRelationList = entity.getContent();
+			QuestionRelationList questionRelationList = responseQuestionRelation.readEntity(QuestionRelationList.class);
 			Assert.assertEquals(1, questionRelationList.size());
 			QuestionRelation questionRelation = questionRelationList.get(0);
 			Assert.assertEquals("duplicate", questionRelation.getName());
 			Assert.assertEquals(questionId1, questionRelation.getFirstQuestionId());
 			Assert.assertEquals(questionId2, questionRelation.getSecondQuestionId());
 			Assert.assertEquals(false, questionRelation.isDirected());
+			String linkHeader = response.getHeaderString(HttpHeaders.LINK);
+			Assert.assertNull(linkHeader);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());

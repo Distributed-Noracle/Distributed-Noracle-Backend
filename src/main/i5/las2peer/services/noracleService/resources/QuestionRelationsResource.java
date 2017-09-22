@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -15,8 +14,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
@@ -31,8 +32,6 @@ import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionRelationPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
-import i5.las2peer.services.noracleService.pojo.GetQuestionRelationsResponsePojo;
-import i5.las2peer.services.noracleService.pojo.LinkPojo;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -122,7 +121,7 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
 			message = "A list of relations from the network",
-			response = GetQuestionRelationsResponsePojo.class),
+			response = QuestionRelationList.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_BAD_REQUEST,
 					message = "No space id given",
@@ -135,20 +134,36 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public GetQuestionRelationsResponsePojo getQuestions(@PathParam("spaceId") String spaceId,
-			@QueryParam("order") String order, @QueryParam("limit") Integer limit,
-			@QueryParam("startAt") Integer startAt) throws ServiceInvocationException {
+	public Response getQuestions(@PathParam("spaceId") String spaceId, @QueryParam("order") String order,
+			@QueryParam("limit") Integer limit, @QueryParam("startAt") Integer startAt)
+			throws ServiceInvocationException {
 		QuestionRelationList questionRelationList = getQuestionRelations(spaceId, order, limit, startAt);
-		GetQuestionRelationsResponsePojo response = new GetQuestionRelationsResponsePojo();
-		response.setContent(questionRelationList);
-		ArrayList<LinkPojo> links = new ArrayList<>();
-		String queryOrder = order != null ? order : "";
-		String queryLimit = limit != null ? Integer.toString(limit) : "";
-		String queryStartAt = startAt != null ? Integer.toString(startAt) : "";
-		LinkPojo nextLink = new LinkPojo("next", "?" + String.join("&", queryOrder, queryLimit, queryStartAt));
-		links.add(nextLink);
-		response.setLinks(links);
-		return response;
+		ResponseBuilder responseBuilder = Response.ok(questionRelationList);
+		String queryOrder = order != null ? "order=" + order : "";
+		String queryLimit = limit != null ? "limit=" + Integer.toString(limit) : "";
+		String queryStartAt = "";
+		if (startAt != null && limit != null) {
+			if (order.equalsIgnoreCase("desc")) {
+				queryStartAt = "startat=" + Integer.toString(startAt - limit);
+			} else {
+				queryStartAt = "startat=" + Integer.toString(startAt + limit);
+			}
+		}
+		String nextLinkStr = "";
+		for (String param : new String[] { queryOrder, queryLimit, queryStartAt }) {
+			if (param != null && !param.isEmpty()) {
+				if (nextLinkStr.isEmpty()) {
+					nextLinkStr += "?";
+				} else {
+					nextLinkStr += "&";
+				}
+				nextLinkStr += param;
+			}
+		}
+		if (!nextLinkStr.isEmpty()) {
+			responseBuilder.header(HttpHeaders.LINK, "<" + nextLinkStr + ">; rel=\"next\"");
+		}
+		return responseBuilder.build();
 	}
 
 	@Override

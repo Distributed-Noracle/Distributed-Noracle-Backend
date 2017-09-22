@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -15,8 +14,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
@@ -30,8 +31,6 @@ import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
-import i5.las2peer.services.noracleService.pojo.GetQuestionsResponsePojo;
-import i5.las2peer.services.noracleService.pojo.LinkPojo;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -122,7 +121,7 @@ public class QuestionsResource implements INoracleQuestionService {
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
 			message = "A list of questions from the network",
-			response = GetQuestionsResponsePojo.class),
+			response = QuestionList.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_BAD_REQUEST,
 					message = "No space id given",
@@ -135,13 +134,11 @@ public class QuestionsResource implements INoracleQuestionService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public GetQuestionsResponsePojo getQuestionsWeb(@PathParam("spaceId") String spaceId,
-			@QueryParam("order") String order, @QueryParam("limit") Integer limit,
-			@QueryParam("startat") Integer startAt) throws ServiceInvocationException {
+	public Response getQuestionsWeb(@PathParam("spaceId") String spaceId, @QueryParam("order") String order,
+			@QueryParam("limit") Integer limit, @QueryParam("startat") Integer startAt)
+			throws ServiceInvocationException {
 		QuestionList questionList = getQuestions(spaceId, order, limit, startAt);
-		GetQuestionsResponsePojo response = new GetQuestionsResponsePojo();
-		response.setContent(questionList);
-		ArrayList<LinkPojo> links = new ArrayList<>();
+		ResponseBuilder responseBuilder = Response.ok(questionList);
 		String queryOrder = order != null ? "order=" + order : "";
 		String queryLimit = limit != null ? "limit=" + Integer.toString(limit) : "";
 		String queryStartAt = "";
@@ -163,10 +160,10 @@ public class QuestionsResource implements INoracleQuestionService {
 				nextLinkStr += param;
 			}
 		}
-		LinkPojo nextLink = new LinkPojo("next", nextLinkStr);
-		links.add(nextLink);
-		response.setLinks(links);
-		return response;
+		if (!nextLinkStr.isEmpty()) {
+			responseBuilder.header(HttpHeaders.LINK, "<" + nextLinkStr + ">; rel=\"next\"");
+		}
+		return responseBuilder.build();
 	}
 
 	@Override
