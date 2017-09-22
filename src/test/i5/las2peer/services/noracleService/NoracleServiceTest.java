@@ -43,6 +43,7 @@ import i5.las2peer.testing.TestSuite;
 public class NoracleServiceTest {
 
 	private static final String TEST_SPACE_NAME = "so many questions";
+	private static final String TEST_QUESTION_TEXT = "How are you?";
 
 	protected int networkSize = 1;
 	protected ArrayList<PastryNodeImpl> nodes;
@@ -194,7 +195,7 @@ public class NoracleServiceTest {
 			String testSpaceId = createAndFetchTestSpace();
 			// create question in space
 			CreateQuestionPojo body = new CreateQuestionPojo();
-			body.setQuestionText("How are you?");
+			body.setQuestionText(TEST_QUESTION_TEXT);
 			WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
 			Response response = target.request().post(Entity.json(body));
 			Assert.assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
@@ -207,7 +208,7 @@ public class NoracleServiceTest {
 	protected String createTestQuestion(String testSpaceId) throws Exception {
 		// create question in space
 		CreateQuestionPojo body = new CreateQuestionPojo();
-		body.setQuestionText("How are you?");
+		body.setQuestionText(TEST_QUESTION_TEXT);
 		WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
 		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 		Response response = request.post(Entity.json(body));
@@ -222,7 +223,7 @@ public class NoracleServiceTest {
 		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, responseQuestion.getMediaType());
 		Question question = responseQuestion.readEntity(Question.class);
 		Assert.assertEquals(testSpaceId, question.getSpaceId());
-		Assert.assertEquals("How are you?", question.getText());
+		Assert.assertEquals(TEST_QUESTION_TEXT, question.getText());
 		Assert.assertEquals(question.getTimestampCreated(), question.getTimestampLastModified());
 		return question.getQuestionId();
 	}
@@ -233,7 +234,7 @@ public class NoracleServiceTest {
 			String testSpaceId = createAndFetchTestSpace();
 			// create question in space
 			CreateQuestionPojo body = new CreateQuestionPojo();
-			body.setQuestionText("How are you?");
+			body.setQuestionText(TEST_QUESTION_TEXT);
 			WebTarget target = webClient.target(baseUrl + "/spaces/" + testSpaceId + "/questions");
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 			Response response = request.post(Entity.json(body));
@@ -255,7 +256,7 @@ public class NoracleServiceTest {
 	public void testQuestionNonExistentSpace() {
 		try {
 			CreateQuestionPojo body = new CreateQuestionPojo();
-			body.setQuestionText("How are you?");
+			body.setQuestionText(TEST_QUESTION_TEXT);
 			WebTarget target = webClient.target(baseUrl + "/spaces/xxxxx/questions");
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
 			Response response = request.post(Entity.json(body));
