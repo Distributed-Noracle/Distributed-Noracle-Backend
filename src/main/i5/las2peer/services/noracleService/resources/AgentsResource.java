@@ -80,8 +80,7 @@ public class AgentsResource implements INoracleAgentService {
 		}
 	}
 
-	@GET
-	@Consumes(MediaType.APPLICATION_JSON)
+	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_CREATED,
