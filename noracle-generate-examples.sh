@@ -12,15 +12,15 @@ QUESTION_TEXT="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
 # create example spaces
 
 for num in {1..5}; do
-  curl -D - --user noracle-example-smith:${AGENT_PW} -X POST --header 'Content-Type: application/json' -d '{ "name": "example-space-'"${num}"'" }' "${ENDPOINT}"'/spaces' --insecure
+  curl -s -D - --user noracle-example-smith:${AGENT_PW} -X POST --header 'Content-Type: application/json' -d '{ "name": "example-space-'"${num}"'" }' "${ENDPOINT}"'/spaces' --insecure
 done
 
 
 # get all subscribed for agent smith
 
 curl -s --user noracle-example-smith:${AGENT_PW} -X GET --header 'Accept: application/json' "${ENDPOINT}"'/agents/'"${SPACE_CREATOR_AGENT_ID}"'/spacesubscriptions' --insecure | jq -r '.[].spaceId' | while read spaceId ; do
-  for num in {1..3}; do
-    curl -D - --user noracle-example-smith:${AGENT_PW} -X POST --header 'Content-Type: application/json' -d '{ "questionText": "'"${QUESTION_TEXT}"'" }' "${ENDPOINT}"'/spaces/'"${spaceId}"'/questions' --insecure
+  for num in {1..50}; do
+    curl -s -D - --user noracle-example-smith:${AGENT_PW} -X POST --header 'Content-Type: application/json' -d '{ "questionText": "'"${QUESTION_TEXT}"'" }' "${ENDPOINT}"'/spaces/'"${spaceId}"'/questions' --insecure
   done
 done
 
