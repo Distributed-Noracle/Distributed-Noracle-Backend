@@ -1,0 +1,4 @@
+agent-noracle-example-alice.xml;testtest
+agent-noracle-example-bob.xml;testtest
+agent-noracle-example-newbie.xml;testtest
+agent-noracle-example-smith.xml;testtest
