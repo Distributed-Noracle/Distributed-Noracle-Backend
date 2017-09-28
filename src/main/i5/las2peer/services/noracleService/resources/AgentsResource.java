@@ -11,6 +11,7 @@ import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -29,6 +30,7 @@ import i5.las2peer.services.noracleService.api.INoracleAgentService;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 import i5.las2peer.services.noracleService.pojo.SubscribeSpacePojo;
+import i5.las2peer.services.noracleService.pojo.UpdateSelectedQuestionsPojo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -188,6 +190,38 @@ public class AgentsResource implements INoracleAgentService {
 				"getSpaceSubscriptions", agentId);
 		if (rmiResult instanceof SpaceSubscriptionList) {
 			return (SpaceSubscriptionList) rmiResult;
+		} else {
+			throw new InternalServiceException(
+					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+		}
+	}
+
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiResponses({ @ApiResponse(
+			code = HttpURLConnection.HTTP_OK,
+			message = "Selected questions successfully updated",
+			response = SpaceSubscription.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
+					message = "Internal Server Error",
+					response = ExceptionEntity.class) })
+	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME + "/{spaceId}/selectedQuestions")
+	public SpaceSubscription updateSelectedQuestions(@PathParam("agentid") String agentId,
+			@PathParam("spaceId") String spaceId, UpdateSelectedQuestionsPojo updateSelectedQuestionsPojo)
+			throws ServiceInvocationException {
+		return updateSpaceSubscription(agentId, spaceId, updateSelectedQuestionsPojo.getSelectedQuestions());
+	}
+
+	@Override
+	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, String[] selectedQuestions)
+			throws ServiceInvocationException {
+		Serializable rmiResult = Context.get().invoke(
+				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"updateSpaceSubscription", agentId, spaceId, selectedQuestions);
+		if (rmiResult instanceof SpaceSubscription) {
+			return (SpaceSubscription) rmiResult;
 		} else {
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");

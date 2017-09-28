@@ -6,6 +6,7 @@ import i5.las2peer.api.Context;
 import i5.las2peer.api.Service;
 import i5.las2peer.api.execution.InternalServiceException;
 import i5.las2peer.api.execution.InvocationBadArgumentException;
+import i5.las2peer.api.execution.ResourceNotFoundException;
 import i5.las2peer.api.execution.ServiceAccessDeniedException;
 import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.api.p2p.ServiceNameVersion;
@@ -125,6 +126,29 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 
 	private String buildSubscriptionId(String agentId) {
 		return "spacesubscriptions-" + agentId;
+	}
+
+	@Override
+	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, String[] selectedQuestions)
+			throws ServiceInvocationException {
+		String envIdentifier = buildSubscriptionId(agentId);
+		try {
+			Envelope env = Context.get().requestEnvelope(envIdentifier);
+			SpaceSubscriptionList spaceSubscriptionList = (SpaceSubscriptionList) env.getContent();
+			for (SpaceSubscription spaceSubscription : spaceSubscriptionList) {
+				if (spaceSubscription.getSpaceId().equals(spaceId)) {
+					spaceSubscription.setSelectedQuestionIds(selectedQuestions);
+					return spaceSubscription;
+				}
+			}
+			throw new ResourceNotFoundException("Space subscription not found");
+		} catch (EnvelopeAccessDeniedException e) {
+			throw new ServiceAccessDeniedException("Envelope Access Denied");
+		} catch (EnvelopeOperationFailedException e) {
+			throw new InternalServiceException("Could not fetch space subscription envelope", e);
+		} catch (EnvelopeNotFoundException e) {
+			throw new ResourceNotFoundException("No space subscriptions found");
+		}
 	}
 
 }

@@ -32,6 +32,7 @@ import i5.las2peer.services.noracleService.model.QuestionList;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.model.Space;
+import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 import i5.las2peer.services.noracleService.model.Vote;
 import i5.las2peer.services.noracleService.model.VoteList;
@@ -41,6 +42,7 @@ import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
 import i5.las2peer.services.noracleService.pojo.CreateSpacePojo;
 import i5.las2peer.services.noracleService.pojo.SetVotePojo;
 import i5.las2peer.services.noracleService.pojo.SubscribeSpacePojo;
+import i5.las2peer.services.noracleService.pojo.UpdateSelectedQuestionsPojo;
 import i5.las2peer.services.noracleService.resources.AgentsResource;
 import i5.las2peer.services.noracleService.resources.QuestionRelationsResource;
 import i5.las2peer.services.noracleService.resources.QuestionsResource;
@@ -194,6 +196,42 @@ public class NoracleServiceTest {
 			Assert.assertEquals(result2.size(), 1);
 			Assert.assertEquals(testSpaceId, result2.get(0).getSpaceId());
 			Assert.assertEquals(TEST_SPACE_NAME, result2.get(0).getName());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+	}
+
+	@Test
+	public void testUpdateSelectedQuestions() {
+		try {
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
+			// update selected questions
+			UpdateSelectedQuestionsPojo body = new UpdateSelectedQuestionsPojo();
+			body.setSelectedQuestions(new String[] { "1234" });
+			WebTarget target = webClient
+					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent.getIdentifier() + "/"
+							+ AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME + "/" + testSpaceId + "/selectedQuestions");
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			Response response = request.put(Entity.json(body));
+			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+			SpaceSubscription result = response.readEntity(SpaceSubscription.class);
+			Assert.assertEquals(testSpaceId, result.getSpaceId());
+			Assert.assertEquals(1, result.getSelectedQuestionIds().length);
+			Assert.assertArrayEquals(new String[] { "1234" }, result.getSelectedQuestionIds());
+			// check if subscription is updated
+			target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent.getIdentifier()
+					+ "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
+			request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			response = request.get();
+			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
+			SpaceSubscriptionList result2 = response.readEntity(SpaceSubscriptionList.class);
+			Assert.assertEquals(result2.size(), 1);
+			Assert.assertEquals(testSpaceId, result2.get(0).getSpaceId());
+			Assert.assertEquals(TEST_SPACE_NAME, result2.get(0).getName());
+			Assert.assertEquals(1, result.getSelectedQuestionIds().length);
+			Assert.assertArrayEquals(new String[] { "1234" }, result.getSelectedQuestionIds());
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());

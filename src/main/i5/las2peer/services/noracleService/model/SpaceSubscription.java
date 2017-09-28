@@ -8,6 +8,7 @@ public class SpaceSubscription implements Serializable {
 
 	private String spaceId;
 	private String name;
+	private String[] selectedQuestionIds;
 
 	public SpaceSubscription() { // used in tests
 	}
@@ -15,6 +16,7 @@ public class SpaceSubscription implements Serializable {
 	public SpaceSubscription(String spaceId, String name) {
 		this.setSpaceId(spaceId);
 		this.setName(name);
+		this.setSelectedQuestionIds(new String[0]);
 	}
 
 	public String getSpaceId() {
@@ -31,6 +33,14 @@ public class SpaceSubscription implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String[] getSelectedQuestionIds() {
+		return selectedQuestionIds;
+	}
+
+	public void setSelectedQuestionIds(String[] selectedQuestionIds) {
+		this.selectedQuestionIds = selectedQuestionIds;
 	}
 
 }
