@@ -130,8 +130,6 @@ public class VotesResource implements INoracleVoteService {
 			return "question-" + questionId;
 		} else if (relationId != null && !relationId.isEmpty()) {
 			return "relation-" + relationId;
-		} else if (spaceId != null && !spaceId.isEmpty()) {
-			return "space-" + spaceId;
 		} else {
 			throw new ResourceNotFoundException("No vote target identifier given");
 		}

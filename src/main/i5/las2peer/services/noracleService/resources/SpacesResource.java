@@ -137,9 +137,4 @@ public class SpacesResource implements INoracleSpaceService {
 		return new QuestionRelationsResource();
 	}
 
-	@Path("/{spaceId}/" + VotesResource.RESOURCE_NAME)
-	public VotesResource votes() {
-		return new VotesResource();
-	}
-
 }

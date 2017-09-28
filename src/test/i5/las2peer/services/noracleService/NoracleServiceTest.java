@@ -455,9 +455,6 @@ public class NoracleServiceTest {
 			String relationId = createTestQuestionRelation(testSpaceId, questionId1, questionId2).get(0)
 					.getRelationId();
 			// test get votes for all resources
-			VoteList spaceVotes = getVotes(
-					"/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + VotesResource.RESOURCE_NAME);
-			Assert.assertEquals(0, spaceVotes.size());
 			VoteList question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + VotesResource.RESOURCE_NAME);
 			Assert.assertEquals(0, question1Votes.size());
@@ -468,8 +465,6 @@ public class NoracleServiceTest {
 					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME);
 			Assert.assertEquals(0, relationVotes.size());
 			// vote for each with one agent
-			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + VotesResource.RESOURCE_NAME,
-					basicAuthHeader, 3);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
 					+ questionId1 + "/" + VotesResource.RESOURCE_NAME, basicAuthHeader, 3);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
@@ -478,9 +473,6 @@ public class NoracleServiceTest {
 					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME,
 					basicAuthHeader, 3);
 			// check my votes for each resource
-			Vote spaceMyVote = getMyVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ VotesResource.RESOURCE_NAME + "/myvote");
-			Assert.assertEquals(3, spaceMyVote.getValue());
 			Vote question1MyVote = getMyVote(
 					"/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
 							+ questionId1 + "/" + VotesResource.RESOURCE_NAME + "/myvote");
@@ -494,10 +486,6 @@ public class NoracleServiceTest {
 					+ "/myvote");
 			Assert.assertEquals(3, relationMyVote.getValue());
 			// test get votes for all resources
-			spaceVotes = getVotes(
-					"/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + VotesResource.RESOURCE_NAME);
-			Assert.assertEquals(1, spaceVotes.size());
-			Assert.assertEquals(1, spaceVotes.get(0).getValue());
 			question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + VotesResource.RESOURCE_NAME);
 			Assert.assertEquals(1, question1Votes.size());
@@ -511,8 +499,6 @@ public class NoracleServiceTest {
 			Assert.assertEquals(1, relationVotes.size());
 			Assert.assertEquals(1, relationVotes.get(0).getValue());
 			// (down-)vote for each with another agent and check all votes
-			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + VotesResource.RESOURCE_NAME,
-					basicAuthHeader2, -5);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
 					+ questionId1 + "/" + VotesResource.RESOURCE_NAME, basicAuthHeader2, -5);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
@@ -521,11 +507,6 @@ public class NoracleServiceTest {
 					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME,
 					basicAuthHeader2, -5);
 			// test get votes for all resources
-			spaceVotes = getVotes(
-					"/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + VotesResource.RESOURCE_NAME);
-			Assert.assertEquals(2, spaceVotes.size());
-			Assert.assertEquals(1, spaceVotes.get(0).getValue());
-			Assert.assertEquals(-1, spaceVotes.get(1).getValue());
 			question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + VotesResource.RESOURCE_NAME);
 			Assert.assertEquals(2, question1Votes.size());
