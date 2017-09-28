@@ -126,7 +126,15 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 			try {
 				String pubEnvId = getPublicVoteEnvelopeIdentifier(objectId, num);
 				Envelope pubEnv = Context.get().requestEnvelope(pubEnvId);
-				result.add((Vote) pubEnv.getContent());
+				Vote vote = (Vote) pubEnv.getContent();
+				int normalizedVal = vote.getValue();
+				if (normalizedVal > 1) {
+					normalizedVal = 1;
+				} else if (normalizedVal < -1) {
+					normalizedVal = -1;
+				}
+				Vote normalizedVote = new Vote(normalizedVal);
+				result.add(normalizedVote);
 			} catch (EnvelopeNotFoundException e) {
 				break;
 			} catch (Exception e) {

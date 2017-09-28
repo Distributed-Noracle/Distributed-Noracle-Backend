@@ -8,6 +8,9 @@ public class Vote implements Serializable {
 
 	private int value;
 
+	public Vote() { // used in tests
+	}
+
 	public Vote(int value) {
 		this.value = value;
 	}

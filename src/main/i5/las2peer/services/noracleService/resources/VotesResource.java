@@ -46,8 +46,10 @@ public class VotesResource implements INoracleVoteService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Response putSetVote(SetVotePojo setVotePojo) throws ServiceInvocationException {
-		setVote(setVotePojo.getObjectId(), setVotePojo.getValue());
+	public Response putSetVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
+			@PathParam("relationId") String relationId, SetVotePojo setVotePojo) throws ServiceInvocationException {
+		String objectId = buildObjectId(spaceId, questionId, relationId);
+		setVote(objectId, setVotePojo.getValue());
 		return Response.ok().build();
 	}
 
@@ -77,15 +79,8 @@ public class VotesResource implements INoracleVoteService {
 	@Produces(MediaType.APPLICATION_JSON)
 	public VoteList getAllVotes(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
 			@PathParam("relationId") String relationId) throws ServiceInvocationException {
-		if (questionId != null && !questionId.isEmpty()) {
-			return getAllVotes("question-" + questionId);
-		} else if (relationId != null && !relationId.isEmpty()) {
-			return getAllVotes("relation-" + relationId);
-		} else if (spaceId != null && !spaceId.isEmpty()) {
-			return getAllVotes("space-" + spaceId);
-		} else {
-			throw new ResourceNotFoundException("No vote target identifier given");
-		}
+		String objectId = buildObjectId(spaceId, questionId, relationId);
+		return getAllVotes(objectId);
 	}
 
 	@Override
@@ -101,6 +96,19 @@ public class VotesResource implements INoracleVoteService {
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 		}
 		return vote;
+	}
+
+	private String buildObjectId(String spaceId, String questionId, String relationId)
+			throws ResourceNotFoundException {
+		if (questionId != null && !questionId.isEmpty()) {
+			return "question-" + questionId;
+		} else if (relationId != null && !relationId.isEmpty()) {
+			return "relation-" + relationId;
+		} else if (spaceId != null && !spaceId.isEmpty()) {
+			return "space-" + spaceId;
+		} else {
+			throw new ResourceNotFoundException("No vote target identifier given");
+		}
 	}
 
 }
