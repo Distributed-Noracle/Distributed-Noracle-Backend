@@ -396,40 +396,43 @@ public class NoracleServiceTest {
 		}
 	}
 
+	protected QuestionRelationList createTestQuestionRelation(String spaceId, String questionId1, String questionId2) {
+		// create test question relation
+		CreateRelationPojo body = new CreateRelationPojo();
+		body.setName("duplicate");
+		body.setQuestionId1(questionId1);
+		body.setQuestionId2(questionId2);
+		WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + spaceId + "/"
+				+ QuestionRelationsResource.RESOURCE_NAME);
+		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+		Response response = request.post(Entity.json(body));
+		Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+		Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
+		// fetch test question relation
+		String locationHeader = response.getHeaderString(HttpHeaders.LOCATION);
+		WebTarget targetQuestionRelation = webClient.target(locationHeader);
+		Builder requestQuestionRelation = targetQuestionRelation.request().header(HttpHeaders.AUTHORIZATION,
+				basicAuthHeader);
+		Response responseQuestionRelation = requestQuestionRelation.get();
+		Assert.assertEquals(Status.OK.getStatusCode(), responseQuestionRelation.getStatus());
+		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, responseQuestionRelation.getMediaType());
+		return responseQuestionRelation.readEntity(QuestionRelationList.class);
+	}
+
 	@Test
 	public void testQuestionRelations() {
 		try {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			String questionId1 = createTestQuestion(testSpaceId);
 			String questionId2 = createTestQuestion(testSpaceId);
-			// create test question relation
-			CreateRelationPojo body = new CreateRelationPojo();
-			body.setName("duplicate");
-			body.setQuestionId1(questionId1);
-			body.setQuestionId2(questionId2);
-			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionRelationsResource.RESOURCE_NAME);
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
-			Response response = request.post(Entity.json(body));
-			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
-			Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
-			// fetch test question relation
-			String locationHeader = response.getHeaderString(HttpHeaders.LOCATION);
-			WebTarget targetQuestionRelation = webClient.target(locationHeader);
-			Builder requestQuestionRelation = targetQuestionRelation.request().header(HttpHeaders.AUTHORIZATION,
-					basicAuthHeader);
-			Response responseQuestionRelation = requestQuestionRelation.get();
-			Assert.assertEquals(Status.OK.getStatusCode(), responseQuestionRelation.getStatus());
-			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, responseQuestionRelation.getMediaType());
-			QuestionRelationList questionRelationList = responseQuestionRelation.readEntity(QuestionRelationList.class);
+			QuestionRelationList questionRelationList = createTestQuestionRelation(testSpaceId, questionId1,
+					questionId2);
 			Assert.assertEquals(1, questionRelationList.size());
 			QuestionRelation questionRelation = questionRelationList.get(0);
 			Assert.assertEquals("duplicate", questionRelation.getName());
 			Assert.assertEquals(questionId1, questionRelation.getFirstQuestionId());
 			Assert.assertEquals(questionId2, questionRelation.getSecondQuestionId());
 			Assert.assertEquals(false, questionRelation.isDirected());
-			String linkHeader = response.getHeaderString(HttpHeaders.LINK);
-			Assert.assertNull(linkHeader);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
