@@ -33,6 +33,7 @@ import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.model.Space;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
+import i5.las2peer.services.noracleService.model.Vote;
 import i5.las2peer.services.noracleService.model.VoteList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
@@ -476,7 +477,22 @@ public class NoracleServiceTest {
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME,
 					basicAuthHeader, 3);
-			// FIXME check my votes for each resource
+			// check my votes for each resource
+			Vote spaceMyVote = getMyVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+					+ VotesResource.RESOURCE_NAME + "/myvote");
+			Assert.assertEquals(3, spaceMyVote.getValue());
+			Vote question1MyVote = getMyVote(
+					"/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
+							+ questionId1 + "/" + VotesResource.RESOURCE_NAME + "/myvote");
+			Assert.assertEquals(3, question1MyVote.getValue());
+			Vote question2MyVote = getMyVote(
+					"/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
+							+ questionId2 + "/" + VotesResource.RESOURCE_NAME + "/myvote");
+			Assert.assertEquals(3, question2MyVote.getValue());
+			Vote relationMyVote = getMyVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME
+					+ "/myvote");
+			Assert.assertEquals(3, relationMyVote.getValue());
 			// test get votes for all resources
 			spaceVotes = getVotes(
 					"/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + VotesResource.RESOURCE_NAME);
@@ -548,6 +564,15 @@ public class NoracleServiceTest {
 		Response response = request.put(Entity.json(body));
 		Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 		Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
+	}
+
+	private Vote getMyVote(String path) {
+		WebTarget target = webClient.target(baseUrl + path);
+		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+		Response response = request.get();
+		Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
+		return response.readEntity(Vote.class);
 	}
 
 }

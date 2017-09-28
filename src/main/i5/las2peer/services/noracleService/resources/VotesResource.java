@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -58,6 +59,23 @@ public class VotesResource implements INoracleVoteService {
 		Context.get().invoke(
 				new ServiceNameVersion(NoracleVoteService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"setVote", objectId, value);
+	}
+
+	@GET
+	@Path("/myvote")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiResponses({ @ApiResponse(
+			code = HttpURLConnection.HTTP_OK,
+			message = "Vote successfully retrieved",
+			response = Vote.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
+					message = "Internal Server Error",
+					response = ExceptionEntity.class) })
+	public Vote getMyVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
+			@PathParam("relationId") String relationId) throws ServiceInvocationException {
+		String objectId = buildObjectId(spaceId, questionId, relationId);
+		return getMyVote(objectId);
 	}
 
 	@Override
