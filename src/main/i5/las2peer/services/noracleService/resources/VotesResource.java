@@ -34,6 +34,7 @@ public class VotesResource implements INoracleVoteService {
 	public static final String RESOURCE_NAME = "votes";
 
 	@PUT
+	@Path("/{agentId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_HTML)
 	@ApiResponses({ @ApiResponse(
@@ -48,21 +49,22 @@ public class VotesResource implements INoracleVoteService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public Response putSetVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
-			@PathParam("relationId") String relationId, SetVotePojo setVotePojo) throws ServiceInvocationException {
+			@PathParam("relationId") String relationId, @PathParam("agentId") String agentId, SetVotePojo setVotePojo)
+			throws ServiceInvocationException {
 		String objectId = buildObjectId(spaceId, questionId, relationId);
-		setVote(objectId, setVotePojo.getValue());
+		setVote(agentId, objectId, setVotePojo.getValue());
 		return Response.ok().build();
 	}
 
 	@Override
-	public void setVote(String objectId, int value) throws ServiceInvocationException {
+	public void setVote(String agentId, String objectId, int value) throws ServiceInvocationException {
 		Context.get().invoke(
 				new ServiceNameVersion(NoracleVoteService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"setVote", objectId, value);
+				"setVote", agentId, objectId, value);
 	}
 
 	@GET
-	@Path("/myvote")
+	@Path("/{agentId}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
@@ -72,17 +74,18 @@ public class VotesResource implements INoracleVoteService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Vote getMyVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
-			@PathParam("relationId") String relationId) throws ServiceInvocationException {
+	public Vote getAgentVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
+			@PathParam("relationId") String relationId, @PathParam("agentId") String agentId)
+			throws ServiceInvocationException {
 		String objectId = buildObjectId(spaceId, questionId, relationId);
-		return getMyVote(objectId);
+		return getAgentVote(objectId, agentId);
 	}
 
 	@Override
-	public Vote getMyVote(String objectId) throws ServiceInvocationException {
+	public Vote getAgentVote(String objectId, String agentId) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleVoteService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"getMyVote", objectId);
+				"getAgentVote", objectId, agentId);
 		Vote vote;
 		if (rmiResult instanceof Vote) {
 			vote = (Vote) rmiResult;

@@ -23,14 +23,14 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 	private static final int MAX_VOTES_PER_OBJECT = 1000000;
 
 	@Override
-	public void setVote(String objectId, int vote) throws ServiceInvocationException {
+	public void setVote(String agentId, String objectId, int vote) throws ServiceInvocationException {
 		Agent mainAgent = Context.get().getMainAgent();
 		if (objectId == null || objectId.isEmpty()) {
 			throw new InvocationBadArgumentException("No object id given");
 		} else if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceAccessDeniedException("You have to be logged in to vote");
 		}
-		String persEnvId = getPersonalVoteEnvelopeIdentifier(mainAgent.getIdentifier(), objectId);
+		String persEnvId = getAgentVoteEnvelopeIdentifier(agentId, objectId);
 		try {
 			try {
 				Envelope persEnv = Context.get().requestEnvelope(persEnvId);
@@ -94,8 +94,8 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 		return pubVote;
 	}
 
-	private static String getPersonalVoteEnvelopeIdentifier(String agentId, String objectId) {
-		return "myvote-" + agentId + "-" + objectId;
+	private static String getAgentVoteEnvelopeIdentifier(String agentId, String objectId) {
+		return "agentvote-" + agentId + "-" + objectId;
 	}
 
 	private static String getPublicVoteEnvelopeIdentifier(String objectId, int num) {
@@ -103,9 +103,8 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 	}
 
 	@Override
-	public Vote getMyVote(String objectId) throws ServiceInvocationException {
-		Agent mainAgent = Context.get().getMainAgent();
-		String persEnvId = getPersonalVoteEnvelopeIdentifier(mainAgent.getIdentifier(), objectId);
+	public Vote getAgentVote(String objectId, String agentId) throws ServiceInvocationException {
+		String persEnvId = getAgentVoteEnvelopeIdentifier(agentId, objectId);
 		try {
 			Envelope persEnv = Context.get().requestEnvelope(persEnvId);
 			VoteEntry voteEntry = (VoteEntry) persEnv.getContent();
