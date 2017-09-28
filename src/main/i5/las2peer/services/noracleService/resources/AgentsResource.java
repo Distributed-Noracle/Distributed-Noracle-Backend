@@ -29,7 +29,6 @@ import i5.las2peer.services.noracleService.api.INoracleAgentService;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 import i5.las2peer.services.noracleService.pojo.SubscribeSpacePojo;
-import i5.las2peer.services.noracleService.pojo.UnsubscribeSpacePojo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -133,7 +132,6 @@ public class AgentsResource implements INoracleAgentService {
 	}
 
 	@DELETE
-	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_HTML)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
@@ -154,13 +152,13 @@ public class AgentsResource implements INoracleAgentService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
-	public Response unsubscribeFromSpace(@PathParam("agentid") String agentId,
-			UnsubscribeSpacePojo unsubscribeSpacePojo) throws ServiceInvocationException {
+	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME + "/{spaceId}")
+	public Response unsubscribeFromSpace(@PathParam("agentid") String agentId, @PathParam("spaceId") String spaceId)
+			throws ServiceInvocationException {
 		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
 			throw new ForbiddenException("You can only unsubscribe yourself from a space");
 		}
-		unsubscribeFromSpace(unsubscribeSpacePojo.getSpaceId());
+		unsubscribeFromSpace(spaceId);
 		return Response.ok().build();
 	}
 
@@ -173,7 +171,6 @@ public class AgentsResource implements INoracleAgentService {
 
 	@Override
 	@GET
-	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
