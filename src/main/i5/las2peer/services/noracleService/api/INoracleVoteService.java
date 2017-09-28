@@ -6,7 +6,7 @@ import i5.las2peer.services.noracleService.model.VoteList;
 
 public interface INoracleVoteService {
 
-	public void setVote(String objectId, int vote) throws ServiceInvocationException;
+	public void setVote(String objectId, int value) throws ServiceInvocationException;
 
 	public Vote getMyVote(String objectId) throws ServiceInvocationException;
 

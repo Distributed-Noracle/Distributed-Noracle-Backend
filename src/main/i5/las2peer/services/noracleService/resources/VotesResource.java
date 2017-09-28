@@ -5,7 +5,6 @@ import java.net.HttpURLConnection;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -28,30 +27,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-@Api(
-		tags = { VotesResource.RESOURCE_NAME })
+@Api
 public class VotesResource implements INoracleVoteService {
 
 	public static final String RESOURCE_NAME = "votes";
-
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.TEXT_HTML)
-	@ApiResponses({ @ApiResponse(
-			code = HttpURLConnection.HTTP_OK,
-			message = "Vote successfully set"),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_UNAUTHORIZED,
-					message = "You have to be logged in to vote",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
-					message = "Internal Server Error",
-					response = ExceptionEntity.class) })
-	public Response postSetVote(SetVotePojo setVotePojo) throws ServiceInvocationException {
-		setVote(setVotePojo.getObjectId(), setVotePojo.getVote());
-		return Response.ok().build();
-	}
 
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -68,15 +47,15 @@ public class VotesResource implements INoracleVoteService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public Response putSetVote(SetVotePojo setVotePojo) throws ServiceInvocationException {
-		setVote(setVotePojo.getObjectId(), setVotePojo.getVote());
+		setVote(setVotePojo.getObjectId(), setVotePojo.getValue());
 		return Response.ok().build();
 	}
 
 	@Override
-	public void setVote(String objectId, int vote) throws ServiceInvocationException {
+	public void setVote(String objectId, int value) throws ServiceInvocationException {
 		Context.get().invoke(
 				new ServiceNameVersion(NoracleVoteService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"setVote", objectId, vote);
+				"setVote", objectId, value);
 	}
 
 	@Override

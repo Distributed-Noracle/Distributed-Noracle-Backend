@@ -3,7 +3,7 @@ package i5.las2peer.services.noracleService.pojo;
 public class SetVotePojo {
 
 	private String objectId;
-	private int vote;
+	private int value;
 
 	public String getObjectId() {
 		return objectId;
@@ -13,12 +13,12 @@ public class SetVotePojo {
 		this.objectId = objectId;
 	}
 
-	public int getVote() {
-		return vote;
+	public int getValue() {
+		return value;
 	}
 
-	public void setVote(int vote) {
-		this.vote = vote;
+	public void setValue(int value) {
+		this.value = value;
 	}
 
 }

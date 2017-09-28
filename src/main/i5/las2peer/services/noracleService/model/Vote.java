@@ -6,18 +6,18 @@ public class Vote implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private int vote;
+	private int value;
 
-	public Vote(int vote) {
-		this.vote = vote;
+	public Vote(int value) {
+		this.value = value;
 	}
 
-	public int getVote() {
-		return vote;
+	public int getValue() {
+		return value;
 	}
 
-	public void setVote(int vote) {
-		this.vote = vote;
+	public void setValue(int value) {
+		this.value = value;
 	}
 
 }

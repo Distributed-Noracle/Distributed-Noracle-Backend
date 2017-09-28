@@ -81,7 +81,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 		try {
 			Envelope pubEnv = Context.get().requestEnvelope(pubEnvId);
 			pubVote = (Vote) pubEnv.getContent();
-			pubVote.setVote(vote);
+			pubVote.setValue(vote);
 			pubEnv.setContent(pubVote);
 			Context.get().storeEnvelope(pubEnv);
 		} catch (EnvelopeNotFoundException e) {
