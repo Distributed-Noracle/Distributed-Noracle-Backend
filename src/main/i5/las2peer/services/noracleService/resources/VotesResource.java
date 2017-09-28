@@ -77,6 +77,14 @@ public class VotesResource implements INoracleVoteService {
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
+	@ApiResponses({ @ApiResponse(
+			code = HttpURLConnection.HTTP_OK,
+			message = "Votes successfully retrieved",
+			response = VoteList.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
+					message = "Internal Server Error",
+					response = ExceptionEntity.class) })
 	public VoteList getAllVotes(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
 			@PathParam("relationId") String relationId) throws ServiceInvocationException {
 		String objectId = buildObjectId(spaceId, questionId, relationId);
