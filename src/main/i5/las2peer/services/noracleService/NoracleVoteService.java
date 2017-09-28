@@ -4,7 +4,6 @@ import i5.las2peer.api.Context;
 import i5.las2peer.api.Service;
 import i5.las2peer.api.execution.InternalServiceException;
 import i5.las2peer.api.execution.InvocationBadArgumentException;
-import i5.las2peer.api.execution.ResourceNotFoundException;
 import i5.las2peer.api.execution.ServiceAccessDeniedException;
 import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.api.persistency.Envelope;
@@ -112,7 +111,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new InternalServiceException("Someone hijacked your vote envelope", e);
 		} catch (EnvelopeNotFoundException e) {
-			throw new ResourceNotFoundException("Vote Not Found");
+			return new Vote(0);
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Retrieving vote failed", e);
 		}
