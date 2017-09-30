@@ -45,11 +45,11 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 	}
 
 	@Override
-	public Question createQuestion(String questionSpaceId, String questionText) throws ServiceInvocationException {
+	public Question createQuestion(String questionSpaceId, String text) throws ServiceInvocationException {
 		Agent mainAgent = Context.get().getMainAgent();
 		if (questionSpaceId == null || questionSpaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No question space id given");
-		} else if (questionText == null || questionText.isEmpty()) {
+		} else if (text == null || text.isEmpty()) {
 			throw new InvocationBadArgumentException("No question text given");
 		} else if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceNotAuthorizedException("You have to be logged in to create a question");
@@ -85,7 +85,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 			throw new InternalServiceException("Could not create envelope for question", e);
 		}
 		env.addReader(targetReaderGroup);
-		Question question = new Question(questionId, questionText, questionSpaceId, mainAgent.getIdentifier(),
+		Question question = new Question(questionId, text, questionSpaceId, mainAgent.getIdentifier(),
 				Instant.now().toString());
 		env.setContent(question);
 		try {
@@ -225,14 +225,14 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 	}
 
 	@Override
-	public Question changeQuestionText(String questionId, String questionText) throws ServiceInvocationException {
+	public Question changeQuestionText(String questionId, String text) throws ServiceInvocationException {
 		if (questionId == null) {
 			throw new InvocationBadArgumentException("No question id given");
 		}
 		try {
 			Envelope questionEnvelope = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
 			Question question = (Question) questionEnvelope.getContent();
-			question.setText(questionText);
+			question.setText(text);
 			question.setTimestampLastModified(Instant.now().toString());
 			questionEnvelope.setContent(question);
 			Context.get().storeEnvelope(questionEnvelope);
