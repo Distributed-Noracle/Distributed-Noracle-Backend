@@ -2,14 +2,14 @@ package i5.las2peer.services.noracleService.pojo;
 
 public class ChangeQuestionPojo {
 
-	private String questionText;
+	private String text;
 
 	public String getQuestionText() {
-		return questionText;
+		return text;
 	}
 
-	public void setQuestionText(String questionText) {
-		this.questionText = questionText;
+	public void setQuestionText(String text) {
+		this.text = text;
 	}
 
 }
