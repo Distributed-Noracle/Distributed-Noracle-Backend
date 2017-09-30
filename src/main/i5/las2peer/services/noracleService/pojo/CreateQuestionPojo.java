@@ -6,14 +6,14 @@ public class CreateQuestionPojo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private String questionText;
+	private String text;
 
 	public String getQuestionText() {
-		return questionText;
+		return text;
 	}
 
-	public void setQuestionText(String questionText) {
-		this.questionText = questionText;
+	public void setQuestionText(String text) {
+		this.text = text;
 	}
 
 }
