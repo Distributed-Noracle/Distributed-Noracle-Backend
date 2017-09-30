@@ -68,10 +68,10 @@ public class QuestionsResource implements INoracleQuestionService {
 	}
 
 	@Override
-	public Question createQuestion(String questionSpaceId, String questionText) throws ServiceInvocationException {
+	public Question createQuestion(String questionSpaceId, String text) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"createQuestion", questionSpaceId, questionText);
+				"createQuestion", questionSpaceId, text);
 		if (rmiResult instanceof Question) {
 			return (Question) rmiResult;
 		} else {
