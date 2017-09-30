@@ -13,4 +13,7 @@ public interface INoracleAgentService {
 
 	public SpaceSubscriptionList getSpaceSubscriptions(String agentId) throws ServiceInvocationException;
 
+	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, String[] selectedQuestions)
+			throws ServiceInvocationException;
+
 }

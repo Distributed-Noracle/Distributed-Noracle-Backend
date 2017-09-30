@@ -223,4 +223,9 @@ public class QuestionsResource implements INoracleQuestionService {
 		}
 	}
 
+	@Path("/{questionId}/" + VotesResource.RESOURCE_NAME)
+	public VotesResource votes() {
+		return new VotesResource();
+	}
+
 }
