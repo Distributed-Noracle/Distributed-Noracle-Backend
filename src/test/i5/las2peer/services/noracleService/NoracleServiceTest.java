@@ -298,7 +298,7 @@ public class NoracleServiceTest {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			// create question in space
 			CreateQuestionPojo body = new CreateQuestionPojo();
-			body.setQuestionText(TEST_QUESTION_TEXT);
+			body.setText(TEST_QUESTION_TEXT);
 			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME);
 			Response response = target.request().post(Entity.json(body));
@@ -312,7 +312,7 @@ public class NoracleServiceTest {
 	protected String createTestQuestion(String testSpaceId) throws Exception {
 		// create question in space
 		CreateQuestionPojo body = new CreateQuestionPojo();
-		body.setQuestionText(TEST_QUESTION_TEXT);
+		body.setText(TEST_QUESTION_TEXT);
 		WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 				+ QuestionsResource.RESOURCE_NAME);
 		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
@@ -339,7 +339,7 @@ public class NoracleServiceTest {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			// create question in space
 			CreateQuestionPojo body = new CreateQuestionPojo();
-			body.setQuestionText(TEST_QUESTION_TEXT);
+			body.setText(TEST_QUESTION_TEXT);
 			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
@@ -362,7 +362,7 @@ public class NoracleServiceTest {
 	public void testQuestionNonExistentSpace() {
 		try {
 			CreateQuestionPojo body = new CreateQuestionPojo();
-			body.setQuestionText(TEST_QUESTION_TEXT);
+			body.setText(TEST_QUESTION_TEXT);
 			WebTarget target = webClient
 					.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/xxxxx/" + QuestionsResource.RESOURCE_NAME);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
@@ -380,7 +380,7 @@ public class NoracleServiceTest {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			String questionId = createTestQuestion(testSpaceId);
 			ChangeQuestionPojo body = new ChangeQuestionPojo();
-			body.setQuestionText("How much is the fish?");
+			body.setText("How much is the fish?");
 			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME + "/" + questionId);
 			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);

@@ -58,7 +58,7 @@ public class QuestionsResource implements INoracleQuestionService {
 					response = ExceptionEntity.class) })
 	public Response createQuestion(@PathParam("spaceId") String questionSpaceId, CreateQuestionPojo createQuestionPojo)
 			throws ServiceInvocationException {
-		Question question = createQuestion(questionSpaceId, createQuestionPojo.getQuestionText());
+		Question question = createQuestion(questionSpaceId, createQuestionPojo.getText());
 		try {
 			return Response.created(new URI(null, null, SpacesResource.RESOURCE_NAME + "/" + questionSpaceId + "/"
 					+ RESOURCE_NAME + "/" + question.getQuestionId(), null)).build();
@@ -207,7 +207,7 @@ public class QuestionsResource implements INoracleQuestionService {
 					response = ExceptionEntity.class) })
 	public Question changeQuestionText(@PathParam("questionId") String questionId,
 			ChangeQuestionPojo changeQuestionPojo) throws ServiceInvocationException {
-		return changeQuestionText(questionId, changeQuestionPojo.getQuestionText());
+		return changeQuestionText(questionId, changeQuestionPojo.getText());
 	}
 
 	@Override
