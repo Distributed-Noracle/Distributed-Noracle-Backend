@@ -211,10 +211,10 @@ public class QuestionsResource implements INoracleQuestionService {
 	}
 
 	@Override
-	public Question changeQuestionText(String questionId, String questionText) throws ServiceInvocationException {
+	public Question changeQuestionText(String questionId, String text) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"changeQuestionText", questionId, questionText);
+				"changeQuestionText", questionId, text);
 		if (rmiResult instanceof Question) {
 			return (Question) rmiResult;
 		} else {

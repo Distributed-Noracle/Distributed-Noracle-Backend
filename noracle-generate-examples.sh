@@ -20,7 +20,7 @@ done
 
 curl -s --user noracle-example-smith:${AGENT_PW} -X GET --header 'Accept: application/json' "${ENDPOINT}"'/agents/'"${SPACE_CREATOR_AGENT_ID}"'/spacesubscriptions' --insecure | jq -r '.[].spaceId' | while read spaceId ; do
   for num in {1..50}; do
-    curl -s -D - --user noracle-example-smith:${AGENT_PW} -X POST --header 'Content-Type: application/json' -d '{ "questionText": "'"${QUESTION_TEXT}"'" }' "${ENDPOINT}"'/spaces/'"${spaceId}"'/questions' --insecure
+    curl -s -D - --user noracle-example-smith:${AGENT_PW} -X POST --header 'Content-Type: application/json' -d '{ "text": "'"${QUESTION_TEXT}"'" }' "${ENDPOINT}"'/spaces/'"${spaceId}"'/questions' --insecure
   done
 done
 
