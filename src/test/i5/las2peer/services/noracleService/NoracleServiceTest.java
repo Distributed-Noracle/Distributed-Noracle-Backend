@@ -195,7 +195,6 @@ public class NoracleServiceTest {
 			SpaceSubscriptionList result2 = response.readEntity(SpaceSubscriptionList.class);
 			Assert.assertEquals(result2.size(), 1);
 			Assert.assertEquals(testSpaceId, result2.get(0).getSpaceId());
-			Assert.assertEquals(TEST_SPACE_NAME, result2.get(0).getName());
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
@@ -229,7 +228,6 @@ public class NoracleServiceTest {
 			SpaceSubscriptionList result2 = response.readEntity(SpaceSubscriptionList.class);
 			Assert.assertEquals(result2.size(), 1);
 			Assert.assertEquals(testSpaceId, result2.get(0).getSpaceId());
-			Assert.assertEquals(TEST_SPACE_NAME, result2.get(0).getName());
 			Assert.assertEquals(1, result.getSelectedQuestionIds().length);
 			Assert.assertArrayEquals(new String[] { "1234" }, result.getSelectedQuestionIds());
 		} catch (Exception e) {

@@ -29,7 +29,7 @@ import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 public class NoracleAgentService extends Service implements INoracleAgentService {
 
 	@Override
-	public SpaceSubscription subscribeToSpace(String spaceId, String name, String spaceSecret)
+	public SpaceSubscription subscribeToSpace(String spaceId, String spaceSecret)
 			throws ServiceInvocationException {
 		Agent mainAgent = Context.get().getMainAgent();
 		if (spaceId == null || spaceId.isEmpty()) {
@@ -40,7 +40,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		Context.get().invoke(
 				new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"joinSpace", spaceId, spaceSecret);
-		SpaceSubscription subscription = new SpaceSubscription(spaceId, name);
+		SpaceSubscription subscription = new SpaceSubscription(spaceId, spaceSecret); 
 		String envIdentifier = buildSubscriptionId(mainAgent.getIdentifier());
 		Envelope env;
 		SpaceSubscriptionList subscriptionList;
