@@ -29,7 +29,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @Api
-public class VotesResource implements INoracleVoteService {
+public class QuestionVotesResource implements INoracleVoteService {
 
 	public static final String RESOURCE_NAME = "votes";
 
@@ -49,9 +49,8 @@ public class VotesResource implements INoracleVoteService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public Response putSetVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
-			@PathParam("relationId") String relationId, @PathParam("agentId") String agentId, SetVotePojo setVotePojo)
-			throws ServiceInvocationException {
-		String objectId = buildObjectId(spaceId, questionId, relationId);
+			@PathParam("agentId") String agentId, SetVotePojo setVotePojo) throws ServiceInvocationException {
+		String objectId = buildObjectId(spaceId, questionId);
 		setVote(agentId, objectId, setVotePojo.getValue());
 		return Response.ok().build();
 	}
@@ -75,9 +74,8 @@ public class VotesResource implements INoracleVoteService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public Vote getAgentVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
-			@PathParam("relationId") String relationId, @PathParam("agentId") String agentId)
-			throws ServiceInvocationException {
-		String objectId = buildObjectId(spaceId, questionId, relationId);
+			@PathParam("agentId") String agentId) throws ServiceInvocationException {
+		String objectId = buildObjectId(spaceId, questionId);
 		return getAgentVote(objectId, agentId);
 	}
 
@@ -106,9 +104,9 @@ public class VotesResource implements INoracleVoteService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public VoteList getAllVotes(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
-			@PathParam("relationId") String relationId) throws ServiceInvocationException {
-		String objectId = buildObjectId(spaceId, questionId, relationId);
+	public VoteList getAllVotes(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId)
+			throws ServiceInvocationException {
+		String objectId = buildObjectId(spaceId, questionId);
 		return getAllVotes(objectId);
 	}
 
@@ -127,12 +125,9 @@ public class VotesResource implements INoracleVoteService {
 		return vote;
 	}
 
-	private String buildObjectId(String spaceId, String questionId, String relationId)
-			throws ResourceNotFoundException {
+	private String buildObjectId(String spaceId, String questionId) throws ResourceNotFoundException {
 		if (questionId != null && !questionId.isEmpty()) {
 			return "question-" + questionId;
-		} else if (relationId != null && !relationId.isEmpty()) {
-			return "relation-" + relationId;
 		} else {
 			throw new ResourceNotFoundException("No vote target identifier given");
 		}

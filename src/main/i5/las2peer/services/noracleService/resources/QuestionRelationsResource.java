@@ -230,9 +230,9 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 		}
 	}
 
-	@Path("/{relationId}/" + VotesResource.RESOURCE_NAME)
-	public VotesResource votes() {
-		return new VotesResource();
+	@Path("/{relationId}/" + QuestionVotesResource.RESOURCE_NAME)
+	public RelationVotesResource votes() {
+		return new RelationVotesResource();
 	}
 
 }

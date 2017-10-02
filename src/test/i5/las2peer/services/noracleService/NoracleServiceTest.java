@@ -47,7 +47,7 @@ import i5.las2peer.services.noracleService.resources.AgentsResource;
 import i5.las2peer.services.noracleService.resources.QuestionRelationsResource;
 import i5.las2peer.services.noracleService.resources.QuestionsResource;
 import i5.las2peer.services.noracleService.resources.SpacesResource;
-import i5.las2peer.services.noracleService.resources.VotesResource;
+import i5.las2peer.services.noracleService.resources.QuestionVotesResource;
 import i5.las2peer.testing.MockAgentFactory;
 import i5.las2peer.testing.TestSuite;
 
@@ -494,73 +494,73 @@ public class NoracleServiceTest {
 					.getRelationId();
 			// test get votes for all resources
 			VoteList question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + VotesResource.RESOURCE_NAME);
+					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME);
 			Assert.assertEquals(0, question1Votes.size());
 			VoteList question2Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME + "/" + questionId2 + "/" + VotesResource.RESOURCE_NAME);
+					+ QuestionsResource.RESOURCE_NAME + "/" + questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME);
 			Assert.assertEquals(0, question2Votes.size());
 			VoteList relationVotes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME);
+					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + QuestionVotesResource.RESOURCE_NAME);
 			Assert.assertEquals(0, relationVotes.size());
 			// vote for each with one agent
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-					+ questionId1 + "/" + VotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier(),
+					+ questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier(),
 					basicAuthHeader, 3);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-					+ questionId2 + "/" + VotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier(),
+					+ questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier(),
 					basicAuthHeader, 3);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME
+					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + QuestionVotesResource.RESOURCE_NAME
 					+ "/" + testAgent.getIdentifier(), basicAuthHeader, 3);
 			// check my votes for each resource
 			Vote question1AgentVote = getAgentVote(
 					"/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-							+ questionId1 + "/" + VotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
+							+ questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
 			Assert.assertEquals(3, question1AgentVote.getValue());
 			Vote question2AgentVote = getAgentVote(
 					"/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-							+ questionId2 + "/" + VotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
+							+ questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
 			Assert.assertEquals(3, question2AgentVote.getValue());
 			Vote relationAgentVote = getAgentVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME
+					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + QuestionVotesResource.RESOURCE_NAME
 					+ "/" + testAgent.getIdentifier());
 			Assert.assertEquals(3, relationAgentVote.getValue());
 			// test get votes for all resources
 			question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + VotesResource.RESOURCE_NAME);
+					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME);
 			Assert.assertEquals(1, question1Votes.size());
 			Assert.assertEquals(1, question1Votes.get(0).getValue());
 			question2Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME + "/" + questionId2 + "/" + VotesResource.RESOURCE_NAME);
+					+ QuestionsResource.RESOURCE_NAME + "/" + questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME);
 			Assert.assertEquals(1, question2Votes.size());
 			Assert.assertEquals(1, question2Votes.get(0).getValue());
 			relationVotes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME);
+					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + QuestionVotesResource.RESOURCE_NAME);
 			Assert.assertEquals(1, relationVotes.size());
 			Assert.assertEquals(1, relationVotes.get(0).getValue());
 			// (down-)vote for each with another agent and check all votes
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-					+ questionId1 + "/" + VotesResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier(),
+					+ questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier(),
 					basicAuthHeader2, -5);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-					+ questionId2 + "/" + VotesResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier(),
+					+ questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier(),
 					basicAuthHeader2, -5);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME
+					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + QuestionVotesResource.RESOURCE_NAME
 					+ "/" + testAgent2.getIdentifier(), basicAuthHeader2, -5);
 			// test get votes for all resources
 			question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + VotesResource.RESOURCE_NAME);
+					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME);
 			Assert.assertEquals(2, question1Votes.size());
 			Assert.assertEquals(1, question1Votes.get(0).getValue());
 			Assert.assertEquals(-1, question1Votes.get(1).getValue());
 			question2Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME + "/" + questionId2 + "/" + VotesResource.RESOURCE_NAME);
+					+ QuestionsResource.RESOURCE_NAME + "/" + questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME);
 			Assert.assertEquals(2, question2Votes.size());
 			Assert.assertEquals(1, question2Votes.get(0).getValue());
 			Assert.assertEquals(-1, question2Votes.get(1).getValue());
 			relationVotes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + VotesResource.RESOURCE_NAME);
+					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/" + QuestionVotesResource.RESOURCE_NAME);
 			Assert.assertEquals(2, relationVotes.size());
 			Assert.assertEquals(1, relationVotes.get(0).getValue());
 			Assert.assertEquals(-1, relationVotes.get(1).getValue());
