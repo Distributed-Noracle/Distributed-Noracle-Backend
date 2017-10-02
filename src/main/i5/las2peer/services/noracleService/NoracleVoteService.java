@@ -36,7 +36,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 				VoteEntry voteEntry = (VoteEntry) persEnv.getContent();
 				int pubIndex = voteEntry.getPubIndex();
 				String pubEnvId = getPublicVoteEnvelopeIdentifier(objectId, pubIndex);
-				Vote pubVote = updateOrCreatePubVoteEnv(pubEnvId, vote);
+				Vote pubVote = updateOrCreatePubVoteEnv(pubEnvId, vote, mainAgent.getIdentifier());
 				voteEntry = (VoteEntry) persEnv.getContent();
 				voteEntry.setVote(pubVote);
 				persEnv.setContent(voteEntry);
@@ -62,7 +62,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 				} else if (pubIndex == -1) {
 					throw new InternalServiceException("Too many votes for this object");
 				}
-				Vote pubVote = updateOrCreatePubVoteEnv(pubEnvId, vote);
+				Vote pubVote = updateOrCreatePubVoteEnv(pubEnvId, vote, mainAgent.getIdentifier());
 				VoteEntry voteEntry = new VoteEntry(objectId, pubIndex, pubVote);
 				persEnv.setContent(voteEntry);
 				Context.get().storeEnvelope(persEnv);
@@ -74,7 +74,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 		}
 	}
 
-	private Vote updateOrCreatePubVoteEnv(String pubEnvId, int vote)
+	private Vote updateOrCreatePubVoteEnv(String pubEnvId, int vote, String agentId)
 			throws EnvelopeAccessDeniedException, EnvelopeOperationFailedException {
 		Vote pubVote;
 		try {
@@ -86,7 +86,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 		} catch (EnvelopeNotFoundException e) {
 			Envelope pubEnv = Context.get().createEnvelope(pubEnvId);
 			pubEnv.setPublic();
-			pubVote = new Vote(vote);
+			pubVote = new Vote(vote, agentId);
 			pubEnv.setContent(pubVote);
 			Context.get().storeEnvelope(pubEnv);
 		}
@@ -111,7 +111,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new InternalServiceException("Someone hijacked your vote envelope", e);
 		} catch (EnvelopeNotFoundException e) {
-			return new Vote(0);
+			return new Vote(0, agentId);
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Retrieving vote failed", e);
 		}
@@ -131,7 +131,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 				} else if (normalizedVal < -1) {
 					normalizedVal = -1;
 				}
-				Vote normalizedVote = new Vote(normalizedVal);
+				Vote normalizedVote = new Vote(normalizedVal, vote.getVoterAgentId());
 				result.add(normalizedVote);
 			} catch (EnvelopeNotFoundException e) {
 				break;
