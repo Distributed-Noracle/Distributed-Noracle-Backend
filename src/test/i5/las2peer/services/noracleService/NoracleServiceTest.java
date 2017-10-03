@@ -438,7 +438,7 @@ public class NoracleServiceTest {
 		}
 	}
 
-	protected QuestionRelationList createTestQuestionRelation(String spaceId, String firstQuestionId,
+	protected QuestionRelation createTestQuestionRelation(String spaceId, String firstQuestionId,
 			String secondQuestionId) {
 		// create test question relation
 		CreateRelationPojo body = new CreateRelationPojo();
@@ -459,7 +459,7 @@ public class NoracleServiceTest {
 		Response responseQuestionRelation = requestQuestionRelation.get();
 		Assert.assertEquals(Status.OK.getStatusCode(), responseQuestionRelation.getStatus());
 		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, responseQuestionRelation.getMediaType());
-		return responseQuestionRelation.readEntity(QuestionRelationList.class);
+		return responseQuestionRelation.readEntity(QuestionRelation.class);
 	}
 
 	@Test
