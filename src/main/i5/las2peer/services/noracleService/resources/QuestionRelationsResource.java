@@ -55,8 +55,8 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					response = ExceptionEntity.class) })
 	public Response createQuestionRelation(@PathParam("spaceId") String spaceId, CreateRelationPojo createRelationPojo)
 			throws ServiceInvocationException {
-		createQuestionRelation(spaceId, createRelationPojo.getName(), createRelationPojo.getQuestionId1(),
-				createRelationPojo.getQuestionId2(), createRelationPojo.isDirected());
+		createQuestionRelation(spaceId, createRelationPojo.getName(), createRelationPojo.getFirstQuestionId(),
+				createRelationPojo.getSecondQuestionId(), createRelationPojo.isDirected());
 		try {
 			return Response.created(
 					new URI(null, null, SpacesResource.RESOURCE_NAME + "/" + spaceId + "/" + RESOURCE_NAME, null))

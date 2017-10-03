@@ -438,12 +438,12 @@ public class NoracleServiceTest {
 		}
 	}
 
-	protected QuestionRelationList createTestQuestionRelation(String spaceId, String questionId1, String questionId2) {
+	protected QuestionRelationList createTestQuestionRelation(String spaceId, String firstQuestionId, String secondQuestionId) {
 		// create test question relation
 		CreateRelationPojo body = new CreateRelationPojo();
 		body.setName("duplicate");
-		body.setQuestionId1(questionId1);
-		body.setQuestionId2(questionId2);
+		body.setFirstQuestionId(firstQuestionId);
+		body.setSecondQuestionId(secondQuestionId);
 		WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + spaceId + "/"
 				+ QuestionRelationsResource.RESOURCE_NAME);
 		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
