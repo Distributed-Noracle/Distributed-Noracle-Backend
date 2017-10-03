@@ -468,10 +468,9 @@ public class NoracleServiceTest {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			String questionId1 = createTestQuestion(testSpaceId);
 			String questionId2 = createTestQuestion(testSpaceId);
-			QuestionRelationList questionRelationList = createTestQuestionRelation(testSpaceId, questionId1,
-					questionId2);
-			Assert.assertEquals(1, questionRelationList.size());
-			QuestionRelation questionRelation = questionRelationList.get(0);
+			QuestionRelation questionRelation = createTestQuestionRelation(testSpaceId, questionId1, questionId2);
+			// TODO: fetch and test list
+			//Assert.assertEquals(1, questionRelationList.size());
 			Assert.assertEquals("duplicate", questionRelation.getName());
 			Assert.assertEquals(questionId1, questionRelation.getFirstQuestionId());
 			Assert.assertEquals(questionId2, questionRelation.getSecondQuestionId());
