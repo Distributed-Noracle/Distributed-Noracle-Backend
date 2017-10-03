@@ -489,7 +489,7 @@ public class NoracleServiceTest {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			String questionId1 = createTestQuestion(testSpaceId);
 			String questionId2 = createTestQuestion(testSpaceId);
-			String relationId = createTestQuestionRelation(testSpaceId, questionId1, questionId2).get(0)
+			String relationId = createTestQuestionRelation(testSpaceId, questionId1, questionId2)
 					.getRelationId();
 			// test get votes for all resources
 			VoteList question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
