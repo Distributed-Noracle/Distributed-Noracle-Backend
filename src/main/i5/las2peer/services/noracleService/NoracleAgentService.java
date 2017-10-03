@@ -29,8 +29,7 @@ import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 public class NoracleAgentService extends Service implements INoracleAgentService {
 
 	@Override
-	public SpaceSubscription subscribeToSpace(String spaceId, String spaceSecret)
-			throws ServiceInvocationException {
+	public SpaceSubscription subscribeToSpace(String spaceId, String spaceSecret) throws ServiceInvocationException {
 		Agent mainAgent = Context.get().getMainAgent();
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");
@@ -40,7 +39,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		Context.get().invoke(
 				new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"joinSpace", spaceId, spaceSecret);
-		SpaceSubscription subscription = new SpaceSubscription(spaceId, spaceSecret); 
+		SpaceSubscription subscription = new SpaceSubscription(spaceId, spaceSecret);
 		String envIdentifier = buildSubscriptionId(mainAgent.getIdentifier());
 		Envelope env;
 		SpaceSubscriptionList subscriptionList;
@@ -131,6 +130,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 	@Override
 	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, String[] selectedQuestions)
 			throws ServiceInvocationException {
+		Agent mainAgent = Context.get().getMainAgent();
 		String envIdentifier = buildSubscriptionId(agentId);
 		try {
 			Envelope env = Context.get().requestEnvelope(envIdentifier);
@@ -138,6 +138,14 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 			for (SpaceSubscription spaceSubscription : spaceSubscriptionList) {
 				if (spaceSubscription.getSpaceId().equals(spaceId)) {
 					spaceSubscription.setSelectedQuestionIds(selectedQuestions);
+					env.setContent(spaceSubscriptionList);
+					try {
+						Context.get().storeEnvelope(env, mainAgent);
+					} catch (EnvelopeAccessDeniedException e) {
+						throw new ServiceAccessDeniedException("Envelope Access Denied");
+					} catch (EnvelopeOperationFailedException e) {
+						throw new InternalServiceException("Could not store space subscription envelope", e);
+					}
 					return spaceSubscription;
 				}
 			}
