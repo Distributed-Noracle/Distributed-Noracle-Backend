@@ -187,7 +187,7 @@ public class QuestionsResource implements INoracleQuestionService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
-			message = "A list of questions from the network",
+			message = "The updated question from the network",
 			response = Question.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_BAD_REQUEST,

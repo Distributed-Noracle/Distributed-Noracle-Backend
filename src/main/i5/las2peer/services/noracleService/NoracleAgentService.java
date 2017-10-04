@@ -17,6 +17,7 @@ import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
 import i5.las2peer.api.security.Agent;
 import i5.las2peer.api.security.AnonymousAgent;
 import i5.las2peer.services.noracleService.api.INoracleAgentService;
+import i5.las2peer.services.noracleService.model.NoracleAgentProfile;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 
@@ -157,6 +158,12 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} catch (EnvelopeNotFoundException e) {
 			throw new ResourceNotFoundException("No space subscriptions found");
 		}
+	}
+
+	@Override
+	public NoracleAgentProfile updateAgentProfile(String agentName) throws ServiceInvocationException {
+		// TODO Implement (create or update should both be done here)
+		return null;
 	}
 
 }

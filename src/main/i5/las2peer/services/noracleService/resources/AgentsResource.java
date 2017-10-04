@@ -26,8 +26,10 @@ import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleAgentService;
 import i5.las2peer.services.noracleService.NoracleService;
 import i5.las2peer.services.noracleService.api.INoracleAgentService;
+import i5.las2peer.services.noracleService.model.NoracleAgentProfile;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
+import i5.las2peer.services.noracleService.pojo.CreateProfilePojo;
 import i5.las2peer.services.noracleService.pojo.SubscribeSpacePojo;
 import i5.las2peer.services.noracleService.pojo.UpdateSelectedQuestionsPojo;
 import io.swagger.annotations.Api;
@@ -80,13 +82,56 @@ public class AgentsResource implements INoracleAgentService {
 	}
 
 	@Override
-	public SpaceSubscription subscribeToSpace(String spaceId, String spaceSecret)
-			throws ServiceInvocationException {
+	public SpaceSubscription subscribeToSpace(String spaceId, String spaceSecret) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"subscribeToSpace", spaceId, spaceSecret);
 		if (rmiResult instanceof SpaceSubscription) {
 			return (SpaceSubscription) rmiResult;
+		} else {
+			throw new InternalServiceException(
+					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+		}
+	}
+
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_HTML)
+	@ApiResponses({ @ApiResponse(
+			code = HttpURLConnection.HTTP_OK,
+			message = "Agent successfully updated"),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_UNAUTHORIZED,
+					message = "You have to be logged in to update your profile",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_FORBIDDEN,
+					message = "You can only update your own profile",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
+					message = "Internal Server Error",
+					response = ExceptionEntity.class) })
+	public Response updateAgentProfile(@PathParam("agentid") String agentId, CreateProfilePojo createProfilePojo)
+			throws ServiceInvocationException {
+		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
+			throw new ForbiddenException("Only update your own profile");
+		}
+		updateAgentProfile(createProfilePojo.getAgentName());
+		try {
+			return Response.ok(new URI(null, null, RESOURCE_NAME + "/" + agentId, null)).build();
+		} catch (URISyntaxException e) {
+			throw new InternalServerErrorException(e);
+		}
+	}
+
+	@Override
+	public NoracleAgentProfile updateAgentProfile(String agentName) throws ServiceInvocationException {
+		Serializable rmiResult = Context.get().invoke(
+				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"updateAgentProfile", agentName);
+		if (rmiResult instanceof NoracleAgentProfile) {
+			return (NoracleAgentProfile) rmiResult;
 		} else {
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
