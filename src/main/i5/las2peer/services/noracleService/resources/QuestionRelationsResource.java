@@ -27,7 +27,6 @@ import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleQuestionRelationService;
 import i5.las2peer.services.noracleService.NoracleService;
 import i5.las2peer.services.noracleService.api.INoracleQuestionRelationService;
-import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionRelationPojo;
@@ -55,13 +54,13 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					response = ExceptionEntity.class) })
 	public Response createQuestionRelation(@PathParam("spaceId") String spaceId, CreateRelationPojo createRelationPojo)
 			throws ServiceInvocationException {
-		QuestionRelation rel = createQuestionRelation(spaceId, createRelationPojo.getName(), createRelationPojo.getFirstQuestionId(),
-				createRelationPojo.getSecondQuestionId(), createRelationPojo.isDirected());
+		QuestionRelation rel = createQuestionRelation(spaceId, createRelationPojo.getName(),
+				createRelationPojo.getFirstQuestionId(), createRelationPojo.getSecondQuestionId(),
+				createRelationPojo.isDirected());
 		try {
-			return Response.created(
-					new URI(null, null, SpacesResource.RESOURCE_NAME + "/" + spaceId + "/" + RESOURCE_NAME
-						+ "/" + rel.getRelationId(), null))
-					.build();
+			return Response.created(new URI(null, null,
+					SpacesResource.RESOURCE_NAME + "/" + spaceId + "/" + RESOURCE_NAME + "/" + rel.getRelationId(),
+					null)).build();
 		} catch (URISyntaxException e) {
 			throw new InternalServerErrorException(e);
 		}
@@ -112,7 +111,7 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 		Serializable rmiResult = Context.get()
 				.invoke(new ServiceNameVersion(NoracleQuestionRelationService.class.getCanonicalName(),
 						NoracleService.API_VERSION), "getQuestionRelation", relationId);
-		if (rmiResult instanceof Question) {
+		if (rmiResult instanceof QuestionRelation) {
 			return (QuestionRelation) rmiResult;
 		} else {
 			throw new InternalServiceException(

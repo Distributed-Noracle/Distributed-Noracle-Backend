@@ -30,7 +30,6 @@ import i5.las2peer.security.UserAgentImpl;
 import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionList;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
-import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.model.Space;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
@@ -470,7 +469,7 @@ public class NoracleServiceTest {
 			String questionId2 = createTestQuestion(testSpaceId);
 			QuestionRelation questionRelation = createTestQuestionRelation(testSpaceId, questionId1, questionId2);
 			// TODO: fetch and test list
-			//Assert.assertEquals(1, questionRelationList.size());
+			// Assert.assertEquals(1, questionRelationList.size());
 			Assert.assertEquals("duplicate", questionRelation.getName());
 			Assert.assertEquals(questionId1, questionRelation.getFirstQuestionId());
 			Assert.assertEquals(questionId2, questionRelation.getSecondQuestionId());
@@ -488,8 +487,7 @@ public class NoracleServiceTest {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			String questionId1 = createTestQuestion(testSpaceId);
 			String questionId2 = createTestQuestion(testSpaceId);
-			String relationId = createTestQuestionRelation(testSpaceId, questionId1, questionId2)
-					.getRelationId();
+			String relationId = createTestQuestionRelation(testSpaceId, questionId1, questionId2).getRelationId();
 			// test get votes for all resources
 			VoteList question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME);
