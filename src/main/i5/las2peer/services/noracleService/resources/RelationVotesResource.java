@@ -35,7 +35,7 @@ public class RelationVotesResource implements INoracleVoteService {
 	@PUT
 	@Path("/{agentId}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.TEXT_HTML)
+	@Produces(MediaType.APPLICATION_JSON)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
 			message = "Vote successfully set",

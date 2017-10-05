@@ -591,7 +591,7 @@ public class NoracleServiceTest {
 		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, authHeader);
 		Response response = request.put(Entity.json(body));
 		Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
-		Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
+		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
 	}
 
 	private Vote getAgentVote(String path) {
