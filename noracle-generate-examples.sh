@@ -44,14 +44,20 @@ echo "${out}" | jq -r '.[].spaceId' | while read spaceId ; do
     echo "${out}"
     location_header="$( echo "${out}" | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p' )"
     question_id=${location_header##*/}
+    if [ -n "${question_ids}" ]; then # relate to existing question (if any exists)
+      relation_type=${relation_types[$RANDOM % ${#relation_types[@]} ]}
+      first_question_id=${question_ids[$RANDOM % ${#question_ids[@]} ]}
+      second_question_id=${question_ids[$RANDOM % ${#question_ids[@]} ]}
+      out="$( { curl -s -D - --user noracle-example-smith:"${agent_pw}" -X POST --header 'Content-Type: application/json' -d '{ '"${relation_type}"', "firstQuestionId": "'"${first_question_id}"'", "secondQuestionId": "'"${second_question_id}"'" }' "${endpoint}"'/spaces/'"${spaceId}"'/relations' --insecure ; } 2>&1 )"
+      echo "${out}"
+    fi
     question_ids+=(${question_id})
   done
-  # create relations between questions
+  # create random relations between questions
   for num in {1..${num_relations_per_space}}; do
     relation_type=${relation_types[$RANDOM % ${#relation_types[@]} ]}
     first_question_id=${question_ids[$RANDOM % ${#question_ids[@]} ]}
     second_question_id=${question_ids[$RANDOM % ${#question_ids[@]} ]}
-    echo "relating question ${first_question_id} to ${second_question_id} as ${relation_type}"
     out="$( { curl -s -D - --user noracle-example-smith:"${agent_pw}" -X POST --header 'Content-Type: application/json' -d '{ '"${relation_type}"', "firstQuestionId": "'"${first_question_id}"'", "secondQuestionId": "'"${second_question_id}"'" }' "${endpoint}"'/spaces/'"${spaceId}"'/relations' --insecure ; } 2>&1 )"
     echo "${out}"
   done
