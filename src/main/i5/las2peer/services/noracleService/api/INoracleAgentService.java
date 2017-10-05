@@ -9,6 +9,8 @@ public interface INoracleAgentService {
 
 	public NoracleAgentProfile updateAgentProfile(String agentName) throws ServiceInvocationException;
 
+	public NoracleAgentProfile getAgentProfile(String agentId) throws ServiceInvocationException;
+
 	public SpaceSubscription subscribeToSpace(String spaceId, String spaceSecret) throws ServiceInvocationException;
 
 	public void unsubscribeFromSpace(String spaceId) throws ServiceInvocationException;

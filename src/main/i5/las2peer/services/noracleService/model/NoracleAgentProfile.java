@@ -1,6 +1,10 @@
 package i5.las2peer.services.noracleService.model;
 
-public class NoracleAgentProfile {
+import java.io.Serializable;
+
+public class NoracleAgentProfile implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 	private String name;
 
 	public String getName() {

@@ -24,7 +24,8 @@ import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 /**
  * Noracle Agents Service
  * 
- * This service is used to handle agents metadata in a distributed Noracle system.
+ * This service is used to handle agents metadata in a distributed Noracle
+ * system.
  * 
  */
 public class NoracleAgentService extends Service implements INoracleAgentService {
@@ -124,10 +125,6 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		}
 	}
 
-	private String buildSubscriptionId(String agentId) {
-		return "spacesubscriptions-" + agentId;
-	}
-
 	@Override
 	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, String[] selectedQuestions)
 			throws ServiceInvocationException {
@@ -162,8 +159,57 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 
 	@Override
 	public NoracleAgentProfile updateAgentProfile(String agentName) throws ServiceInvocationException {
-		// TODO Implement (create or update should both be done here)
-		return null;
+		Agent mainAgent = Context.get().getMainAgent();
+		String envIdentifier = buildAgentProfileId(mainAgent.getIdentifier());
+		Envelope env;
+		NoracleAgentProfile profile;
+		// look for existing profile, otherwise create one
+		try {
+			try {
+				env = Context.get().requestEnvelope(envIdentifier);
+				profile = (NoracleAgentProfile) env.getContent();
+			} catch (EnvelopeNotFoundException e) {
+				env = Context.get().createEnvelope(envIdentifier);
+				profile = new NoracleAgentProfile();
+			}
+		} catch (EnvelopeAccessDeniedException e) {
+			throw new ServiceAccessDeniedException("Envelope access denied");
+		} catch (EnvelopeOperationFailedException e) {
+			throw new InternalServiceException("Could not create new envelope for noracle agent profile", e);
+		}
+		profile.setName(agentName);
+		env.setContent(profile);
+		try {
+			Context.get().storeEnvelope(env, mainAgent);
+		} catch (EnvelopeAccessDeniedException e) {
+			throw new ServiceAccessDeniedException("Envelope access denied");
+		} catch (EnvelopeOperationFailedException e) {
+			throw new InternalServiceException("Storing envelope with noracle agent profile failed", e);
+		}
+		return profile;
+	}
+
+	@Override
+	public NoracleAgentProfile getAgentProfile(String agentId) throws ServiceInvocationException {
+		String envIdentifier = buildAgentProfileId(agentId);
+		try {
+			Envelope env = Context.get().requestEnvelope(envIdentifier);
+			return (NoracleAgentProfile) env.getContent();
+		} catch (EnvelopeAccessDeniedException e) {
+			throw new ServiceAccessDeniedException("Envelope access denied");
+		} catch (EnvelopeOperationFailedException e) {
+			throw new InternalServiceException("Could not fetch agent profile", e);
+		} catch (EnvelopeNotFoundException e) {
+			return new NoracleAgentProfile();
+		}
+	}
+
+	private String buildSubscriptionId(String agentId) {
+		return "spacesubscriptions-" + agentId;
+	}
+
+	private String buildAgentProfileId(String agentId) {
+		return "noracleagentprofile-" + agentId;
 	}
 
 }

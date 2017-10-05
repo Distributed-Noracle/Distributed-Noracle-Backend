@@ -27,6 +27,7 @@ import i5.las2peer.p2p.Node;
 import i5.las2peer.p2p.PastryNodeImpl;
 import i5.las2peer.security.ServiceAgentImpl;
 import i5.las2peer.security.UserAgentImpl;
+import i5.las2peer.services.noracleService.model.NoracleAgentProfile;
 import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionList;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
@@ -35,6 +36,7 @@ import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 import i5.las2peer.services.noracleService.model.Vote;
 import i5.las2peer.services.noracleService.model.VoteList;
+import i5.las2peer.services.noracleService.pojo.ChangeProfilePojo;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
@@ -71,7 +73,8 @@ public class NoracleServiceTest {
 			nodes = TestSuite.launchNetwork(networkSize);
 			connector = new WebConnector(null);
 			connector.start(nodes.get(0));
-			// don't follow redirects, some tests want to test for correct redirect responses
+			// don't follow redirects, some tests want to test for correct redirect
+			// responses
 			webClient = ClientBuilder.newBuilder().register(MultiPartFeature.class)
 					.property(ClientProperties.FOLLOW_REDIRECTS, Boolean.FALSE).build();
 			startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleService",
@@ -191,9 +194,9 @@ public class NoracleServiceTest {
 			Response response = request.get();
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
-			SpaceSubscriptionList result2 = response.readEntity(SpaceSubscriptionList.class);
-			Assert.assertEquals(result2.size(), 1);
-			Assert.assertEquals(testSpaceId, result2.get(0).getSpaceId());
+			SpaceSubscriptionList result = response.readEntity(SpaceSubscriptionList.class);
+			Assert.assertEquals(result.size(), 1);
+			Assert.assertEquals(testSpaceId, result.get(0).getSpaceId());
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
@@ -202,7 +205,48 @@ public class NoracleServiceTest {
 
 	@Test
 	public void testAgentProfile() {
-		// TODO TEST
+		try {
+			// first update the sample agent with a new name
+			ChangeProfilePojo body = new ChangeProfilePojo();
+			body.setAgentName("Test Name");
+			WebTarget target = webClient
+					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			Response response = request.put(Entity.json(body));
+			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
+			NoracleAgentProfile result = response.readEntity(NoracleAgentProfile.class);
+			Assert.assertEquals("Test Name", result.getName());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+		try {
+			// now retrieve it
+			WebTarget target = webClient
+					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			Response response = request.get();
+			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
+			NoracleAgentProfile result = response.readEntity(NoracleAgentProfile.class);
+			Assert.assertEquals("Test Name", result.getName());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+		try {
+			// now test a not yet created profile:
+			WebTarget target = webClient
+					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier());
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			Response response = request.get();
+			Assert.assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
+			Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
 	}
 
 	@Test
