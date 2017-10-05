@@ -14,14 +14,7 @@ import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
 
 @Api
-@SwaggerDefinition(
-		info = @Info(
-				title = "Noracle Service",
-				version = NoracleService.API_VERSION,
-				description = "A bundle service for the distributed Noracle system",
-				license = @License(
-						name = "BSD-3",
-						url = "https://github.com/rwth-acis/Noracle-Bundle-Service/blob/master/LICENSE")))
+@SwaggerDefinition(info = @Info(title = "Noracle Service", version = NoracleService.API_VERSION, description = "A bundle service for the distributed Noracle system", license = @License(name = "BSD-3", url = "https://github.com/Distributed-Noracle/Distributed-Noracle-Backend/blob/master/LICENSE.txt")))
 @ServicePath("/" + NoracleService.RESOURCE_NAME)
 public class NoracleService extends RESTService {
 
