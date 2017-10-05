@@ -10,7 +10,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
@@ -39,7 +38,8 @@ public class QuestionVotesResource implements INoracleVoteService {
 	@Produces(MediaType.TEXT_HTML)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
-			message = "Vote successfully set"),
+			message = "Vote successfully set",
+			response = Vote.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_UNAUTHORIZED,
 					message = "You have to be logged in to vote",
@@ -48,18 +48,23 @@ public class QuestionVotesResource implements INoracleVoteService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Response putSetVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
+	public Vote putSetVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
 			@PathParam("agentId") String agentId, SetVotePojo setVotePojo) throws ServiceInvocationException {
 		String objectId = buildObjectId(spaceId, questionId);
-		setVote(agentId, objectId, setVotePojo.getValue());
-		return Response.ok().build();
+		return setVote(agentId, objectId, setVotePojo.getValue());
 	}
 
 	@Override
-	public void setVote(String agentId, String objectId, int value) throws ServiceInvocationException {
-		Context.get().invoke(
+	public Vote setVote(String agentId, String objectId, int value) throws ServiceInvocationException {
+		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleVoteService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"setVote", agentId, objectId, value);
+		if (rmiResult instanceof Vote) {
+			return (Vote) rmiResult;
+		} else {
+			throw new InternalServiceException(
+					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+		}
 	}
 
 	@GET

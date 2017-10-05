@@ -22,7 +22,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 	private static final int MAX_VOTES_PER_OBJECT = 1000000;
 
 	@Override
-	public void setVote(String agentId, String objectId, int vote) throws ServiceInvocationException {
+	public Vote setVote(String agentId, String objectId, int vote) throws ServiceInvocationException {
 		Agent mainAgent = Context.get().getMainAgent();
 		if (objectId == null || objectId.isEmpty()) {
 			throw new InvocationBadArgumentException("No object id given");
@@ -41,6 +41,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 				voteEntry.setVote(pubVote);
 				persEnv.setContent(voteEntry);
 				Context.get().storeEnvelope(persEnv);
+				return pubVote;
 			} catch (EnvelopeNotFoundException e) {
 				Envelope persEnv = Context.get().createEnvelope(persEnvId);
 				String pubEnvId = null;
@@ -66,6 +67,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 				VoteEntry voteEntry = new VoteEntry(objectId, pubIndex, pubVote);
 				persEnv.setContent(voteEntry);
 				Context.get().storeEnvelope(persEnv);
+				return pubVote;
 			}
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
