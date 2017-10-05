@@ -15,7 +15,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -27,8 +26,10 @@ import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleAgentService;
 import i5.las2peer.services.noracleService.NoracleService;
 import i5.las2peer.services.noracleService.api.INoracleAgentService;
+import i5.las2peer.services.noracleService.model.NoracleAgentProfile;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
+import i5.las2peer.services.noracleService.pojo.CreateProfilePojo;
 import i5.las2peer.services.noracleService.pojo.SubscribeSpacePojo;
 import i5.las2peer.services.noracleService.pojo.UpdateSelectedQuestionsPojo;
 import io.swagger.annotations.Api;
@@ -70,46 +71,7 @@ public class AgentsResource implements INoracleAgentService {
 		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
 			throw new ForbiddenException("You can only subscribe yourself to a space");
 		}
-		subscribeToSpace(subscribeSpacePojo.getSpaceId(), subscribeSpacePojo.getName(),
-				subscribeSpacePojo.getSpaceSecret());
-		try {
-			return Response.created(
-					new URI(null, null, RESOURCE_NAME + "/" + agentId + "/" + SUBSCRIPTIONS_RESOURCE_NAME, null))
-					.build();
-		} catch (URISyntaxException e) {
-			throw new InternalServerErrorException(e);
-		}
-	}
-
-	@POST
-	@Produces(MediaType.TEXT_HTML)
-	@ApiResponses({ @ApiResponse(
-			code = HttpURLConnection.HTTP_CREATED,
-			message = "Subscription successfully created"),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_BAD_REQUEST,
-					message = "No space id given",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_UNAUTHORIZED,
-					message = "You have to be logged in to subscribe to a space",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_FORBIDDEN,
-					message = "You can only subscribe yourself to a space",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
-					message = "Internal Server Error",
-					response = ExceptionEntity.class) })
-	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
-	public Response subscribeToSpace(@PathParam("agentid") String agentId, @QueryParam("spaceId") String spaceId,
-			@QueryParam("name") String name, @QueryParam("spaceSecret") String spaceSecret)
-			throws ServiceInvocationException {
-		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
-			throw new ForbiddenException("You can only subscribe yourself to a space");
-		}
-		subscribeToSpace(spaceId, name, spaceSecret);
+		subscribeToSpace(subscribeSpacePojo.getSpaceId(), subscribeSpacePojo.getSpaceSecret());
 		try {
 			return Response.created(
 					new URI(null, null, RESOURCE_NAME + "/" + agentId + "/" + SUBSCRIPTIONS_RESOURCE_NAME, null))
@@ -120,13 +82,56 @@ public class AgentsResource implements INoracleAgentService {
 	}
 
 	@Override
-	public SpaceSubscription subscribeToSpace(String spaceId, String name, String spaceSecret)
-			throws ServiceInvocationException {
+	public SpaceSubscription subscribeToSpace(String spaceId, String spaceSecret) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"subscribeToSpace", spaceId, name, spaceSecret);
+				"subscribeToSpace", spaceId, spaceSecret);
 		if (rmiResult instanceof SpaceSubscription) {
 			return (SpaceSubscription) rmiResult;
+		} else {
+			throw new InternalServiceException(
+					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+		}
+	}
+
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_HTML)
+	@ApiResponses({ @ApiResponse(
+			code = HttpURLConnection.HTTP_OK,
+			message = "Agent successfully updated"),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_UNAUTHORIZED,
+					message = "You have to be logged in to update your profile",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_FORBIDDEN,
+					message = "You can only update your own profile",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
+					message = "Internal Server Error",
+					response = ExceptionEntity.class) })
+	public Response updateAgentProfile(@PathParam("agentid") String agentId, CreateProfilePojo createProfilePojo)
+			throws ServiceInvocationException {
+		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
+			throw new ForbiddenException("Only update your own profile");
+		}
+		updateAgentProfile(createProfilePojo.getAgentName());
+		try {
+			return Response.ok(new URI(null, null, RESOURCE_NAME + "/" + agentId, null)).build();
+		} catch (URISyntaxException e) {
+			throw new InternalServerErrorException(e);
+		}
+	}
+
+	@Override
+	public NoracleAgentProfile updateAgentProfile(String agentName) throws ServiceInvocationException {
+		Serializable rmiResult = Context.get().invoke(
+				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"updateAgentProfile", agentName);
+		if (rmiResult instanceof NoracleAgentProfile) {
+			return (NoracleAgentProfile) rmiResult;
 		} else {
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");

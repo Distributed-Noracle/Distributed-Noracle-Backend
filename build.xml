@@ -153,30 +153,8 @@
 
 	<!-- All target usually used by CI systems -->
 	<target name="all" depends="clean, jar, junit, javadoc" description="build all targets" />
-
-
-	<target name="stop-test-node">
-		<echo message="Stopping node 9081..." />
-		<exec executable="ssh" failonerror="true">
-			<arg value="steen" />
-			<arg value="./noracle-network/9081/stop-node.sh" />
-		</exec>
-	</target>
-
-	<target name="deploy-test-node" depends="stop-test-node, clean, jar" description="deploy to test network">
-		<echo message="Deploying snapshot" />
-		<exec executable="scp" failonerror="true">
-			<arg value="${service}/${service.name}-${service.version}.jar" />
-			<arg value="las2peer@steen.informatik.rwth-aachen.de:noracle-network/9081/service/" />
-		</exec>
-		<echo message="Starting node 9081..." />
-		<exec executable="ssh" failonerror="true">
-			<arg value="steen.informatik.rwth-aachen.de" />
-			<arg value="cd noracle-network/9081/ &amp;&amp; ./start-node.sh" />
-		</exec>
-	</target>
-
-
+	
+	
 	<!-- execute each target after a distclean -->
 	<target name="selftest_clean" depends="distclean, clean, clean" />
 	<target name="selftest_get_deps" depends="distclean, get_deps, get_deps" />

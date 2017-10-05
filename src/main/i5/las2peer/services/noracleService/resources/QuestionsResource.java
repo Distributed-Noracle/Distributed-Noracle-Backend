@@ -58,7 +58,7 @@ public class QuestionsResource implements INoracleQuestionService {
 					response = ExceptionEntity.class) })
 	public Response createQuestion(@PathParam("spaceId") String questionSpaceId, CreateQuestionPojo createQuestionPojo)
 			throws ServiceInvocationException {
-		Question question = createQuestion(questionSpaceId, createQuestionPojo.getQuestionText());
+		Question question = createQuestion(questionSpaceId, createQuestionPojo.getText());
 		try {
 			return Response.created(new URI(null, null, SpacesResource.RESOURCE_NAME + "/" + questionSpaceId + "/"
 					+ RESOURCE_NAME + "/" + question.getQuestionId(), null)).build();
@@ -187,7 +187,7 @@ public class QuestionsResource implements INoracleQuestionService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
-			message = "A list of questions from the network",
+			message = "The updated question from the network",
 			response = Question.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_BAD_REQUEST,
@@ -207,7 +207,7 @@ public class QuestionsResource implements INoracleQuestionService {
 					response = ExceptionEntity.class) })
 	public Question changeQuestionText(@PathParam("questionId") String questionId,
 			ChangeQuestionPojo changeQuestionPojo) throws ServiceInvocationException {
-		return changeQuestionText(questionId, changeQuestionPojo.getQuestionText());
+		return changeQuestionText(questionId, changeQuestionPojo.getText());
 	}
 
 	@Override
@@ -223,9 +223,9 @@ public class QuestionsResource implements INoracleQuestionService {
 		}
 	}
 
-	@Path("/{questionId}/" + VotesResource.RESOURCE_NAME)
-	public VotesResource votes() {
-		return new VotesResource();
+	@Path("/{questionId}/" + QuestionVotesResource.RESOURCE_NAME)
+	public QuestionVotesResource votes() {
+		return new QuestionVotesResource();
 	}
 
 }
