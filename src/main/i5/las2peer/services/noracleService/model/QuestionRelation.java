@@ -8,6 +8,7 @@ public class QuestionRelation implements Serializable {
 
 	private String relationId;
 	private String spaceId;
+	private String authorId;
 	private String name;
 	private String firstQuestionId;
 	private String secondQuestionId;
@@ -18,10 +19,11 @@ public class QuestionRelation implements Serializable {
 	public QuestionRelation() { // used in tests
 	}
 
-	public QuestionRelation(String relationId, String spaceId, String name, String firstQuestionId,
+	public QuestionRelation(String relationId, String spaceId, String authorId, String name, String firstQuestionId,
 			String secondQuestionId, Boolean directed, String timestampCreated) {
 		this.relationId = relationId;
 		this.spaceId = spaceId;
+		this.authorId = authorId;
 		this.name = name;
 		this.firstQuestionId = firstQuestionId;
 		this.secondQuestionId = secondQuestionId;
@@ -40,6 +42,10 @@ public class QuestionRelation implements Serializable {
 
 	public String getSpaceId() {
 		return spaceId;
+	}
+
+	public String getAuthorId() {
+		return authorId;
 	}
 
 	public String getName() {

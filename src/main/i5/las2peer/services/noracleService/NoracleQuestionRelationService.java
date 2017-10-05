@@ -14,6 +14,7 @@ import i5.las2peer.api.persistency.Envelope;
 import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
 import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
+import i5.las2peer.api.security.Agent;
 import i5.las2peer.api.security.AnonymousAgent;
 import i5.las2peer.services.noracleService.api.INoracleQuestionRelationService;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
@@ -38,7 +39,8 @@ public class NoracleQuestionRelationService extends Service implements INoracleQ
 	@Override
 	public QuestionRelation createQuestionRelation(String spaceId, String name, String questionId1, String questionId2,
 			Boolean directed) throws ServiceInvocationException {
-		if (Context.get().getMainAgent() instanceof AnonymousAgent) {
+		Agent mainAgent = Context.get().getMainAgent();
+		if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceAccessDeniedException("You have to be logged in to create a relation");
 		}
 		String relationId = buildQuestionRelationId();
@@ -52,11 +54,11 @@ public class NoracleQuestionRelationService extends Service implements INoracleQ
 		}
 		env.setPublic();
 		String strNow = Instant.now().toString();
-		QuestionRelation relation = new QuestionRelation(relationId, spaceId, name, questionId1, questionId2, directed,
-				strNow);
+		QuestionRelation relation = new QuestionRelation(relationId, spaceId, mainAgent.getIdentifier(), name,
+				questionId1, questionId2, directed, strNow);
 		env.setContent(relation);
 		try {
-			Context.get().storeEnvelope(env, Context.get().getMainAgent());
+			Context.get().storeEnvelope(env, mainAgent);
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
 		} catch (EnvelopeOperationFailedException e) {
