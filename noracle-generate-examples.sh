@@ -35,9 +35,13 @@ wait
 
 
 # get all subscribed spaces for agent smith
+example_space_ids=()
+out="$( { curl -s --user noracle-example-smith:${agent_pw} -X GET --header 'Accept: application/json' "${endpoint}"'/agents/'"${space_creator_agent_id}"'/spacesubscriptions' --insecure ; } 2>&1 )"
+while read spaceId ; do
+  example_space_ids+=("${spaceId}")
+done < <(echo "${out}" | jq -r '.[].spaceId')
 
-out="$( { curl -s --user noracle-example-smith:${agent_pw} -X GET --header 'Accept: application/json' "${endpoint}"'/agents/'"${space_creator_agent_id}"'/spacesubscriptions' --insecure ; } )"
-echo "${out}" | jq -r '.[].spaceId' | while read spaceId ; do
+for spaceId in "${example_space_ids[@]}" ; do
   # create questions inside space
   question_ids=()
   for (( num=1; num<=${num_questions_per_space}; num++ )); do
@@ -64,4 +68,29 @@ echo "${out}" | jq -r '.[].spaceId' | while read spaceId ; do
     echo "${out}"
   done
 done
+
+# generate join links
+space_join_links=""
+for spaceId in "${example_space_ids[@]}" ; do
+  out="$( { curl -s -D - --user noracle-example-smith:${agent_pw} -X GET --header 'Accept: application/json' "${endpoint}"'/spaces/'"${spaceId}" --insecure ; } 2>&1 )"
+  while read spaceSecret ; do
+    space_join_links="${space_join_links}<div><a href=\"http://dbis.rwth-aachen.de/noracle/spaces/${spaceId}?pw=${spaceSecret}\">Click here to join example space ${spaceId}</a></div>"
+  done < <(echo "${out}" | jq -r '.spaceSecret')
+done
+
+# write invitation links to file
+read -d '' join_space_file_content <<- EOF
+<html>
+<head>
+<title>Join A Noracle Example Space</title>
+</head>
+<body>
+<p>Please click on a link below to join the appropriate Noracle example space</p>
+${space_join_links}
+</body>
+</html>
+
+EOF
+
+echo "${join_space_file_content}" > "join-example-space.html"
 
