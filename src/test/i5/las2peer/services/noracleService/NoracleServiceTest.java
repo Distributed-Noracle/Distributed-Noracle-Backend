@@ -236,6 +236,20 @@ public class NoracleServiceTest {
 			Assert.fail(e.toString());
 		}
 		try {
+			// test to read it with another agent
+			WebTarget target = webClient
+					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+			Response response = request.get();
+			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
+			NoracleAgentProfile result = response.readEntity(NoracleAgentProfile.class);
+			Assert.assertEquals("Test Name", result.getName());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+		try {
 			// now test a not yet created profile:
 			WebTarget target = webClient
 					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier());

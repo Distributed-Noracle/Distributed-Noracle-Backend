@@ -179,6 +179,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		}
 		profile.setName(agentName);
 		env.setContent(profile);
+		env.setPublic();
 		try {
 			Context.get().storeEnvelope(env, mainAgent);
 		} catch (EnvelopeAccessDeniedException e) {
