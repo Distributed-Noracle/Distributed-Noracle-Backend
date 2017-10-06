@@ -8,8 +8,8 @@ space_creator_agent_login="noracle-example-smith"
 agent_pw="testtest"
 
 num_spaces=5
-num_questions_per_space=50
-num_relations_per_space=25
+num_questions_per_space=25
+num_relations_per_space=15
 
 relation_types=()
 relation_types+=("\"name\": \"Similarity\", \"directed\": \"false\"")
@@ -27,9 +27,11 @@ random_lengthLorem() {
 
 # create example spaces
 
-for num in {1..${num_spaces}}; do
-  curl -s -D - --user noracle-example-smith:${agent_pw} -X POST --header 'Content-Type: application/json' -d '{ "name": "example-space-'"${num}"'" }' "${endpoint}"'/spaces' --insecure
+for (( num=1; num<=${num_spaces}; num++ )); do
+  curl -s -D - --user noracle-example-smith:${agent_pw} -X POST --header 'Content-Type: application/json' -d '{ "name": "example-space-'"${num}"'" }' "${endpoint}"'/spaces' --insecure &
 done
+# wait till all requests terminated
+wait
 
 
 # get all subscribed spaces for agent smith
@@ -38,7 +40,7 @@ out="$( { curl -s --user noracle-example-smith:${agent_pw} -X GET --header 'Acce
 echo "${out}" | jq -r '.[].spaceId' | while read spaceId ; do
   # create questions inside space
   question_ids=()
-  for num in {1..${num_questions_per_space}}; do
+  for (( num=1; num<=${num_questions_per_space}; num++ )); do
     random=$(random_lengthLorem)
     out="$( { curl -s -D - --user noracle-example-smith:"${agent_pw}" -X POST --header 'Content-Type: application/json' -d '{ "text": "'"${random}"'" }' "${endpoint}"'/spaces/'"${spaceId}"'/questions' --insecure ; } 2>&1 )"
     echo "${out}"
@@ -54,7 +56,7 @@ echo "${out}" | jq -r '.[].spaceId' | while read spaceId ; do
     question_ids+=(${question_id})
   done
   # create random relations between questions
-  for num in {1..${num_relations_per_space}}; do
+  for (( num=1; num<=${num_relations_per_space}; num++ )); do
     relation_type=${relation_types[$RANDOM % ${#relation_types[@]} ]}
     first_question_id=${question_ids[$RANDOM % ${#question_ids[@]} ]}
     second_question_id=${question_ids[$RANDOM % ${#question_ids[@]} ]}
