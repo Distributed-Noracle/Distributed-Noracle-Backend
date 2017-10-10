@@ -112,6 +112,7 @@ public class NoracleServiceTest {
 		ServiceAgentImpl serviceAgent = ServiceAgentImpl.createServiceAgent(new ServiceNameVersion(clsName, version),
 				"testtest");
 		serviceAgent.unlock("testtest");
+		node.storeAgent(serviceAgent);
 		node.registerReceiver(serviceAgent);
 	}
 
