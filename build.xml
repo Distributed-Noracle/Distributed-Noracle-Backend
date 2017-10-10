@@ -63,7 +63,7 @@
 			<credentials host="role.dbis.rwth-aachen.de:9911/archiva" realm="Repository internal" />
 		</ivy:settings>
 		<ivy:retrieve type="jar, bundle" conf="*" pattern="${lib}/[artifact]-[revision].[ext]" />
-		<get src="https://github.com/rwth-acis/las2peer-FileService/releases/download/2.1.4/i5.las2peer.services.fileService-2.1.4.jar" dest="service/"/>
+		<get src="https://github.com/rwth-acis/las2peer-FileService/releases/download/2.1.6/i5.las2peer.services.fileService-2.1.6.jar" dest="service/"/>
 	</target>
 
 
