@@ -1,6 +1,6 @@
 package i5.las2peer.services.noracleService.pojo;
 
-public class CreateProfilePojo {
+public class ChangeProfilePojo {
 	private String agentName;
 
 	public String getAgentName() {
