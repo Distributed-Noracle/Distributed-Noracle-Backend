@@ -101,8 +101,8 @@
 		<jar jarfile="${service}/${service.name}-${service.version}.jar">
 			<fileset dir="${tmp.classes}" />
 			<manifest>
-				<attribute name="las2peer-service-name" value="${service.name}" />
-				<attribute name="las2peer-service-version" value="${service.version}" />
+                <attribute name="Library-Version" value="${service.version}" />
+				<attribute name="Library-SymbolicName" value="${service.name}" />
 			</manifest>
 		</jar>
 	</target>
