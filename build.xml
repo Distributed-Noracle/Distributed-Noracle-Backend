@@ -1,6 +1,6 @@
 <project name="Distributed-Noracle-Service" default="jar" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
 
-	<property name="core.version" value="0.7.1" />
+	<property name="core.version" value="0.7-SNAPSHOT" />
 
 	<property name="service.name" value="i5.las2peer.services.noracleService" />
 	<property name="service.class" value="NoracleService" />
@@ -63,7 +63,7 @@
 			<credentials host="role.dbis.rwth-aachen.de:9911/archiva" realm="Repository internal" />
 		</ivy:settings>
 		<ivy:retrieve type="jar, bundle" conf="*" pattern="${lib}/[artifact]-[revision].[ext]" />
-		<get src="https://github.com/rwth-acis/las2peer-FileService/releases/download/2.2.0/i5.las2peer.services.fileService-2.2.0.jar" dest="service/"/>
+		<get src="https://github.com/rwth-acis/las2peer-FileService/releases/download/2.2.5/i5.las2peer.services.fileService-2.2.5.jar" dest="service/"/>
 	</target>
 
 
@@ -101,8 +101,8 @@
 		<jar jarfile="${service}/${service.name}-${service.version}.jar">
 			<fileset dir="${tmp.classes}" />
 			<manifest>
-				<attribute name="las2peer-service-name" value="${service.name}" />
-				<attribute name="las2peer-service-version" value="${service.version}" />
+                <attribute name="Library-Version" value="${service.version}" />
+				<attribute name="Library-SymbolicName" value="${service.name}" />
 			</manifest>
 		</jar>
 	</target>
