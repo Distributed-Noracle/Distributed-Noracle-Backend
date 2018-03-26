@@ -163,6 +163,7 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		}
 		try {
 			UserAgentImpl inviteAgent = this.getInviteAgent(spaceId);
+			inviteAgent.unlock(spaceSecret);
 			GroupAgent memberAgent = this.getMemberAgent(spaceId);
 			memberAgent.unlock(inviteAgent);
 			memberAgent.addMember(Context.get().getMainAgent());
