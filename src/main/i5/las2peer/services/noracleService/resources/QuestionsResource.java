@@ -31,6 +31,7 @@ import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -56,7 +57,7 @@ public class QuestionsResource implements INoracleQuestionService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Response createQuestion(@PathParam("spaceId") String questionSpaceId, CreateQuestionPojo createQuestionPojo)
+	public Response createQuestion(@PathParam("spaceId") String questionSpaceId, @ApiParam(required=true) CreateQuestionPojo createQuestionPojo)
 			throws ServiceInvocationException {
 		Question question = createQuestion(questionSpaceId, createQuestionPojo.getText());
 		try {

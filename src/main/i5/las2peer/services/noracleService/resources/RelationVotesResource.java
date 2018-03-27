@@ -24,6 +24,7 @@ import i5.las2peer.services.noracleService.model.Vote;
 import i5.las2peer.services.noracleService.model.VoteList;
 import i5.las2peer.services.noracleService.pojo.SetVotePojo;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -49,7 +50,7 @@ public class RelationVotesResource implements INoracleVoteService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public Vote putSetVote(@PathParam("spaceId") String spaceId, @PathParam("relationId") String relationId,
-			@PathParam("agentId") String agentId, SetVotePojo setVotePojo) throws ServiceInvocationException {
+			@PathParam("agentId") String agentId, @ApiParam(required=true) SetVotePojo setVotePojo) throws ServiceInvocationException {
 		String objectId = buildObjectId(spaceId, relationId);
 		return setVote(agentId, objectId, setVotePojo.getValue());
 	}

@@ -33,6 +33,7 @@ import i5.las2peer.services.noracleService.model.Space;
 import i5.las2peer.services.noracleService.model.SpaceSubscribersList;
 import i5.las2peer.services.noracleService.pojo.CreateSpacePojo;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -56,7 +57,7 @@ public class SpacesResource implements INoracleSpaceService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Response createSpace(CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
+	public Response createSpace(@ApiParam(required=true) CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
 		Space space = createSpace(createSpacePojo.getName());
 		try {
 			return Response.created(new URI(null, null, RESOURCE_NAME + "/" + space.getSpaceId(), null)).build();
