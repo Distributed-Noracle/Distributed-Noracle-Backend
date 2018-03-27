@@ -33,6 +33,7 @@ import i5.las2peer.services.noracleService.pojo.ChangeProfilePojo;
 import i5.las2peer.services.noracleService.pojo.SubscribeSpacePojo;
 import i5.las2peer.services.noracleService.pojo.UpdateSelectedQuestionsPojo;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -51,7 +52,7 @@ public class AgentsResource implements INoracleAgentService {
 			@ApiResponse(code = HttpURLConnection.HTTP_FORBIDDEN, message = "You can only subscribe yourself to a space", response = ExceptionEntity.class),
 			@ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Internal Server Error", response = ExceptionEntity.class) })
 	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
-	public Response subscribeToSpace(@PathParam("agentid") String agentId, SubscribeSpacePojo subscribeSpacePojo)
+	public Response subscribeToSpace(@PathParam("agentid") String agentId, @ApiParam(required=true) SubscribeSpacePojo subscribeSpacePojo)
 			throws ServiceInvocationException {
 		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
 			throw new ForbiddenException("You can only subscribe yourself to a space");
@@ -88,7 +89,7 @@ public class AgentsResource implements INoracleAgentService {
 			@ApiResponse(code = HttpURLConnection.HTTP_FORBIDDEN, message = "You can only update your own profile", response = ExceptionEntity.class),
 			@ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Internal Server Error", response = ExceptionEntity.class) })
 	public NoracleAgentProfile updateAgentProfile(@PathParam("agentid") String agentId,
-			ChangeProfilePojo createProfilePojo) throws ServiceInvocationException {
+			@ApiParam(required=true) ChangeProfilePojo createProfilePojo) throws ServiceInvocationException {
 		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
 			throw new ForbiddenException("Only update your own profile");
 		}
@@ -195,13 +196,13 @@ public class AgentsResource implements INoracleAgentService {
 			@ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Internal Server Error", response = ExceptionEntity.class) })
 	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME + "/{spaceId}/selectedQuestions")
 	public SpaceSubscription updateSelectedQuestions(@PathParam("agentid") String agentId,
-			@PathParam("spaceId") String spaceId, UpdateSelectedQuestionsPojo updateSelectedQuestionsPojo)
+			@PathParam("spaceId") String spaceId, @ApiParam(required=true) UpdateSelectedQuestionsPojo updateSelectedQuestionsPojo)
 			throws ServiceInvocationException {
 		return updateSpaceSubscription(agentId, spaceId, updateSelectedQuestionsPojo.getSelectedQuestions());
 	}
 
 	@Override
-	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, String[] selectedQuestions)
+	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, @ApiParam(required=true) String[] selectedQuestions)
 			throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),

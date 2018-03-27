@@ -31,6 +31,7 @@ import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionRelationPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -52,7 +53,7 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Response createQuestionRelation(@PathParam("spaceId") String spaceId, CreateRelationPojo createRelationPojo)
+	public Response createQuestionRelation(@PathParam("spaceId") String spaceId, @ApiParam(required=true) CreateRelationPojo createRelationPojo)
 			throws ServiceInvocationException {
 		QuestionRelation rel = createQuestionRelation(spaceId, createRelationPojo.getName(),
 				createRelationPojo.getFirstQuestionId(), createRelationPojo.getSecondQuestionId(),
@@ -209,7 +210,7 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public QuestionRelation changeQuestionRelation(@PathParam("relationId") String relationId,
-			ChangeQuestionRelationPojo changeQuestionRelationPojo) throws ServiceInvocationException {
+			@ApiParam(required=true) ChangeQuestionRelationPojo changeQuestionRelationPojo) throws ServiceInvocationException {
 		return changeQuestionRelation(relationId, changeQuestionRelationPojo.getName(),
 				changeQuestionRelationPojo.getQuestionId1(), changeQuestionRelationPojo.getQuestionId2(),
 				changeQuestionRelationPojo.getDirected());

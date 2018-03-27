@@ -19,7 +19,7 @@ import io.swagger.annotations.SwaggerDefinition;
 public class NoracleService extends RESTService {
 
 	public static final String RESOURCE_NAME = "distributed-noracle";
-	public static final String API_VERSION = "0.5";
+	public static final String API_VERSION = "0.6";
 
 	@Override
 	protected void initResources() {
