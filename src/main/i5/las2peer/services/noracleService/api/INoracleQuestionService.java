@@ -15,4 +15,6 @@ public interface INoracleQuestionService {
 
 	public Question changeQuestionText(String questionId, String text) throws ServiceInvocationException;
 
+	public Question changeQuestionDepth(String questionId, int depth) throws ServiceInvocationException;
+
 }

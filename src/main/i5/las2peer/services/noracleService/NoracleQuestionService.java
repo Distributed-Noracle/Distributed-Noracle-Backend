@@ -246,4 +246,26 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		}
 	}
 
+	@Override
+	public Question changeQuestionDepth(String questionId, int depth) throws ServiceInvocationException {
+		if (questionId == null) {
+			throw new InvocationBadArgumentException("No question id given");
+		}
+		try {
+			Envelope questionEnvelope = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
+			Question question = (Question) questionEnvelope.getContent();
+			question.setDepth(depth);
+			question.setTimestampLastModified(Instant.now().toString());
+			questionEnvelope.setContent(question);
+			Context.get().storeEnvelope(questionEnvelope);
+			return question;
+		} catch (EnvelopeNotFoundException e) {
+			throw new ResourceNotFoundException("Question not found");
+		} catch (EnvelopeAccessDeniedException e) {
+			throw new ServiceAccessDeniedException("Envelope Access Denied");
+		} catch (EnvelopeOperationFailedException e) {
+			throw new InternalServiceException("Could not fetch question envelope", e);
+		}
+	}
+
 }

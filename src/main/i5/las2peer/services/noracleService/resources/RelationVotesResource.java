@@ -11,10 +11,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.google.gson.Gson;
+
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
 import i5.las2peer.api.execution.ResourceNotFoundException;
 import i5.las2peer.api.execution.ServiceInvocationException;
+import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.api.p2p.ServiceNameVersion;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleService;
@@ -27,6 +30,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 @Api
 public class RelationVotesResource implements INoracleVoteService {
@@ -50,8 +56,25 @@ public class RelationVotesResource implements INoracleVoteService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public Vote putSetVote(@PathParam("spaceId") String spaceId, @PathParam("relationId") String relationId,
-			@PathParam("agentId") String agentId, @ApiParam(required=true) SetVotePojo setVotePojo) throws ServiceInvocationException {
+			@PathParam("agentId") String agentId, @ApiParam(
+					required = true) SetVotePojo setVotePojo)
+			throws ServiceInvocationException {
 		String objectId = buildObjectId(spaceId, relationId);
+
+		Gson gson = new Gson();
+		String voteJSON = gson.toJson(setVotePojo);
+		JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
+		try {
+			JSONObject obj = (JSONObject) p.parse(voteJSON);
+			obj.put("spaceId", spaceId);
+			obj.put("relId", relationId);
+			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_8, obj.toJSONString());
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		return setVote(agentId, objectId, setVotePojo.getValue());
 	}
 
