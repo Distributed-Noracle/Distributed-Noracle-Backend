@@ -192,6 +192,7 @@ public class NoracleQuestionRelationService extends Service implements INoracleQ
 			if (directed != null) {
 				relation.setDirected(directed);
 			}
+			relation.setTimestampLastModified(Instant.now().toString());
 			relationEnvelope.setContent(relation);
 			Context.get().storeEnvelope(relationEnvelope);
 			return relation;
