@@ -55,7 +55,7 @@ public class RelationVotesResource implements INoracleVoteService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Vote putSetVote(@PathParam("spaceId") String spaceId, @PathParam("relationId") String relationId,
+	public Vote putSetRelationVote(@PathParam("spaceId") String spaceId, @PathParam("relationId") String relationId,
 			@PathParam("agentId") String agentId, @ApiParam(
 					required = true) SetVotePojo setVotePojo)
 			throws ServiceInvocationException {

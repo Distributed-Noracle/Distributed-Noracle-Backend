@@ -82,6 +82,7 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 				String from = getQuestionText(createRelationPojo.getFirstQuestionId());
 				String to = getQuestionText(createRelationPojo.getSecondQuestionId());
 				JSONObject trainingData = new JSONObject();
+				trainingData.put("unit", spaceId);
 				trainingData.put("from", from);
 				trainingData.put("to", to);
 				if (createRelationPojo.isDirected())

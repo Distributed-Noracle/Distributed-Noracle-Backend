@@ -23,7 +23,10 @@ import i5.las2peer.api.execution.InternalServiceException;
 import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.api.p2p.ServiceNameVersion;
+import i5.las2peer.api.security.AgentNotFoundException;
+import i5.las2peer.api.security.AgentOperationFailedException;
 import i5.las2peer.restMapper.ExceptionEntity;
+import i5.las2peer.security.UserAgentImpl;
 import i5.las2peer.services.noracleService.NoracleAgentService;
 import i5.las2peer.services.noracleService.NoracleService;
 import i5.las2peer.services.noracleService.api.INoracleAgentService;
@@ -70,8 +73,7 @@ public class AgentsResource implements INoracleAgentService {
 					response = ExceptionEntity.class) })
 	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
 	public Response subscribeToSpace(@PathParam("agentid") String agentId, @ApiParam(
-			required = true) SubscribeSpacePojo subscribeSpacePojo) throws ServiceInvocationException {
-		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
+			required = true) SubscribeSpacePojo subscribeSpacePojo) throws ServiceInvocationException {		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
 			throw new ForbiddenException("You can only subscribe yourself to a space");
 		}
 		subscribeToSpace(subscribeSpacePojo.getSpaceId(), subscribeSpacePojo.getSpaceSecret());
