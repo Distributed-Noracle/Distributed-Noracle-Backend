@@ -57,7 +57,7 @@ public class QuestionVotesResource implements INoracleVoteService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Vote putSetVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
+	public Vote putSetQuestionVote(@PathParam("spaceId") String spaceId, @PathParam("questionId") String questionId,
 			@PathParam("agentId") String agentId, @ApiParam(
 					required = true) SetVotePojo setVotePojo)
 			throws ServiceInvocationException {
@@ -68,9 +68,17 @@ public class QuestionVotesResource implements INoracleVoteService {
 		JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
 		try {
 			JSONObject obj = (JSONObject) p.parse(voteJSON);
+			JSONObject attributes = new JSONObject();
 			obj.put("spaceId", spaceId);
 			obj.put("qId", questionId);
+
+			obj.put("functionName", "putSetVote");
 			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+			attributes.put("spaceId", spaceId);
+			attributes.put("qId", questionId);
+			attributes.put("body", p.parse(voteJSON));
+			attributes.put("result", "");
+			obj.put("attributes", attributes);
 			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_7, obj.toJSONString());
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
@@ -82,13 +90,13 @@ public class QuestionVotesResource implements INoracleVoteService {
 			String from = getQuestionText(questionId);
 			Integer to = setVotePojo.getValue();
 			JSONObject trainingData = new JSONObject();
+			trainingData.put("unit", spaceId);
 			trainingData.put("from", from);
 			trainingData.put("to", to);
 			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_47, trainingData.toString());
 		} catch (ServiceInvocationException e) {
 			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_ERROR_47, questionId);
 		}
-
 		return setVote(agentId, objectId, setVotePojo.getValue());
 	}
 

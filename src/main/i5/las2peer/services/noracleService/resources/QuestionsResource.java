@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -27,13 +28,16 @@ import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.api.p2p.ServiceNameVersion;
 import i5.las2peer.restMapper.ExceptionEntity;
+import i5.las2peer.services.noracleService.NoracleQuestionRelationService;
 import i5.las2peer.services.noracleService.NoracleQuestionService;
 import i5.las2peer.services.noracleService.NoracleService;
 import i5.las2peer.services.noracleService.api.INoracleQuestionService;
 import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionList;
+import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
+import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -71,9 +75,15 @@ public class QuestionsResource implements INoracleQuestionService {
 			Gson gson = new Gson();
 			String createRelationPojoJson = gson.toJson(createQuestionPojo);
 			JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
-			JSONObject obj = (JSONObject) p.parse(createRelationPojoJson);
-			obj.put("spaceId", questionSpaceId);
+			JSONObject obj = new JSONObject();
+			JSONObject attributes = new JSONObject();
+			obj.put("functionName", "createQuestion");
 			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+			obj.put("qid", question.getQuestionId());
+			attributes.put("spaceId", questionSpaceId);
+			attributes.put("body", p.parse(createRelationPojoJson));
+			attributes.put("result", question.getQuestionId());
+			obj.put("attributes", attributes);
 			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_5, obj.toJSONString());
 
 			return Response.created(new URI(null, null, SpacesResource.RESOURCE_NAME + "/" + questionSpaceId + "/"
@@ -81,6 +91,163 @@ public class QuestionsResource implements INoracleQuestionService {
 		} catch (URISyntaxException | ParseException e) {
 			throw new InternalServerErrorException(e);
 		}
+	}
+
+	@POST
+	@Path("/{questionId}/relation")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_HTML)
+	@ApiResponses({ @ApiResponse(
+			code = HttpURLConnection.HTTP_CREATED,
+			message = "Question successfully created"),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_BAD_REQUEST,
+					message = "No question text given",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_UNAUTHORIZED,
+					message = "You have to be logged in to create a question",
+					response = ExceptionEntity.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
+					message = "Internal Server Error",
+					response = ExceptionEntity.class) })
+	public Response createRelatedQuestion(@PathParam("spaceId") String questionSpaceId,
+			@PathParam("questionId") String fquestionId, @ApiParam(
+					required = true) CreateQuestionPojo createQuestionPojo)
+			throws ServiceInvocationException {
+		Question question = createQuestion(questionSpaceId, createQuestionPojo.getText());
+		try {
+			// CREATE QUESTION
+			Gson gson = new Gson();
+			String createQuestionPojoJson = gson.toJson(createQuestionPojo);
+			JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
+			JSONObject obj = new JSONObject();
+			JSONObject attributes = new JSONObject();
+			obj.put("functionName", "createQuestion");
+			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+			obj.put("qid", question.getQuestionId());
+			attributes.put("spaceId", questionSpaceId);
+			attributes.put("body", p.parse(createQuestionPojoJson));
+			attributes.put("result", question.getQuestionId());
+			obj.put("attributes", attributes);
+			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_5, obj.toJSONString());
+
+			// CREATE RELATION
+			CreateRelationPojo createRelationPojo = new CreateRelationPojo();
+			createRelationPojo.setDirected(true);
+			createRelationPojo.setFirstQuestionId(fquestionId);
+			createRelationPojo.setSecondQuestionId(question.getQuestionId());
+			createRelationPojo.setName("FollowUp");
+
+			QuestionRelation rel = createQuestionRelation(questionSpaceId, createRelationPojo.getName(),
+					createRelationPojo.getFirstQuestionId(), createRelationPojo.getSecondQuestionId(),
+					createRelationPojo.isDirected());
+			try {
+				String createRelationPojoJson = gson.toJson(createRelationPojo);
+
+				obj = (JSONObject) p.parse(createRelationPojoJson);
+				obj.put("spaceId", questionSpaceId);
+				obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, obj.toJSONString());
+
+				// Try to log training data
+				try {
+					String from = getQuestionText(createRelationPojo.getFirstQuestionId());
+					String to = getQuestionText(createRelationPojo.getSecondQuestionId());
+					JSONObject trainingData = new JSONObject();
+					trainingData.put("unit", questionSpaceId);
+					trainingData.put("from", from);
+					trainingData.put("to", to);
+					if (createRelationPojo.isDirected())
+						Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_40, trainingData.toString());
+					else
+						Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_41, trainingData.toString());
+				} catch (ServiceInvocationException | NullPointerException e) {
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_ERROR_40, e.getMessage());
+				}
+				Question q1 = null;
+				Question q2 = null;
+				Serializable rmiResult = Context
+						.get().invoke(
+								new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(),
+										NoracleService.API_VERSION),
+								"getQuestion", createRelationPojo.getFirstQuestionId());
+				if (rmiResult instanceof Question) {
+					q1 = (Question) rmiResult;
+				}
+
+				Serializable rmiResult2 = Context
+						.get().invoke(
+								new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(),
+										NoracleService.API_VERSION),
+								"getQuestion", createRelationPojo.getSecondQuestionId());
+				if (rmiResult instanceof Question) {
+					q2 = (Question) rmiResult2;
+				}
+
+				if (q1 != null && q2 != null) {
+					try {
+						Instant timestamp = Instant.parse(q1.getTimestampCreated());
+						Instant timestamp2 = Instant.parse(q2.getTimestampCreated());
+						if (timestamp.isBefore(timestamp2) && q2.getDepth() < 1) {
+							changeQuestionDepth(q2.getQuestionId(), q1.getDepth() + 1);
+							JSONObject obj2 = new JSONObject();
+							obj2.put("spaceId", questionSpaceId);
+							obj2.put("qid", q2.getQuestionId());
+							obj2.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+							obj2.put("depth", q1.getDepth() + 1);
+							Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_10, obj2.toJSONString());
+
+						} else {
+							if (q1.getDepth() < 1) {
+								changeQuestionDepth(q1.getQuestionId(), q2.getDepth() + 1);
+								JSONObject obj2 = new JSONObject();
+								obj2.put("spaceId", questionSpaceId);
+								obj2.put("qid", q1.getQuestionId());
+								obj2.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+								obj2.put("depth", q2.getDepth() + 1);
+								Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_10,
+										obj2.toJSONString());
+							}
+						}
+					} catch (Exception e) {
+
+					}
+				}
+			} catch (ParseException e) {
+				throw new InternalServerErrorException(e);
+			}
+
+			return Response.created(new URI(null, null, SpacesResource.RESOURCE_NAME + "/" + questionSpaceId + "/"
+					+ RESOURCE_NAME + "/" + question.getQuestionId(), null)).build();
+		} catch (URISyntaxException | ParseException e) {
+			throw new InternalServerErrorException(e);
+		}
+	}
+
+	private QuestionRelation createQuestionRelation(String spaceId, String name, String questionId1, String questionId2,
+			Boolean directed) throws ServiceInvocationException {
+		Serializable rmiResult = Context.get()
+				.invoke(new ServiceNameVersion(NoracleQuestionRelationService.class.getCanonicalName(),
+						NoracleService.API_VERSION), "createQuestionRelation", spaceId, name, questionId1, questionId2,
+						directed);
+		if (rmiResult instanceof QuestionRelation) {
+			return (QuestionRelation) rmiResult;
+		} else {
+			throw new InternalServiceException(
+					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+		}
+	}
+
+	private String getQuestionText(String questionId) throws ServiceInvocationException {
+		String qText = "";
+		Serializable rmiResult = Context.get().invoke(
+				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"getQuestion", questionId);
+		if (rmiResult instanceof Question)
+			qText = ((Question) rmiResult).getText();
+		return qText;
 	}
 
 	@Override
