@@ -12,6 +12,7 @@ public class Question implements Serializable {
 	private String authorId;
 	private String timestampCreated;
 	private String timestampLastModified;
+	private int depth;
 
 	public Question() { // used in tests
 	}
@@ -23,6 +24,7 @@ public class Question implements Serializable {
 		this.authorId = authorId;
 		this.timestampCreated = timestampCreated;
 		this.timestampLastModified = timestampCreated;
+		this.depth = 0;
 	}
 
 	public String getQuestionId() {
@@ -71,6 +73,14 @@ public class Question implements Serializable {
 
 	public void setTimestampLastModified(String timestampLastModified) {
 		this.timestampLastModified = timestampLastModified;
+	}
+
+	public int getDepth() {
+		return this.depth;
+	}
+
+	public void setDepth(int depth) {
+		this.depth = depth;
 	}
 
 }

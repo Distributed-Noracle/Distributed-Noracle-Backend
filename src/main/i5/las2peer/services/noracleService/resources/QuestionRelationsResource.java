@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -19,14 +20,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import com.google.gson.Gson;
+
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
 import i5.las2peer.api.execution.ServiceInvocationException;
+import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.api.p2p.ServiceNameVersion;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleQuestionRelationService;
+import i5.las2peer.services.noracleService.NoracleQuestionService;
 import i5.las2peer.services.noracleService.NoracleService;
 import i5.las2peer.services.noracleService.api.INoracleQuestionRelationService;
+import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionRelationPojo;
@@ -34,6 +40,9 @@ import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 public class QuestionRelationsResource implements INoracleQuestionRelationService {
 
@@ -53,18 +62,108 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Response createQuestionRelation(@PathParam("spaceId") String spaceId, @ApiParam(required=true) CreateRelationPojo createRelationPojo)
-			throws ServiceInvocationException {
+	public Response createQuestionRelation(@PathParam("spaceId") String spaceId, @ApiParam(
+			required = true) CreateRelationPojo createRelationPojo) throws ServiceInvocationException {
 		QuestionRelation rel = createQuestionRelation(spaceId, createRelationPojo.getName(),
 				createRelationPojo.getFirstQuestionId(), createRelationPojo.getSecondQuestionId(),
 				createRelationPojo.isDirected());
 		try {
+			Gson gson = new Gson();
+			String createRelationPojoJson = gson.toJson(createRelationPojo);
+
+			JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
+			JSONObject obj = (JSONObject) p.parse(createRelationPojoJson);
+			obj.put("spaceId", spaceId);
+			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, obj.toJSONString());
+
+			// Try to log training data
+			try {
+				String from = getQuestionText(createRelationPojo.getFirstQuestionId());
+				String to = getQuestionText(createRelationPojo.getSecondQuestionId());
+				JSONObject trainingData = new JSONObject();
+				trainingData.put("from", from);
+				trainingData.put("to", to);
+				if (createRelationPojo.isDirected())
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_40, trainingData.toString());
+				else
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_41, trainingData.toString());
+			} catch (ServiceInvocationException | NullPointerException e) {
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_ERROR_40, e.getMessage());
+			}
+			Question q1 = null;
+			Question q2 = null;
+			Serializable rmiResult = Context.get().invoke(
+					new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
+					"getQuestion", createRelationPojo.getFirstQuestionId());
+			if (rmiResult instanceof Question) {
+				q1 = (Question) rmiResult;
+			}
+
+			Serializable rmiResult2 = Context.get().invoke(
+					new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
+					"getQuestion", createRelationPojo.getSecondQuestionId());
+			if (rmiResult instanceof Question) {
+				q2 = (Question) rmiResult2;
+			}
+
+			if (q1 != null && q2 != null) {
+				try {
+					Instant timestamp = Instant.parse(q1.getTimestampCreated());
+					Instant timestamp2 = Instant.parse(q2.getTimestampCreated());
+					if (timestamp.isBefore(timestamp2) && q2.getDepth() < 1) {
+						changeQuestionDepth(q2.getQuestionId(), q1.getDepth() + 1);
+						JSONObject obj2 = new JSONObject();
+						obj2.put("spaceId", spaceId);
+						obj2.put("qid", q2.getQuestionId());
+						obj2.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+						obj2.put("depth", q1.getDepth() + 1);
+						Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_10, obj2.toJSONString());
+
+					} else {
+						if (q1.getDepth() < 1) {
+							changeQuestionDepth(q1.getQuestionId(), q2.getDepth() + 1);
+							JSONObject obj2 = new JSONObject();
+							obj2.put("spaceId", spaceId);
+							obj2.put("qid", q1.getQuestionId());
+							obj2.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+							obj2.put("depth", q2.getDepth() + 1);
+							Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_10, obj2.toJSONString());
+						}
+					}
+				} catch (Exception e) {
+
+				}
+			}
+
 			return Response.created(new URI(null, null,
 					SpacesResource.RESOURCE_NAME + "/" + spaceId + "/" + RESOURCE_NAME + "/" + rel.getRelationId(),
 					null)).build();
-		} catch (URISyntaxException e) {
+		} catch (URISyntaxException | ParseException e) {
 			throw new InternalServerErrorException(e);
 		}
+	}
+
+	public Question changeQuestionDepth(String questionId, int depth) throws ServiceInvocationException {
+		Serializable rmiResult = Context.get().invoke(
+				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"changeQuestionDepth", questionId, depth);
+		if (rmiResult instanceof Question) {
+			return (Question) rmiResult;
+		} else {
+			throw new InternalServiceException(
+					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+		}
+	}
+
+	private String getQuestionText(String questionId) throws ServiceInvocationException {
+		String qText = "";
+		Serializable rmiResult = Context.get().invoke(
+				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"getQuestion", questionId);
+		if (rmiResult instanceof Question)
+			qText = ((Question) rmiResult).getText();
+		return qText;
 	}
 
 	@Override
@@ -209,8 +308,38 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public QuestionRelation changeQuestionRelation(@PathParam("relationId") String relationId,
-			@ApiParam(required=true) ChangeQuestionRelationPojo changeQuestionRelationPojo) throws ServiceInvocationException {
+	public QuestionRelation changeQuestionRelation(@PathParam("relationId") String relationId, @ApiParam(
+			required = true) ChangeQuestionRelationPojo changeQuestionRelationPojo) throws ServiceInvocationException {
+
+		Gson gson = new Gson();
+		String changeRelationPojoJson = gson.toJson(changeQuestionRelationPojo);
+
+		JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
+		try {
+			JSONObject obj = (JSONObject) p.parse(changeRelationPojoJson);
+			obj.put("relId", relationId);
+			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_4, obj.toJSONString());
+		} catch (ParseException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		// Try to log training data
+		try {
+			String from = getQuestionText(changeQuestionRelationPojo.getQuestionId1());
+			String to = getQuestionText(changeQuestionRelationPojo.getQuestionId2());
+			JSONObject trainingData = new JSONObject();
+			trainingData.put("from", from);
+			trainingData.put("to", to);
+			if (changeQuestionRelationPojo.getDirected())
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_42, trainingData.toString());
+			else
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_43, trainingData.toString());
+		} catch (ServiceInvocationException e) {
+			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_ERROR_42,
+					changeQuestionRelationPojo.getDirected().toString());
+		}
 		return changeQuestionRelation(relationId, changeQuestionRelationPojo.getName(),
 				changeQuestionRelationPojo.getQuestionId1(), changeQuestionRelationPojo.getQuestionId2(),
 				changeQuestionRelationPojo.getDirected());

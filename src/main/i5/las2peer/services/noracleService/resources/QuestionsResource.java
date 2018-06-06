@@ -19,9 +19,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import com.google.gson.Gson;
+
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
 import i5.las2peer.api.execution.ServiceInvocationException;
+import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.api.p2p.ServiceNameVersion;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleQuestionService;
@@ -34,6 +37,9 @@ import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 public class QuestionsResource implements INoracleQuestionService {
 
@@ -57,13 +63,22 @@ public class QuestionsResource implements INoracleQuestionService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Response createQuestion(@PathParam("spaceId") String questionSpaceId, @ApiParam(required=true) CreateQuestionPojo createQuestionPojo)
-			throws ServiceInvocationException {
+	public Response createQuestion(@PathParam("spaceId") String questionSpaceId, @ApiParam(
+			required = true) CreateQuestionPojo createQuestionPojo) throws ServiceInvocationException {
 		Question question = createQuestion(questionSpaceId, createQuestionPojo.getText());
 		try {
+
+			Gson gson = new Gson();
+			String createRelationPojoJson = gson.toJson(createQuestionPojo);
+			JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
+			JSONObject obj = (JSONObject) p.parse(createRelationPojoJson);
+			obj.put("spaceId", questionSpaceId);
+			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_5, obj.toJSONString());
+
 			return Response.created(new URI(null, null, SpacesResource.RESOURCE_NAME + "/" + questionSpaceId + "/"
 					+ RESOURCE_NAME + "/" + question.getQuestionId(), null)).build();
-		} catch (URISyntaxException e) {
+		} catch (URISyntaxException | ParseException e) {
 			throw new InternalServerErrorException(e);
 		}
 	}
@@ -208,6 +223,20 @@ public class QuestionsResource implements INoracleQuestionService {
 					response = ExceptionEntity.class) })
 	public Question changeQuestionText(@PathParam("questionId") String questionId,
 			ChangeQuestionPojo changeQuestionPojo) throws ServiceInvocationException {
+
+		Gson gson = new Gson();
+		String createRelationPojoJson = gson.toJson(changeQuestionPojo);
+		JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
+		try {
+			JSONObject obj = (JSONObject) p.parse(createRelationPojoJson);
+			obj.put("qId", questionId);
+			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_6, obj.toJSONString());
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		return changeQuestionText(questionId, changeQuestionPojo.getText());
 	}
 
@@ -227,6 +256,19 @@ public class QuestionsResource implements INoracleQuestionService {
 	@Path("/{questionId}/" + QuestionVotesResource.RESOURCE_NAME)
 	public QuestionVotesResource votes() {
 		return new QuestionVotesResource();
+	}
+
+	@Override
+	public Question changeQuestionDepth(String questionId, int depth) throws ServiceInvocationException {
+		Serializable rmiResult = Context.get().invoke(
+				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"changeQuestionDepth", questionId, depth);
+		if (rmiResult instanceof Question) {
+			return (Question) rmiResult;
+		} else {
+			throw new InternalServiceException(
+					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+		}
 	}
 
 }

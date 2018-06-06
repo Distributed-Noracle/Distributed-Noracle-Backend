@@ -16,5 +16,7 @@
 
         <!-- service dependencies -->
         <dependency org="org.glassfish.jersey.media" name="jersey-media-json-jackson" rev="2.25.1" conf="platform->*" />
+        <dependency org="com.google.code.gson" name="gson" rev="2.8.2" conf="bundle->*" />
+        
     </dependencies>
 </ivy-module>

@@ -18,12 +18,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.gson.Gson;
+
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.InternalServiceException;
 import i5.las2peer.api.execution.InvocationBadArgumentException;
 import i5.las2peer.api.execution.ResourceNotFoundException;
 import i5.las2peer.api.execution.ServiceAccessDeniedException;
 import i5.las2peer.api.execution.ServiceInvocationException;
+import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.api.p2p.ServiceNameVersion;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleService;
@@ -36,6 +39,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 @Api(
 		tags = { SpacesResource.RESOURCE_NAME })
@@ -57,9 +63,23 @@ public class SpacesResource implements INoracleSpaceService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Response createSpace(@ApiParam(required=true) CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
+	public Response createSpace(@ApiParam(
+			required = true) CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
 		Space space = createSpace(createSpacePojo.getName());
 		try {
+
+			Gson gson = new Gson();
+			String spaceJSON = gson.toJson(createSpacePojo);
+			JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
+			try {
+				JSONObject obj = (JSONObject) p.parse(spaceJSON);
+				obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_9, obj.toJSONString());
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 			return Response.created(new URI(null, null, RESOURCE_NAME + "/" + space.getSpaceId(), null)).build();
 		} catch (URISyntaxException e) {
 			throw new InternalServerErrorException(e);
@@ -128,7 +148,7 @@ public class SpacesResource implements INoracleSpaceService {
 			throw new InternalServerErrorException("Exception during RMI call", e);
 		}
 	}
-	
+
 	@Override
 	@GET
 	@Path("/{spaceId}/subscribers")
