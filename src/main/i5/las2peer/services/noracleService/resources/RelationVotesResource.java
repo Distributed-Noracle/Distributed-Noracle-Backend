@@ -154,7 +154,7 @@ public class RelationVotesResource implements INoracleVoteService {
 		return vote;
 	}
 
-	private String buildObjectId(String spaceId, String relationId) throws ResourceNotFoundException {
+	public static String buildObjectId(String spaceId, String relationId) throws ResourceNotFoundException {
 		if (relationId != null && !relationId.isEmpty()) {
 			return "relation-" + relationId;
 		} else {

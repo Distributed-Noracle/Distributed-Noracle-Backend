@@ -31,10 +31,14 @@ import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleQuestionRelationService;
 import i5.las2peer.services.noracleService.NoracleQuestionService;
 import i5.las2peer.services.noracleService.NoracleService;
+import i5.las2peer.services.noracleService.NoracleVoteService;
 import i5.las2peer.services.noracleService.api.INoracleQuestionRelationService;
 import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
+import i5.las2peer.services.noracleService.model.VoteList;
+import i5.las2peer.services.noracleService.model.VotedQuestionRelation;
+import i5.las2peer.services.noracleService.model.VotedQuestionRelationList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionRelationPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
 import io.swagger.annotations.ApiParam;
@@ -243,7 +247,22 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 			@QueryParam("limit") Integer limit, @QueryParam("startAt") Integer startAt)
 			throws ServiceInvocationException {
 		QuestionRelationList questionRelationList = getQuestionRelations(spaceId, order, limit, startAt);
-		ResponseBuilder responseBuilder = Response.ok(questionRelationList);
+		
+		VotedQuestionRelationList votedQuestionRelationList = new VotedQuestionRelationList();
+		for (QuestionRelation questionRelation:questionRelationList) {
+			VotedQuestionRelation votedQuestionRelation = new VotedQuestionRelation(questionRelation);
+			String objectId = RelationVotesResource.buildObjectId(spaceId, questionRelation.getRelationId());
+			Serializable rmiResult = Context.get().invoke(
+					new ServiceNameVersion(NoracleVoteService.class.getCanonicalName(), NoracleService.API_VERSION),
+					"getAllVotes", objectId);
+			if (rmiResult instanceof VoteList) {
+				votedQuestionRelation.setVotes((VoteList) rmiResult);
+			}
+			votedQuestionRelationList.add(votedQuestionRelation);
+		}
+		
+		ResponseBuilder responseBuilder = Response.ok(votedQuestionRelationList);
+
 		String queryOrder = order != null ? "order=" + order : "";
 		String queryLimit = limit != null ? "limit=" + Integer.toString(limit) : "";
 		String queryStartAt = "";
@@ -338,8 +357,9 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 			else
 				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_43, trainingData.toString());
 		} catch (ServiceInvocationException e) {
-			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_ERROR_42,
-					changeQuestionRelationPojo.getDirected().toString());
+			/* getDirected will return null at this point */	
+//			Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_ERROR_42,
+//					changeQuestionRelationPojo.getDirected().toString());
 		}
 		return changeQuestionRelation(relationId, changeQuestionRelationPojo.getName(),
 				changeQuestionRelationPojo.getQuestionId1(), changeQuestionRelationPojo.getQuestionId2(),

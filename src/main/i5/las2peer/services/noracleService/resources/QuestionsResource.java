@@ -31,10 +31,14 @@ import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleQuestionRelationService;
 import i5.las2peer.services.noracleService.NoracleQuestionService;
 import i5.las2peer.services.noracleService.NoracleService;
+import i5.las2peer.services.noracleService.NoracleVoteService;
 import i5.las2peer.services.noracleService.api.INoracleQuestionService;
 import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionList;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
+import i5.las2peer.services.noracleService.model.VoteList;
+import i5.las2peer.services.noracleService.model.VotedQuestion;
+import i5.las2peer.services.noracleService.model.VotedQuestionList;
 import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.CreateRelationPojo;
@@ -140,9 +144,9 @@ public class QuestionsResource implements INoracleQuestionService {
 			createRelationPojo.setSecondQuestionId(question.getQuestionId());
 			createRelationPojo.setName("FollowUp");
 
-			QuestionRelation rel = createQuestionRelation(questionSpaceId, createRelationPojo.getName(),
-					createRelationPojo.getFirstQuestionId(), createRelationPojo.getSecondQuestionId(),
-					createRelationPojo.isDirected());
+//			QuestionRelation rel = createQuestionRelation(questionSpaceId, createRelationPojo.getName(),
+//					createRelationPojo.getFirstQuestionId(), createRelationPojo.getSecondQuestionId(),
+//					createRelationPojo.isDirected());
 			try {
 				String createRelationPojoJson = gson.toJson(createRelationPojo);
 
@@ -322,7 +326,21 @@ public class QuestionsResource implements INoracleQuestionService {
 			@QueryParam("limit") Integer limit, @QueryParam("startat") Integer startAt)
 			throws ServiceInvocationException {
 		QuestionList questionList = getQuestions(spaceId, order, limit, startAt);
-		ResponseBuilder responseBuilder = Response.ok(questionList);
+		
+		VotedQuestionList votedQuestionList = new VotedQuestionList();
+		for (Question question:questionList) {
+			VotedQuestion votedQuestion = new VotedQuestion(question);
+			String objectId = QuestionVotesResource.buildObjectId(spaceId, question.getQuestionId());
+			Serializable rmiResult = Context.get().invoke(
+					new ServiceNameVersion(NoracleVoteService.class.getCanonicalName(), NoracleService.API_VERSION),
+					"getAllVotes", objectId);
+			if (rmiResult instanceof VoteList) {
+				votedQuestion.setVotes((VoteList) rmiResult);
+			}
+			votedQuestionList.add(votedQuestion);
+		}
+		
+		ResponseBuilder responseBuilder = Response.ok(votedQuestionList);
 		String queryOrder = order != null ? "order=" + order : "";
 		String queryLimit = limit != null ? "limit=" + Integer.toString(limit) : "";
 		String queryStartAt = "";
