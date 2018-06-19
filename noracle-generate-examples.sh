@@ -1,6 +1,6 @@
 #!/bin/bash
 
-endpoint="https://steen.informatik.rwth-aachen.de:9082/distributed-noracle/v0.6.0"
+endpoint="https://steen.informatik.rwth-aachen.de:9082/distributed-noracle/v0.7.0"
 
 space_creator_agent_id="762a164ba8eb06d3d110eeeb0321cb75f2624ab311f9c0c4d0e91bdc854a02f389b91573d6c29d70d3071a8a1738cd20fac87d638777dbfcef4ded8be71e2656"
 space_creator_agent_login="noracle-example-smith"
