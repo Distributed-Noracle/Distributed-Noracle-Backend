@@ -72,7 +72,8 @@ public class QuestionVotesResource implements INoracleVoteService {
 			obj.put("spaceId", spaceId);
 			obj.put("qId", questionId);
 
-			obj.put("functionName", "putSetVote");
+			obj.put("functionName", "putSetQuestionVote");
+			obj.put("serviceAlias", "distributed-noracle");
 			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
 			attributes.put("spaceId", spaceId);
 			attributes.put("qId", questionId);
