@@ -187,7 +187,7 @@ public class QuestionVotesResource implements INoracleVoteService {
 		return vote;
 	}
 
-	private String buildObjectId(String spaceId, String questionId) throws ResourceNotFoundException {
+	public static String buildObjectId(String spaceId, String questionId) throws ResourceNotFoundException {
 		if (questionId != null && !questionId.isEmpty()) {
 			return "question-" + questionId;
 		} else {

@@ -32,6 +32,10 @@ public class QuestionRelation implements Serializable {
 		this.timestampLastModified = timestampCreated;
 	}
 
+	public void setSpaceId(String spaceId) {
+		this.spaceId = spaceId;
+	}
+
 	public String getRelationId() {
 		return relationId;
 	}
@@ -94,6 +98,10 @@ public class QuestionRelation implements Serializable {
 
 	public void setTimestampLastModified(String timestampLastModified) {
 		this.timestampLastModified = timestampLastModified;
+	}
+
+	public void setAuthorId(String authorId) {
+		this.authorId = authorId;
 	}
 
 }
