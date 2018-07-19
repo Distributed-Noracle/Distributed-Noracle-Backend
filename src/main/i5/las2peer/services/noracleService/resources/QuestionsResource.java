@@ -82,9 +82,11 @@ public class QuestionsResource implements INoracleQuestionService {
 			JSONObject obj = new JSONObject();
 			JSONObject attributes = new JSONObject();
 			obj.put("functionName", "createQuestion");
+			obj.put("serviceAlias", "distributed-noracle");
 			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
 			obj.put("qid", question.getQuestionId());
 			attributes.put("spaceId", questionSpaceId);
+			attributes.put("userId", Context.getCurrent().getMainAgent().getIdentifier());
 			attributes.put("body", p.parse(createRelationPojoJson));
 			attributes.put("result", question.getQuestionId());
 			obj.put("attributes", attributes);
@@ -129,6 +131,7 @@ public class QuestionsResource implements INoracleQuestionService {
 			JSONObject obj = new JSONObject();
 			JSONObject attributes = new JSONObject();
 			obj.put("functionName", "createQuestion");
+			obj.put("serviceAlias", "distributed-noracle");
 			obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
 			obj.put("qid", question.getQuestionId());
 			attributes.put("spaceId", questionSpaceId);
