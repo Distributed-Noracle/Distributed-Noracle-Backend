@@ -1,8 +1,8 @@
 package i5.las2peer.services.noracleService;
 
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -16,8 +16,6 @@ import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 import i5.las2peer.services.noracleService.model.VotedQuestionList;
-import i5.las2peer.services.noracleService.pojo.ChangeQuestionPojo;
-import i5.las2peer.services.noracleService.pojo.CreateQuestionPojo;
 import i5.las2peer.services.noracleService.pojo.UpdateSelectedQuestionsPojo;
 import i5.las2peer.services.noracleService.resources.AgentsResource;
 import i5.las2peer.services.noracleService.resources.QuestionsResource;
@@ -161,12 +159,7 @@ public class NoracleQuestionTest extends AbstractQuestionBasedTestBase {
 			String questionId1 = createTestQuestion(testSpaceId);
 			String questionId2 = createTestQuestion(testSpaceId);
 			String questionId3 = createTestQuestion(testSpaceId);
-			
-//			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-//					+ QuestionsResource.RESOURCE_NAME);
-//			Builder request = target.queryParam("order", "desc").queryParam("startat", "3").request();
-//			Response response = request.header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam).get();
-			
+						
 			@SuppressWarnings("unchecked")
 			Response response = getAllQuestions(testSpaceId, Pair.of("order", "desc"), Pair.of("startat", "3"));
 			
