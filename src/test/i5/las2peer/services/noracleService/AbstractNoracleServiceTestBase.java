@@ -70,8 +70,6 @@ public abstract class AbstractNoracleServiceTestBase {
 					NoracleService.API_VERSION + ".0");
 			startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleVoteService",
 					NoracleService.API_VERSION + ".0");
-			startService(nodes.get(0), "i5.las2peer.services.noracleService." + TestService.class.getSimpleName(),
-					NoracleService.API_VERSION + ".0");
 			testAgent = MockAgentFactory.getAdam();
 			testAgent.unlock("adamspass");
 			PastryNodeImpl activeNode = nodes.get(0);
