@@ -42,26 +42,26 @@ public class NoracleVoteTest extends AbstractQuestionRelationTestBase {
 			Assert.assertEquals(0, relationVotes.size());
 			// vote for each with one agent
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-					+ questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier(),
-					basicAuthHeader, 3);
+					+ questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent_adam.getIdentifier(),
+					basicAuthHeader_adam, 3);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-					+ questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier(),
-					basicAuthHeader, 3);
+					+ questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent_adam.getIdentifier(),
+					basicAuthHeader_adam, 3);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/"
-					+ QuestionVotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier(), basicAuthHeader, 3);
+					+ QuestionVotesResource.RESOURCE_NAME + "/" + testAgent_adam.getIdentifier(), basicAuthHeader_adam, 3);
 			// check my votes for each resource
 			Vote question1AgentVote = getAgentVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME
-					+ "/" + testAgent.getIdentifier());
+					+ "/" + testAgent_adam.getIdentifier());
 			Assert.assertEquals(3, question1AgentVote.getValue());
 			Vote question2AgentVote = getAgentVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME + "/" + questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME
-					+ "/" + testAgent.getIdentifier());
+					+ "/" + testAgent_adam.getIdentifier());
 			Assert.assertEquals(3, question2AgentVote.getValue());
 			Vote relationAgentVote = getAgentVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/"
-					+ QuestionVotesResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
+					+ QuestionVotesResource.RESOURCE_NAME + "/" + testAgent_adam.getIdentifier());
 			Assert.assertEquals(3, relationAgentVote.getValue());
 			// test get votes for all resources
 			question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
@@ -79,14 +79,14 @@ public class NoracleVoteTest extends AbstractQuestionRelationTestBase {
 			Assert.assertEquals(1, relationVotes.get(0).getValue());
 			// (down-)vote for each with another agent and check all votes
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-					+ questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier(),
-					basicAuthHeader2, -5);
+					+ questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent_eve.getIdentifier(),
+					basicAuthHeader_eve, -5);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/" + QuestionsResource.RESOURCE_NAME + "/"
-					+ questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier(),
-					basicAuthHeader2, -5);
+					+ questionId2 + "/" + QuestionVotesResource.RESOURCE_NAME + "/" + testAgent_eve.getIdentifier(),
+					basicAuthHeader_eve, -5);
 			setVote("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionRelationsResource.RESOURCE_NAME + "/" + relationId + "/"
-					+ QuestionVotesResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier(), basicAuthHeader2, -5);
+					+ QuestionVotesResource.RESOURCE_NAME + "/" + testAgent_eve.getIdentifier(), basicAuthHeader_eve, -5);
 			// test get votes for all resources
 			question1Votes = getVotes("/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME + "/" + questionId1 + "/" + QuestionVotesResource.RESOURCE_NAME);
@@ -112,7 +112,7 @@ public class NoracleVoteTest extends AbstractQuestionRelationTestBase {
 
 	private VoteList getVotes(String path) {
 		WebTarget target = webClient.target(baseUrl + path);
-		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
 		Response response = request.get();
 		Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
@@ -131,7 +131,7 @@ public class NoracleVoteTest extends AbstractQuestionRelationTestBase {
 
 	private Vote getAgentVote(String path) {
 		WebTarget target = webClient.target(baseUrl + path);
-		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
 		Response response = request.get();
 		Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());

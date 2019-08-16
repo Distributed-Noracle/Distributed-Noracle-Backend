@@ -20,7 +20,7 @@ public class NoracleSpaceTest extends AbstractNoracleServiceTestBase {
 	@Test
 	public void testCreateSpaceNoLogin() {
 		try {
-			Response response = tryCreatingDefaultTestSpace(false);
+			Response response = postDefaultTestSpaceCreation(false);
 			Assert.assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -31,12 +31,11 @@ public class NoracleSpaceTest extends AbstractNoracleServiceTestBase {
 	@Test
 	public void testSpaceReadPermission() {
 		try {
-			Response response = tryCreatingDefaultTestSpace(true);
+			Response response = postDefaultTestSpaceCreation(true);
 			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
 			// check if non space member has read permission
-			Builder requestSpace = requestSpaceWithAuthorizationHeader(response, basicAuthHeader2);
-			Response responseSpace = requestSpace.get();
+			Response responseSpace = requestSpaceWithAuthorizationHeader(response, basicAuthHeader_eve);
 			Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), responseSpace.getStatus());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -51,8 +50,8 @@ public class NoracleSpaceTest extends AbstractNoracleServiceTestBase {
 			SubscribeSpacePojo body = new SubscribeSpacePojo();
 			body.setSpaceId(testSpaceId);
 			WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
-					+ testAgent2.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+					+ testAgent_eve.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_eve);
 			Response response = request.post(Entity.json(body));
 			Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
 		} catch (Exception e) {
@@ -69,8 +68,8 @@ public class NoracleSpaceTest extends AbstractNoracleServiceTestBase {
 			body.setSpaceId(testSpaceId);
 			body.setSpaceSecret("xxx");
 			WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
-					+ testAgent2.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+					+ testAgent_eve.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_eve);
 			Response response = request.post(Entity.json(body));
 			Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
 		} catch (Exception e) {
@@ -87,8 +86,8 @@ public class NoracleSpaceTest extends AbstractNoracleServiceTestBase {
 			body.setSpaceId(testSpace.getSpaceId());
 			body.setSpaceSecret(testSpace.getSpaceSecret());
 			WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
-					+ testAgent2.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+					+ testAgent_eve.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_eve);
 			Response response = request.post(Entity.json(body));
 			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());

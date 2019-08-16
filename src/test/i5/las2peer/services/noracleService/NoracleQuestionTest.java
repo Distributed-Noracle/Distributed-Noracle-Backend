@@ -8,6 +8,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,9 +33,9 @@ public class NoracleQuestionTest extends AbstractQuestionBasedTestBase {
 			UpdateSelectedQuestionsPojo body = new UpdateSelectedQuestionsPojo();
 			body.setSelectedQuestions(new String[] { "1234" });
 			WebTarget target = webClient
-					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent.getIdentifier() + "/"
+					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent_adam.getIdentifier() + "/"
 							+ AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME + "/" + testSpaceId + "/selectedQuestions");
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
 			Response response = request.put(Entity.json(body));
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			SpaceSubscription result = response.readEntity(SpaceSubscription.class);
@@ -42,9 +43,9 @@ public class NoracleQuestionTest extends AbstractQuestionBasedTestBase {
 			Assert.assertEquals(1, result.getSelectedQuestionIds().length);
 			Assert.assertArrayEquals(new String[] { "1234" }, result.getSelectedQuestionIds());
 			// check if subscription is updated
-			target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent.getIdentifier()
+			target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent_adam.getIdentifier()
 					+ "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
-			request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+			request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
 			response = request.get();
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
@@ -63,12 +64,7 @@ public class NoracleQuestionTest extends AbstractQuestionBasedTestBase {
 	public void testCreateQuestionNoLogin() {
 		try {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
-			// create question in space
-			CreateQuestionPojo body = new CreateQuestionPojo();
-			body.setText(TEST_QUESTION_TEXT);
-			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME);
-			Response response = target.request().post(Entity.json(body));
+			Response response = postQuestionCreation(testSpaceId, false);
 			Assert.assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -81,18 +77,13 @@ public class NoracleQuestionTest extends AbstractQuestionBasedTestBase {
 		try {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			// create question in space
-			CreateQuestionPojo body = new CreateQuestionPojo();
-			body.setText(TEST_QUESTION_TEXT);
-			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME);
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
-			Response response = request.post(Entity.json(body));
+			Response response = postQuestionCreation(testSpaceId);
 			Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
 			// check if non space member has read permission
 			String locationHeader = response.getHeaderString(HttpHeaders.LOCATION);
 			WebTarget targetQuestion = webClient.target(locationHeader);
-			Builder requestQuestion = targetQuestion.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader2);
+			Builder requestQuestion = targetQuestion.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_eve);
 			Response responseQuestion = requestQuestion.get();
 			Assert.assertEquals(Status.FORBIDDEN.getStatusCode(), responseQuestion.getStatus());
 		} catch (Exception e) {
@@ -103,13 +94,9 @@ public class NoracleQuestionTest extends AbstractQuestionBasedTestBase {
 
 	@Test
 	public void testQuestionNonExistentSpace() {
+		final String spaceId = "xxxxx";
 		try {
-			CreateQuestionPojo body = new CreateQuestionPojo();
-			body.setText(TEST_QUESTION_TEXT);
-			WebTarget target = webClient
-					.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/xxxxx/" + QuestionsResource.RESOURCE_NAME);
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
-			Response response = request.post(Entity.json(body));
+			Response response = postQuestionCreation(spaceId);
 			Assert.assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -119,27 +106,24 @@ public class NoracleQuestionTest extends AbstractQuestionBasedTestBase {
 
 	@Test
 	public void testChangeQuestion() {
+		String newQuestionText = "How much is the fish?";
 		try {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			String questionId = createTestQuestion(testSpaceId);
-			ChangeQuestionPojo body = new ChangeQuestionPojo();
-			body.setText("How much is the fish?");
-			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME + "/" + questionId);
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
-			Response response = request.put(Entity.json(body));
+			Response response = postQuestionUpdate(newQuestionText, testSpaceId, questionId);			
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
+			
 			Question result = response.readEntity(Question.class);
 			Assert.assertEquals(testSpaceId, result.getSpaceId());
 			Assert.assertEquals(questionId, result.getQuestionId());
-			Assert.assertEquals("How much is the fish?", result.getText());
+			Assert.assertEquals(newQuestionText, result.getText());
 			Assert.assertNotEquals(result.getTimestampCreated(), result.getTimestampLastModified());
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
 		}
-	}
+	}	
 
 	@Test
 	public void testGetQuestions() {
@@ -151,36 +135,70 @@ public class NoracleQuestionTest extends AbstractQuestionBasedTestBase {
 			// no params at all
 			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
 					+ QuestionsResource.RESOURCE_NAME);
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
-			Response response = request.get();
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
+			Response response = request.get();			
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
+			
 			VotedQuestionList questionList = response.readEntity(VotedQuestionList.class);
 			Assert.assertEquals(3, questionList.size());
 			Assert.assertEquals(questionList.get(0).getQuestionId(), questionId1);
 			Assert.assertEquals(questionList.get(1).getQuestionId(), questionId2);
 			Assert.assertEquals(questionList.get(2).getQuestionId(), questionId3);
+			
 			String linkHeader = response.getHeaderString(HttpHeaders.LINK);
 			Assert.assertNull(linkHeader);
-			// inverse order
-			target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
-					+ QuestionsResource.RESOURCE_NAME);
-			request = target.queryParam("order", "desc").queryParam("startat", "3").request();
-			response = request.header(HttpHeaders.AUTHORIZATION, basicAuthHeader).get();
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.toString());
+		}
+	}
+	
+	@Test
+	public void testGetQuestionsInverseOrder() {
+		try {
+			String testSpaceId = createAndFetchTestSpace().getSpaceId();
+			String questionId1 = createTestQuestion(testSpaceId);
+			String questionId2 = createTestQuestion(testSpaceId);
+			String questionId3 = createTestQuestion(testSpaceId);
+			
+//			WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + testSpaceId + "/"
+//					+ QuestionsResource.RESOURCE_NAME);
+//			Builder request = target.queryParam("order", "desc").queryParam("startat", "3").request();
+//			Response response = request.header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam).get();
+			
+			@SuppressWarnings("unchecked")
+			Response response = getAllQuestions(testSpaceId, Pair.of("order", "desc"), Pair.of("startat", "3"));
+			
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
-			questionList = response.readEntity(VotedQuestionList.class);
+			
+			VotedQuestionList questionList = response.readEntity(VotedQuestionList.class);
 			Assert.assertEquals(3, questionList.size());
 			Assert.assertEquals(questionList.get(0).getQuestionId(), questionId3);
 			Assert.assertEquals(questionList.get(1).getQuestionId(), questionId2);
 			Assert.assertEquals(questionList.get(2).getQuestionId(), questionId1);
-			linkHeader = response.getHeaderString(HttpHeaders.LINK);
+			
+			String linkHeader = response.getHeaderString(HttpHeaders.LINK);
 			Assert.assertNotNull(linkHeader);
 			Assert.assertEquals("<?order=desc>; rel=\"next\"", linkHeader);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected Response getAllQuestions(String spaceId, Pair<String, String>...pairs) {
+		WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + spaceId + "/"
+				+ QuestionsResource.RESOURCE_NAME);
+		
+		for(Pair<String, String> pair : pairs) {
+			target = target.queryParam(pair.getLeft(), pair.getRight());
+		}
+		
+		Builder request = target.request();
+		return request.header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam).get();		
 	}
 
 }

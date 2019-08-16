@@ -11,12 +11,13 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.Assert;
 import org.junit.Test;
 
+import i5.las2peer.security.UserAgentImpl;
 import i5.las2peer.services.noracleService.model.NoracleAgentProfile;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 import i5.las2peer.services.noracleService.pojo.ChangeProfilePojo;
 import i5.las2peer.services.noracleService.resources.AgentsResource;
 
-public class AgentManipulationTest extends AbstractNoracleServiceTestBase {
+public class NoracleAgentTest extends AbstractNoracleServiceTestBase {
 
 	@Test
 	public void testAutoSubscribe() {
@@ -24,8 +25,8 @@ public class AgentManipulationTest extends AbstractNoracleServiceTestBase {
 			String testSpaceId = createAndFetchTestSpace().getSpaceId();
 			// check if agent is auto-subscribed
 			WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
-					+ testAgent.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+					+ testAgent_adam.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
 			Response response = request.get();
 			// assert no HTTP error
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
@@ -47,7 +48,7 @@ public class AgentManipulationTest extends AbstractNoracleServiceTestBase {
 		final String testName = "Test Name";
 		try {
 			// first update the sample agent with a new name
-			Response response = changeAgentName(testName);
+			Response response = changeNameOfAdam(testName);
 			// assert no HTTP error
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
@@ -62,7 +63,7 @@ public class AgentManipulationTest extends AbstractNoracleServiceTestBase {
 		}
 		try {
 			// now retrieve it
-			Response response = retrieveAgentName(basicAuthHeader);
+			Response response = retrieveNameOfAgent(testAgent_adam, basicAuthHeader_adam);
 			// assert no HTTP error
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
@@ -75,7 +76,7 @@ public class AgentManipulationTest extends AbstractNoracleServiceTestBase {
 		}
 		try {
 			// test to read it with another agent
-			Response response = retrieveAgentName(basicAuthHeader2);
+			Response response = retrieveNameOfAgent(testAgent_adam, basicAuthHeader_eve);
 			// assert no HTTP error
 			Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
@@ -93,8 +94,8 @@ public class AgentManipulationTest extends AbstractNoracleServiceTestBase {
 		try {
 			// now test a not yet created profile:
 			WebTarget target = webClient
-					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent2.getIdentifier());
-			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+					.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent_eve.getIdentifier());
+			Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
 			Response response = request.get();
 			Assert.assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
 			Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
@@ -104,20 +105,32 @@ public class AgentManipulationTest extends AbstractNoracleServiceTestBase {
 		}
 	}
 
-	private Response retrieveAgentName(String authorizationHeader) {
-		WebTarget target = webClient
-				.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
+	/**
+	 * Get the current name of the given agent
+	 *
+	 * @param agent               the agent from which the name should be retrieved
+	 * @param authorizationHeader the authorization header to be used
+	 * @return the response to the GET-request
+	 */
+	private Response retrieveNameOfAgent(final UserAgentImpl agent, final String authorizationHeader) {
+		WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + agent.getIdentifier());
 		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, authorizationHeader);
 		Response response = request.get();
 		return response;
 	}
 
-	private Response changeAgentName(final String testName) {
+	/**
+	 * Changes the name of Adam with his credentials
+	 * 
+	 * @param newName Adam's new name
+	 * @return the response to the PUT-request
+	 */
+	private Response changeNameOfAdam(final String newName) {
 		ChangeProfilePojo body = new ChangeProfilePojo();
-		body.setAgentName(testName);
+		body.setAgentName(newName);
 		WebTarget target = webClient
-				.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent.getIdentifier());
-		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader);
+				.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/" + testAgent_adam.getIdentifier());
+		Builder request = target.request().header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
 		Response response = request.put(Entity.json(body));
 		return response;
 	}
