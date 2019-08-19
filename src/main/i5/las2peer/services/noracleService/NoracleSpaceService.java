@@ -35,9 +35,9 @@ import i5.las2peer.tools.CryptoException;
 
 /**
  * Noracle Space Service
- * 
+ *
  * This service is used to handle spaces in a distributed Noracle system.
- * 
+ *
  */
 public class NoracleSpaceService extends Service implements INoracleSpaceService {
 
@@ -50,13 +50,13 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 	}
 
 	@Override
-	public Space createSpace(String name) throws ServiceInvocationException {
-		Agent mainAgent = Context.get().getMainAgent();
+	public Space createSpace(final String name) throws ServiceInvocationException {
+		final Agent mainAgent = Context.get().getMainAgent();
 		if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceNotAuthorizedException("You have to be logged in to create a space");
 		}
-		String spaceId = buildSpaceId();
-		String spaceSecret = generateSpaceSecret();
+		final String spaceId = buildSpaceId();
+		final String spaceSecret = generateSpaceSecret();
 		SpaceInviteAgent spaceInviteAgent;
 		try {
 			spaceInviteAgent = new SpaceInviteAgent(spaceSecret);
@@ -68,7 +68,7 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 			throw new InternalServiceException("Could not store space invite agent", e);
 		}
 		try {
-			Envelope envInviteMapping = Context.get().createEnvelope(getInviteMappingIdentifier(spaceId));
+			final Envelope envInviteMapping = Context.get().createEnvelope(getInviteMappingIdentifier(spaceId));
 			envInviteMapping.setPublic();
 			envInviteMapping.setContent(spaceInviteAgent.getIdentifier());
 			Context.get().storeEnvelope(envInviteMapping);
@@ -86,7 +86,7 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 			throw new InternalServiceException("Could not store space member group agent", e);
 		}
 		try {
-			Envelope envGroupMapping = Context.get().createEnvelope(getMemberMappingIdentifier(spaceId));
+			final Envelope envGroupMapping = Context.get().createEnvelope(getMemberMappingIdentifier(spaceId));
 			envGroupMapping.setPublic();
 			envGroupMapping.setContent(spaceMemberGroupAgent.getIdentifier());
 			Context.get().storeEnvelope(envGroupMapping);
@@ -100,7 +100,7 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 			throw new InternalServiceException("Could not create envelope for space", e);
 		}
 		env.addReader(spaceMemberGroupAgent);
-		Space space = new Space(spaceId, spaceSecret, name, mainAgent.getIdentifier(),
+		final Space space = new Space(spaceId, spaceSecret, name, mainAgent.getIdentifier(),
 				spaceMemberGroupAgent.getIdentifier());
 		env.setContent(space);
 		try {
@@ -112,82 +112,86 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 	}
 
 	@Override
-	public Space getSpace(String spaceId) throws ServiceInvocationException {
+	public Space getSpace(final String spaceId) throws ServiceInvocationException {
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");
 		}
 		Envelope env;
 		try {
 			env = Context.get().requestEnvelope(getSpaceEnvelopeIdentifier(spaceId));
-		} catch (EnvelopeAccessDeniedException e) {
+		} catch (final EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Access Denied", e);
-		} catch (EnvelopeNotFoundException e) {
+		} catch (final EnvelopeNotFoundException e) {
 			throw new ResourceNotFoundException("Space Not Found", e);
-		} catch (EnvelopeOperationFailedException e) {
+		} catch (final EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not deserialize space object", e);
 		}
-		Space space = (Space) env.getContent();
+		final Space space = (Space) env.getContent();
 		return space;
 	}
-	
+
 	@Override
-	public SpaceSubscribersList getSubscribers(String spaceId) throws ServiceInvocationException {
+	public SpaceSubscribersList getSubscribers(final String spaceId) throws ServiceInvocationException {
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");
 		}
 		try {
-			UserAgentImpl inviteAgent = this.getInviteAgent(spaceId);
-			GroupAgent memberAgent = this.getMemberAgent(spaceId);
+			final UserAgentImpl inviteAgent = getInviteAgent(spaceId);
+			final GroupAgent memberAgent = getMemberAgent(spaceId);
 			memberAgent.unlock(Context.get().getMainAgent());
-			String[] memberIds = memberAgent.getMemberList();
-			SpaceSubscribersList subscribers = new SpaceSubscribersList();
+			final String[] memberIds = memberAgent.getMemberList();
+			final SpaceSubscribersList subscribers = new SpaceSubscribersList();
 			for (int i = 0; i < memberIds.length; i++) {
 				if (!memberIds[i].equals(inviteAgent.getIdentifier())) {
-					UserAgentImpl agent = (UserAgentImpl) Context.get().fetchAgent(memberIds[i]);
-					NoracleAgentProfile profile = new NoracleAgentProfile();
+					final UserAgentImpl agent = (UserAgentImpl) Context.get().fetchAgent(memberIds[i]);
+					final NoracleAgentProfile profile = new NoracleAgentProfile();
 					profile.setName(agent.getLoginName());
 					subscribers.add(profile);
 				}
 			}
 			return subscribers;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new ServiceInvocationException("Could not fetch list", e);
 		}
 	}
 
-	public void joinSpace(String spaceId, String spaceSecret) throws ServiceInvocationException {
+	public void joinSpace(final String spaceId, final String spaceSecret) throws ServiceInvocationException {
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");
 		} else if (spaceSecret == null || spaceSecret.isEmpty()) {
 			throw new ServiceAccessDeniedException("No space secret given");
 		}
 		try {
-			UserAgentImpl inviteAgent = this.getInviteAgent(spaceId);
+			final UserAgentImpl inviteAgent = getInviteAgent(spaceId);
 			inviteAgent.unlock(spaceSecret);
-			GroupAgent memberAgent = this.getMemberAgent(spaceId);
+			final GroupAgent memberAgent = getMemberAgent(spaceId);
 			memberAgent.unlock(inviteAgent);
 			memberAgent.addMember(Context.get().getMainAgent());
 			Context.get().storeAgent(memberAgent);
-		} catch (AgentAccessDeniedException e) {
+		} catch (final AgentAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Could not unlock agent", e);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new ServiceInvocationException("Could not join space", e);
 		}
 	}
-	
-	private UserAgentImpl getInviteAgent(String spaceId) throws AgentNotFoundException, AgentOperationFailedException, EnvelopeAccessDeniedException, EnvelopeNotFoundException, EnvelopeOperationFailedException {
-		String inviteAgentEnvelopeId = getInviteMappingIdentifier(spaceId);
-		Envelope inviteAgentMapping = Context.get().requestEnvelope(inviteAgentEnvelopeId);
-		String inviteAgentId = (String) inviteAgentMapping.getContent();
-		UserAgentImpl inviteAgent = (UserAgentImpl) Context.get().fetchAgent(inviteAgentId);
+
+	private UserAgentImpl getInviteAgent(final String spaceId)
+			throws AgentNotFoundException, AgentOperationFailedException, EnvelopeAccessDeniedException,
+			EnvelopeNotFoundException, EnvelopeOperationFailedException {
+		final String inviteAgentEnvelopeId = getInviteMappingIdentifier(spaceId);
+		final Envelope inviteAgentMapping = Context.get().requestEnvelope(inviteAgentEnvelopeId);
+		final String inviteAgentId = (String) inviteAgentMapping.getContent();
+		final UserAgentImpl inviteAgent = (UserAgentImpl) Context.get().fetchAgent(inviteAgentId);
 		return inviteAgent;
 	}
-	
-	private GroupAgent getMemberAgent(String spaceId) throws EnvelopeAccessDeniedException, EnvelopeNotFoundException, EnvelopeOperationFailedException, AgentNotFoundException, AgentOperationFailedException {
-		String memberAgentEnvelopeId = getMemberMappingIdentifier(spaceId);
-		Envelope memberAgentMapping = Context.get().requestEnvelope(memberAgentEnvelopeId);
-		String memberAgentId = (String) memberAgentMapping.getContent();
-		GroupAgent memberAgent = (GroupAgent) Context.get().fetchAgent(memberAgentId);
+
+	private GroupAgent getMemberAgent(final String spaceId)
+			throws EnvelopeAccessDeniedException, EnvelopeNotFoundException, EnvelopeOperationFailedException,
+			AgentNotFoundException, AgentOperationFailedException {
+		final String memberAgentEnvelopeId = getMemberMappingIdentifier(spaceId);
+		final Envelope memberAgentMapping = Context.get().requestEnvelope(memberAgentEnvelopeId);
+		final String memberAgentId = (String) memberAgentMapping.getContent();
+		final GroupAgent memberAgent = (GroupAgent) Context.get().fetchAgent(memberAgentId);
 		return memberAgent;
 	}
 
@@ -207,15 +211,15 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		return result;
 	}
 
-	private String getInviteMappingIdentifier(String spaceId) {
+	private String getInviteMappingIdentifier(final String spaceId) {
 		return "invite-" + spaceId;
 	}
 
-	private String getMemberMappingIdentifier(String spaceId) {
+	private String getMemberMappingIdentifier(final String spaceId) {
 		return "group-" + spaceId;
 	}
 
-	private String getSpaceEnvelopeIdentifier(String questionId) {
+	private String getSpaceEnvelopeIdentifier(final String questionId) {
 		return "space-" + questionId;
 	}
 

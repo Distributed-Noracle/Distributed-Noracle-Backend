@@ -35,7 +35,7 @@ import i5.las2peer.testing.TestSuite;
 public abstract class AbstractNoracleServiceTestBase {
 
 	protected static final String TEST_SPACE_NAME = "so many questions";
-	
+
 	protected int networkSize = 1;
 	protected ArrayList<PastryNodeImpl> nodes;
 	protected WebConnector connector;
@@ -51,7 +51,7 @@ public abstract class AbstractNoracleServiceTestBase {
 		try {
 			nodes = TestSuite.launchNetwork(networkSize);
 			connector = new WebConnector(null);
-			PastryNodeImpl activeNode = nodes.get(0);
+			final PastryNodeImpl activeNode = nodes.get(0);
 			connector.start(activeNode);
 
 			// don't follow redirects, some tests want to test for correct redirect
@@ -67,7 +67,7 @@ public abstract class AbstractNoracleServiceTestBase {
 
 			// define test agent: eve
 			defineEve(activeNode);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
 		}
@@ -75,10 +75,11 @@ public abstract class AbstractNoracleServiceTestBase {
 
 	/**
 	 * Start the services used in the tests
-	 * 
-	 * @throws Exception multiple potential {@link Exception Exceptions} that may occur
+	 *
+	 * @throws Exception multiple potential {@link Exception Exceptions} that may
+	 *                   occur
 	 */
-	private void startServices() throws Exception {
+	protected void startServices() throws Exception {
 		startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleService",
 				NoracleService.API_VERSION + ".0");
 		startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleAgentService",
@@ -93,14 +94,14 @@ public abstract class AbstractNoracleServiceTestBase {
 				NoracleService.API_VERSION + ".0");
 	}
 
-	
 	/**
 	 * Create the test agent 'eve' using the {@link MockAgentFactory}
-	 * 
-	 * @param activeNode the {@link Node} on which eve resides 
-	 * @throws Exception multiple potential {@link Exception Exceptions} that may occur
+	 *
+	 * @param activeNode the {@link Node} on which eve resides
+	 * @throws Exception multiple potential {@link Exception Exceptions} that may
+	 *                   occur
 	 */
-	private void defineEve(PastryNodeImpl activeNode) throws Exception {
+	private void defineEve(final PastryNodeImpl activeNode) throws Exception {
 		testAgent_eve = MockAgentFactory.getEve();
 		testAgent_eve.unlock("evespass");
 		activeNode.storeAgent(testAgent_eve);
@@ -112,11 +113,12 @@ public abstract class AbstractNoracleServiceTestBase {
 
 	/**
 	 * Create the test agent 'adam' using the {@link MockAgentFactory}
-	 * 
+	 *
 	 * @param activeNode the {@link Node} on which adam resides
-	 * @throws Exception multiple potential {@link Exception Exceptions} that may occur
+	 * @throws Exception multiple potential {@link Exception Exceptions} that may
+	 *                   occur
 	 */
-	private void defineAdam(PastryNodeImpl activeNode) throws Exception {
+	private void defineAdam(final PastryNodeImpl activeNode) throws Exception {
 		testAgent_adam = MockAgentFactory.getAdam();
 		testAgent_adam.unlock("adamspass");
 		activeNode.storeAgent(testAgent_adam);
@@ -126,15 +128,16 @@ public abstract class AbstractNoracleServiceTestBase {
 
 	/**
 	 * Start a Service on the given node
-	 * 
-	 * @param node the {@link Node} running the service
+	 *
+	 * @param node    the {@link Node} running the service
 	 * @param clsName the Service's name
-	 * @param version the Service's version 
-	 * @throws Exception multiple potential {@link Exception Exceptions} that may occur 
+	 * @param version the Service's version
+	 * @throws Exception multiple potential {@link Exception Exceptions} that may
+	 *                   occur
 	 */
-	private void startService(Node node, String clsName, String version) throws Exception {
-		ServiceAgentImpl serviceAgent = ServiceAgentImpl.createServiceAgent(new ServiceNameVersion(clsName, version),
-				"testtest");
+	protected void startService(final Node node, final String clsName, final String version) throws Exception {
+		final ServiceAgentImpl serviceAgent = ServiceAgentImpl
+				.createServiceAgent(new ServiceNameVersion(clsName, version), "testtest");
 		serviceAgent.unlock("testtest");
 		node.storeAgent(serviceAgent);
 		node.registerReceiver(serviceAgent);
@@ -142,10 +145,10 @@ public abstract class AbstractNoracleServiceTestBase {
 
 	@After
 	public void afterTest() {
-		for (PastryNodeImpl node : nodes) {
+		for (final PastryNodeImpl node : nodes) {
 			try {
 				node.shutDown();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -153,33 +156,36 @@ public abstract class AbstractNoracleServiceTestBase {
 
 	/**
 	 * Creates a default {@link Space} using adam's credentials
-	 * 
+	 *
 	 * @return the created {@link Space}
-	 * @throws Exception multiple potential {@link Exception Exceptions} that may occur 
+	 * @throws Exception multiple potential {@link Exception Exceptions} that may
+	 *                   occur
 	 */
 	protected Space createAndFetchTestSpace() throws Exception {
-		Response response = postDefaultTestSpaceCreation(true);
+		final Response response = postDefaultTestSpaceCreation(true);
 		Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 		Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
 		// fetch test space
-		Response responseSpace = requestSpaceWithAuthorizationHeader(response, basicAuthHeader_adam);
+		final Response responseSpace = requestSpaceWithAuthorizationHeader(response, basicAuthHeader_adam);
 		Assert.assertEquals(Status.OK.getStatusCode(), responseSpace.getStatus());
 		Assert.assertEquals(MediaType.APPLICATION_JSON_TYPE, responseSpace.getMediaType());
-		Space space = responseSpace.readEntity(Space.class);
+		final Space space = responseSpace.readEntity(Space.class);
 		return space;
 	}
 
 	/**
-	 * Posts a default {@link Space} creation call using the {@link #TEST_SPACE_NAME}, with optional credentials
-	 * 
-	 * @param withAuthorization indicated whether the credentials of adam should be used
-	 * @return the {@link Response} to the creation message 
+	 * Posts a default {@link Space} creation call using the
+	 * {@link #TEST_SPACE_NAME}, with optional credentials
+	 *
+	 * @param withAuthorization indicated whether the credentials of adam should be
+	 *                          used
+	 * @return the {@link Response} to the creation message
 	 */
-	protected Response postDefaultTestSpaceCreation(boolean withAuthorization) {
+	protected Response postDefaultTestSpaceCreation(final boolean withAuthorization) {
 		// create test space with first test user
-		CreateSpacePojo body = new CreateSpacePojo();
+		final CreateSpacePojo body = new CreateSpacePojo();
 		body.setName(TEST_SPACE_NAME);
-		WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME);
+		final WebTarget target = webClient.target(baseUrl + "/" + SpacesResource.RESOURCE_NAME);
 		Builder request = target.request();
 		if (withAuthorization)
 			request = request.header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
@@ -188,18 +194,18 @@ public abstract class AbstractNoracleServiceTestBase {
 
 	/**
 	 * Requests a space using the given credentials
-	 * 
-	 * @param response the response to the HTTP request of the location
+	 *
+	 * @param response            the response to the HTTP request of the location
 	 * @param authorizationHeader the credentials to be used
 	 * @return the requests response
 	 */
-	protected Response requestSpaceWithAuthorizationHeader(Response response, String authorizationHeader) {
-		String locationHeader = response.getHeaderString(HttpHeaders.LOCATION);
-		WebTarget targetSpace = webClient.target(locationHeader);
-		Builder requestSpace = targetSpace.request().header(HttpHeaders.AUTHORIZATION, authorizationHeader);
+	protected Response requestSpaceWithAuthorizationHeader(final Response response, final String authorizationHeader) {
+		final String locationHeader = response.getHeaderString(HttpHeaders.LOCATION);
+		final WebTarget targetSpace = webClient.target(locationHeader);
+		final Builder requestSpace = targetSpace.request().header(HttpHeaders.AUTHORIZATION, authorizationHeader);
 		return requestSpace.get();
 	}
-	
+
 	// TODO: asserts
 
 }

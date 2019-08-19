@@ -30,9 +30,9 @@ import i5.las2peer.services.noracleService.model.Space;
 
 /**
  * Noracle Question Service
- * 
+ *
  * This service is used to handle questions in a distributed Noracle system.
- * 
+ *
  */
 public class NoracleQuestionService extends Service implements INoracleQuestionService {
 
@@ -45,8 +45,8 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 	}
 
 	@Override
-	public Question createQuestion(String questionSpaceId, String text) throws ServiceInvocationException {
-		Agent mainAgent = Context.get().getMainAgent();
+	public Question createQuestion(final String questionSpaceId, final String text) throws ServiceInvocationException {
+		final Agent mainAgent = Context.get().getMainAgent();
 		if (questionSpaceId == null || questionSpaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No question space id given");
 		} else if (text == null || text.isEmpty()) {
@@ -55,7 +55,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 			throw new ServiceNotAuthorizedException("You have to be logged in to create a question");
 		}
 		Space targetSpace;
-		Serializable rmiResult = Context.get().invoke(
+		final Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"getSpace", questionSpaceId);
 		if (rmiResult instanceof Space) {
@@ -64,35 +64,35 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 		}
-		String targetReaderGroupId = targetSpace.getSpaceReaderGroupId();
+		final String targetReaderGroupId = targetSpace.getSpaceReaderGroupId();
 		GroupAgent targetReaderGroup;
 		try {
 			targetReaderGroup = (GroupAgent) Context.get().requestAgent(targetReaderGroupId, mainAgent);
 		} catch (AgentNotFoundException | AgentOperationFailedException e) {
 			throw new InternalServiceException("Could not fetch reader group agent for space", e);
-		} catch (ClassCastException e) {
+		} catch (final ClassCastException e) {
 			throw new InternalServiceException("Agent for space reader group is not a GroupAgent", e);
-		} catch (AgentAccessDeniedException e) {
+		} catch (final AgentAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Agent not in space reader group", e);
 		}
-		String questionId = buildQuestionId();
+		final String questionId = buildQuestionId();
 		Envelope env;
 		try {
 			env = Context.get().createEnvelope(getQuestionEnvelopeIdentifier(questionId), mainAgent);
-		} catch (EnvelopeAccessDeniedException e) {
+		} catch (final EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
-		} catch (EnvelopeOperationFailedException e) {
+		} catch (final EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not create envelope for question", e);
 		}
 		env.addReader(targetReaderGroup);
-		Question question = new Question(questionId, text, questionSpaceId, mainAgent.getIdentifier(),
+		final Question question = new Question(questionId, text, questionSpaceId, mainAgent.getIdentifier(),
 				Instant.now().toString());
 		env.setContent(question);
 		try {
 			Context.get().storeEnvelope(env, mainAgent);
-		} catch (EnvelopeAccessDeniedException e) {
+		} catch (final EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
-		} catch (EnvelopeOperationFailedException e) {
+		} catch (final EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not store question envelope", e);
 		}
 		if (questionSpaceId != null && !questionSpaceId.isEmpty()) {
@@ -101,19 +101,19 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		return question;
 	}
 
-	public boolean linkQuestionToSpace(String spaceId, String questionId) {
+	public boolean linkQuestionToSpace(final String spaceId, final String questionId) {
 		int questionNumber;
 		for (questionNumber = 1; questionNumber < MAX_QUESTIONS_PER_SPACE; questionNumber++) {
 			try {
 				Context.get().requestEnvelope(buildSpaceQuestionNumberId(spaceId, questionNumber));
-			} catch (EnvelopeNotFoundException e) { // found free question number
+			} catch (final EnvelopeNotFoundException e) { // found free question number
 				break;
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				// XXX logging
 			}
 		}
 		try {
-			Envelope spaceQuestionEnv = Context.get()
+			final Envelope spaceQuestionEnv = Context.get()
 					.createEnvelope(buildSpaceQuestionNumberId(spaceId, questionNumber));
 			spaceQuestionEnv.setPublic();
 			spaceQuestionEnv.setContent(questionId);
@@ -126,26 +126,26 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		return false;
 	}
 
-	private String buildSpaceQuestionNumberId(String spaceId, int questionNumber) {
+	private String buildSpaceQuestionNumberId(final String spaceId, final int questionNumber) {
 		return "spacequestion-" + spaceId + "-" + questionNumber;
 	}
 
 	@Override
-	public Question getQuestion(String questionId) throws ServiceInvocationException {
+	public Question getQuestion(final String questionId) throws ServiceInvocationException {
 		if (questionId == null || questionId.isEmpty()) {
 			throw new InvocationBadArgumentException("No question id given");
 		}
 		Envelope env;
 		try {
 			env = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
-		} catch (EnvelopeAccessDeniedException e) {
+		} catch (final EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
-		} catch (EnvelopeOperationFailedException e) {
+		} catch (final EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not fetch question envelope", e);
-		} catch (EnvelopeNotFoundException e) {
+		} catch (final EnvelopeNotFoundException e) {
 			throw new ResourceNotFoundException("Question Not Found");
 		}
-		Question question = (Question) env.getContent();
+		final Question question = (Question) env.getContent();
 		return question;
 	}
 
@@ -157,12 +157,12 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		return result;
 	}
 
-	private String getQuestionEnvelopeIdentifier(String questionId) {
+	private String getQuestionEnvelopeIdentifier(final String questionId) {
 		return "question-" + questionId;
 	}
 
 	@Override
-	public QuestionList getQuestions(String spaceId, String order, Integer limit, Integer startAt)
+	public QuestionList getQuestions(final String spaceId, String order, Integer limit, Integer startAt)
 			throws ServiceInvocationException {
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");
@@ -180,7 +180,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		if (startAt == null) {
 			startAt = 1;
 		}
-		QuestionList result = new QuestionList();
+		final QuestionList result = new QuestionList();
 		try {
 			if (order.equalsIgnoreCase("desc")) {
 				for (int questionNumber = startAt; questionNumber > startAt - limit; questionNumber--) {
@@ -195,20 +195,20 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 					}
 				}
 			}
-		} catch (EnvelopeNotFoundException e) {
+		} catch (final EnvelopeNotFoundException e) {
 			// done
 		}
 		return result;
 	}
 
-	private boolean retrieveQuestion(QuestionList result, String spaceId, int questionNumber)
+	private boolean retrieveQuestion(final QuestionList result, final String spaceId, final int questionNumber)
 			throws EnvelopeNotFoundException {
 		try {
-			Envelope spaceQuestionEnv = Context.get()
+			final Envelope spaceQuestionEnv = Context.get()
 					.requestEnvelope(buildSpaceQuestionNumberId(spaceId, questionNumber));
-			String questionId = (String) spaceQuestionEnv.getContent();
-			Envelope questionEnv = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
-			Question question = (Question) questionEnv.getContent();
+			final String questionId = (String) spaceQuestionEnv.getContent();
+			final Envelope questionEnv = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
+			final Question question = (Question) questionEnv.getContent();
 			// TODO check if author is a member of this space?
 //			String authorId = question.getAuthorId();
 //			if (authorId == null || authorId.isEmpty()) {
@@ -216,54 +216,54 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 //			}
 			result.add(question);
 			return true;
-		} catch (EnvelopeNotFoundException e) {
+		} catch (final EnvelopeNotFoundException e) {
 			throw e;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			// XXX logging
 		}
 		return false;
 	}
 
 	@Override
-	public Question changeQuestionText(String questionId, String text) throws ServiceInvocationException {
+	public Question changeQuestionText(final String questionId, final String text) throws ServiceInvocationException {
 		if (questionId == null) {
 			throw new InvocationBadArgumentException("No question id given");
 		}
 		try {
-			Envelope questionEnvelope = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
-			Question question = (Question) questionEnvelope.getContent();
+			final Envelope questionEnvelope = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
+			final Question question = (Question) questionEnvelope.getContent();
 			question.setText(text);
 			question.setTimestampLastModified(Instant.now().toString());
 			questionEnvelope.setContent(question);
 			Context.get().storeEnvelope(questionEnvelope);
 			return question;
-		} catch (EnvelopeNotFoundException e) {
+		} catch (final EnvelopeNotFoundException e) {
 			throw new ResourceNotFoundException("Question not found");
-		} catch (EnvelopeAccessDeniedException e) {
+		} catch (final EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
-		} catch (EnvelopeOperationFailedException e) {
+		} catch (final EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not fetch question envelope", e);
 		}
 	}
 
 	@Override
-	public Question changeQuestionDepth(String questionId, int depth) throws ServiceInvocationException {
+	public Question changeQuestionDepth(final String questionId, final int depth) throws ServiceInvocationException {
 		if (questionId == null) {
 			throw new InvocationBadArgumentException("No question id given");
 		}
 		try {
-			Envelope questionEnvelope = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
-			Question question = (Question) questionEnvelope.getContent();
+			final Envelope questionEnvelope = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
+			final Question question = (Question) questionEnvelope.getContent();
 			question.setDepth(depth);
 			question.setTimestampLastModified(Instant.now().toString());
 			questionEnvelope.setContent(question);
 			Context.get().storeEnvelope(questionEnvelope);
 			return question;
-		} catch (EnvelopeNotFoundException e) {
+		} catch (final EnvelopeNotFoundException e) {
 			throw new ResourceNotFoundException("Question not found");
-		} catch (EnvelopeAccessDeniedException e) {
+		} catch (final EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
-		} catch (EnvelopeOperationFailedException e) {
+		} catch (final EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not fetch question envelope", e);
 		}
 	}

@@ -43,8 +43,7 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 
-@Api(
-		tags = { SpacesResource.RESOURCE_NAME })
+@Api(tags = { SpacesResource.RESOURCE_NAME })
 public class SpacesResource implements INoracleSpaceService {
 
 	public static final String RESOURCE_NAME = "spaces";
@@ -52,43 +51,35 @@ public class SpacesResource implements INoracleSpaceService {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_HTML)
-	@ApiResponses({ @ApiResponse(
-			code = HttpURLConnection.HTTP_CREATED,
-			message = "Space successfully created"),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_UNAUTHORIZED,
-					message = "You have to be logged in to create a space",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
-					message = "Internal Server Error",
-					response = ExceptionEntity.class) })
-	public Response createSpace(@ApiParam(
-			required = true) CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
-		Space space = createSpace(createSpacePojo.getName());
+	@ApiResponses({ @ApiResponse(code = HttpURLConnection.HTTP_CREATED, message = "Space successfully created"),
+			@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "You have to be logged in to create a space", response = ExceptionEntity.class),
+			@ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Internal Server Error", response = ExceptionEntity.class) })
+	public Response createSpace(@ApiParam(required = true) final CreateSpacePojo createSpacePojo)
+			throws ServiceInvocationException {
+		final Space space = createSpace(createSpacePojo.getName());
 		try {
 
-			Gson gson = new Gson();
-			String spaceJSON = gson.toJson(createSpacePojo);
-			JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
+			final Gson gson = new Gson();
+			final String spaceJSON = gson.toJson(createSpacePojo);
+			final JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
 			try {
-				JSONObject obj = (JSONObject) p.parse(spaceJSON);
+				final JSONObject obj = (JSONObject) p.parse(spaceJSON);
 				obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
 				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_9, obj.toJSONString());
-			} catch (ParseException e) {
+			} catch (final ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
 			return Response.created(new URI(null, null, RESOURCE_NAME + "/" + space.getSpaceId(), null)).build();
-		} catch (URISyntaxException e) {
+		} catch (final URISyntaxException e) {
 			throw new InternalServerErrorException(e);
 		}
 	}
 
 	@Override
-	public Space createSpace(String name) throws ServiceInvocationException {
-		Serializable rmiResult = Context.get().invoke(
+	public Space createSpace(final String name) throws ServiceInvocationException {
+		final Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"createSpace", name);
 		Space space;
@@ -107,29 +98,15 @@ public class SpacesResource implements INoracleSpaceService {
 	@Path("/{spaceId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiResponses({ @ApiResponse(
-			code = HttpURLConnection.HTTP_OK,
-			message = "A space object from the network",
-			response = Space.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_BAD_REQUEST,
-					message = "No space id given",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_FORBIDDEN,
-					message = "Access Denied",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_NOT_FOUND,
-					message = "Space Not Found",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
-					message = "Internal Server Error",
-					response = ExceptionEntity.class) })
-	public Space getSpace(@PathParam("spaceId") String spaceId) throws ServiceInvocationException {
+	@ApiResponses({
+			@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "A space object from the network", response = Space.class),
+			@ApiResponse(code = HttpURLConnection.HTTP_BAD_REQUEST, message = "No space id given", response = ExceptionEntity.class),
+			@ApiResponse(code = HttpURLConnection.HTTP_FORBIDDEN, message = "Access Denied", response = ExceptionEntity.class),
+			@ApiResponse(code = HttpURLConnection.HTTP_NOT_FOUND, message = "Space Not Found", response = ExceptionEntity.class),
+			@ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Internal Server Error", response = ExceptionEntity.class) })
+	public Space getSpace(@PathParam("spaceId") final String spaceId) throws ServiceInvocationException {
 		try {
-			Serializable rmiResult = Context.get().invoke(
+			final Serializable rmiResult = Context.get().invoke(
 					new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
 					"getSpace", spaceId);
 			if (rmiResult instanceof Space) {
@@ -138,13 +115,13 @@ public class SpacesResource implements INoracleSpaceService {
 				throw new InternalServiceException(
 						"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 			}
-		} catch (InvocationBadArgumentException e) {
+		} catch (final InvocationBadArgumentException e) {
 			throw new BadRequestException(e.getMessage(), e.getCause());
-		} catch (ResourceNotFoundException e) {
+		} catch (final ResourceNotFoundException e) {
 			throw new NotFoundException(e.getMessage(), e.getCause());
-		} catch (ServiceAccessDeniedException e) {
+		} catch (final ServiceAccessDeniedException e) {
 			throw new ForbiddenException(e.getMessage(), e.getCause());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new InternalServerErrorException("Exception during RMI call", e);
 		}
 	}
@@ -153,29 +130,16 @@ public class SpacesResource implements INoracleSpaceService {
 	@GET
 	@Path("/{spaceId}/subscribers")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiResponses({ @ApiResponse(
-			code = HttpURLConnection.HTTP_OK,
-			message = "The agentids in the space",
-			response = SpaceSubscribersList.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_BAD_REQUEST,
-					message = "No space id given",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_FORBIDDEN,
-					message = "Access Denied",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_NOT_FOUND,
-					message = "Space Not Found",
-					response = ExceptionEntity.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
-					message = "Internal Server Error",
-					response = ExceptionEntity.class) })
-	public SpaceSubscribersList getSubscribers(@PathParam("spaceId") String spaceId) throws ServiceInvocationException {
+	@ApiResponses({
+			@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "The agentids in the space", response = SpaceSubscribersList.class),
+			@ApiResponse(code = HttpURLConnection.HTTP_BAD_REQUEST, message = "No space id given", response = ExceptionEntity.class),
+			@ApiResponse(code = HttpURLConnection.HTTP_FORBIDDEN, message = "Access Denied", response = ExceptionEntity.class),
+			@ApiResponse(code = HttpURLConnection.HTTP_NOT_FOUND, message = "Space Not Found", response = ExceptionEntity.class),
+			@ApiResponse(code = HttpURLConnection.HTTP_INTERNAL_ERROR, message = "Internal Server Error", response = ExceptionEntity.class) })
+	public SpaceSubscribersList getSubscribers(@PathParam("spaceId") final String spaceId)
+			throws ServiceInvocationException {
 		try {
-			Serializable rmiResult = Context.get().invoke(
+			final Serializable rmiResult = Context.get().invoke(
 					new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
 					"getSubscribers", spaceId);
 			if (rmiResult instanceof SpaceSubscribersList) {
@@ -184,13 +148,13 @@ public class SpacesResource implements INoracleSpaceService {
 				throw new InternalServiceException(
 						"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 			}
-		} catch (InvocationBadArgumentException e) {
+		} catch (final InvocationBadArgumentException e) {
 			throw new BadRequestException(e.getMessage(), e.getCause());
-		} catch (ResourceNotFoundException e) {
+		} catch (final ResourceNotFoundException e) {
 			throw new NotFoundException(e.getMessage(), e.getCause());
-		} catch (ServiceAccessDeniedException e) {
+		} catch (final ServiceAccessDeniedException e) {
 			throw new ForbiddenException(e.getMessage(), e.getCause());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new InternalServerErrorException("Exception during RMI call", e);
 		}
 	}

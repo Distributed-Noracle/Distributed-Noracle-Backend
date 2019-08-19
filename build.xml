@@ -67,7 +67,16 @@
     	<ivy:retrieve type="jar, bundle" conf="platform" pattern="${lib}/[artifact]-[revision].[ext]"/>
     	<ivy:retrieve type="jar, bundle" conf="bundle" pattern="${servicelib}/[artifact]-[revision].[ext]"/>
 		<get src="https://github.com/rwth-acis/las2peer-FileService/releases/download/2.2.5/i5.las2peer.services.fileService-2.2.5.jar" dest="service/"/>
+		
 	</target>
+
+	<!-- Get JSch via Ivy -->
+	<target name="resolve" depends="install-ivy" description="Use ivy to resolve classpaths">
+	    <ivy:cachepath pathid="compile.path">
+	      <dependency org="org.apache.ant" name="ant-jsch" rev="1.8.1"/>
+	    </ivy:cachepath>
+	</target>
+	
 
 
 	<!-- Initialization (Folder Creation)-->
