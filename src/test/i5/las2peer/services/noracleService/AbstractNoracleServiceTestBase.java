@@ -67,6 +67,9 @@ public abstract class AbstractNoracleServiceTestBase {
 
 			// define test agent: eve
 			defineEve(activeNode);
+
+			baseUrl = connector.getHttpEndpoint() + "/" + NoracleService.RESOURCE_NAME + "/v"
+					+ NoracleService.API_VERSION + ".0";
 		} catch (final Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
@@ -92,6 +95,8 @@ public abstract class AbstractNoracleServiceTestBase {
 				NoracleService.API_VERSION + ".0");
 		startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleVoteService",
 				NoracleService.API_VERSION + ".0");
+		startService(nodes.get(0), "i5.las2peer.services.noracleService.NoraclePreprocessingService",
+				NoracleService.API_VERSION + ".0");
 	}
 
 	/**
@@ -107,8 +112,6 @@ public abstract class AbstractNoracleServiceTestBase {
 		activeNode.storeAgent(testAgent_eve);
 		basicAuthHeader_eve = "basic " + Base64.getEncoder()
 				.encodeToString((testAgent_eve.getLoginName() + ":" + "evespass").getBytes(StandardCharsets.UTF_8));
-		baseUrl = connector.getHttpEndpoint() + "/" + NoracleService.RESOURCE_NAME + "/v" + NoracleService.API_VERSION
-				+ ".0";
 	}
 
 	/**

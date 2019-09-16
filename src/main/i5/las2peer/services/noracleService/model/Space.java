@@ -2,6 +2,8 @@ package i5.las2peer.services.noracleService.model;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class Space implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -15,19 +17,20 @@ public class Space implements Serializable {
 	public Space() { // used in tests
 	}
 
-	public Space(String spaceId, String spaceSecret, String name, String spaceOwnerId, String spaceReaderGroupId) {
-		this.setSpaceId(spaceId);
-		this.setSpaceSecret(spaceSecret);
-		this.setName(name);
-		this.setSpaceOwnerId(spaceOwnerId);
-		this.setSpaceReaderGroupId(spaceReaderGroupId);
+	public Space(final String spaceId, final String spaceSecret, final String name, final String spaceOwnerId,
+			final String spaceReaderGroupId) {
+		setSpaceId(spaceId);
+		setSpaceSecret(spaceSecret);
+		setName(name);
+		setSpaceOwnerId(spaceOwnerId);
+		setSpaceReaderGroupId(spaceReaderGroupId);
 	}
 
 	public String getSpaceId() {
 		return spaceId;
 	}
 
-	public void setSpaceId(String spaceId) {
+	public void setSpaceId(final String spaceId) {
 		this.spaceId = spaceId;
 	}
 
@@ -35,7 +38,7 @@ public class Space implements Serializable {
 		return spaceSecret;
 	}
 
-	public void setSpaceSecret(String spaceSecret) {
+	public void setSpaceSecret(final String spaceSecret) {
 		this.spaceSecret = spaceSecret;
 	}
 
@@ -43,7 +46,7 @@ public class Space implements Serializable {
 		return name;
 	}
 
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 
@@ -51,7 +54,7 @@ public class Space implements Serializable {
 		return spaceOwnerId;
 	}
 
-	public void setSpaceOwnerId(String spaceOwnerId) {
+	public void setSpaceOwnerId(final String spaceOwnerId) {
 		this.spaceOwnerId = spaceOwnerId;
 	}
 
@@ -59,8 +62,25 @@ public class Space implements Serializable {
 		return spaceReaderGroupId;
 	}
 
-	public void setSpaceReaderGroupId(String spaceReaderGroupId) {
+	public void setSpaceReaderGroupId(final String spaceReaderGroupId) {
 		this.spaceReaderGroupId = spaceReaderGroupId;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof Space))
+			return false;
+
+		final Space other = (Space) obj;
+		boolean bool = true;
+
+		bool = bool && StringUtils.equals(spaceId, other.spaceId);
+		bool = bool && StringUtils.equals(spaceSecret, other.spaceSecret);
+		bool = bool && StringUtils.equals(name, other.name);
+		bool = bool && StringUtils.equals(spaceOwnerId, other.spaceOwnerId);
+		bool = bool && StringUtils.equals(spaceReaderGroupId, other.spaceReaderGroupId);
+
+		return bool;
 	}
 
 }

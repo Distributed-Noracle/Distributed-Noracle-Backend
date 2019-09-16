@@ -12,7 +12,7 @@ public class Vote implements Serializable {
 	public Vote() { // used in tests
 	}
 
-	public Vote(int value, String voterAgentId) {
+	public Vote(final int value, final String voterAgentId) {
 		this.value = value;
 		this.voterAgentId = voterAgentId;
 	}
@@ -21,7 +21,7 @@ public class Vote implements Serializable {
 		return value;
 	}
 
-	public void setValue(int value) {
+	public void setValue(final int value) {
 		this.value = value;
 	}
 
@@ -29,7 +29,7 @@ public class Vote implements Serializable {
 		return voterAgentId;
 	}
 
-	public void setVoterAgentId(String voterAgentId) {
+	public void setVoterAgentId(final String voterAgentId) {
 		this.voterAgentId = voterAgentId;
 	}
 
