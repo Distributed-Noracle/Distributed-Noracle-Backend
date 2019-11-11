@@ -98,8 +98,8 @@ public abstract class AbstractNoracleServiceTestBase {
 				NoracleService.API_VERSION + ".0");
 		startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleVoteService",
 				NoracleService.API_VERSION + ".0");
-		startService(nodes.get(0), "i5.las2peer.services.noracleService.CrowdsourcingCompletionService",
-				NoracleService.API_VERSION + ".0");
+//		startService(nodes.get(0), "i5.las2peer.services.noracleService.CrowdsourcingCompletionService",
+//				NoracleService.API_VERSION + ".0");
 	}
 
 	/**
@@ -127,6 +127,7 @@ public abstract class AbstractNoracleServiceTestBase {
 	private void defineAdam(final PastryNodeImpl activeNode) throws Exception {
 		testAgent_adam = MockAgentFactory.getAdam();
 		testAgent_adam.unlock("adamspass");
+		testAgent_adam.setEmail("adam@provider.com");
 		activeNode.storeAgent(testAgent_adam);
 		basicAuthHeader_adam = "basic " + Base64.getEncoder()
 				.encodeToString((testAgent_adam.getLoginName() + ":" + "adamspass").getBytes(StandardCharsets.UTF_8));

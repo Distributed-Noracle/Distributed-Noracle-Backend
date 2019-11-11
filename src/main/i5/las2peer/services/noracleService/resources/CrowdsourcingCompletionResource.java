@@ -7,6 +7,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -32,8 +33,8 @@ public class CrowdsourcingCompletionResource implements ICrowdsourcingCompletion
 	@GET
 	@Path("/" + NUMBER_OF_QUESTIONS_RESOURCE_NAME + "/{spaceid}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getNumberOfQuestionsByMainAgentInSpace(@PathParam("spaceid") final String spaceId)
-			throws Exception {
+	public Response getNumberOfQuestionsByMainAgentInSpace(@PathParam("spaceid") final String spaceId,
+			@QueryParam("email") final String email) throws Exception {
 		final Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"getQuestions", spaceId, null, 1000, null);
@@ -41,17 +42,17 @@ public class CrowdsourcingCompletionResource implements ICrowdsourcingCompletion
 			return Response.serverError().build();
 
 		final QuestionList questions = (QuestionList) rmiResult;
-		System.err.println("Questions: " + questions);
+//		System.err.println("Questions: " + questions);
 
-		final QuestionList matchingQuestions = getQuestionsForAgent(questions);
-		System.err.println("Matching Questions: " + matchingQuestions);
+		final QuestionList matchingQuestions = getQuestionsForAgent(questions, email);
+//		System.err.println("Matching Questions: " + matchingQuestions);
 
 		final QuestionList acceptableQuestions = new QuestionList();
 		acceptableQuestions.addAll(matchingQuestions//
 				.stream()//
 				.filter(q -> isQuestionAcceptable(q))//
 				.collect(Collectors.toList()));
-		System.err.println("Acceptable Questions: " + acceptableQuestions);
+//		System.err.println("Acceptable Questions: " + acceptableQuestions);
 
 		return Response.ok().entity(acceptableQuestions).build();
 	}
@@ -70,7 +71,6 @@ public class CrowdsourcingCompletionResource implements ICrowdsourcingCompletion
 		bool = bool && textLength > 5;
 		bool = bool && textLength <= 100;
 		bool = bool && text.contains("?");
-		System.err.println("\t" + text + "=>" + bool);
 
 		return bool;
 	}
@@ -79,10 +79,12 @@ public class CrowdsourcingCompletionResource implements ICrowdsourcingCompletion
 	 * Filter the question from a {@link Space} which belong to the main agent.
 	 *
 	 * @param questions the list of all question in a {@link Space}
+	 * @param email
 	 * @return the {@link Question questions} from the main agent
 	 */
-	private QuestionList getQuestionsForAgent(final QuestionList questions) {
-		final String identifier = Context.getCurrent().getMainAgent().getIdentifier();
+	private QuestionList getQuestionsForAgent(final QuestionList questions, final String email) throws Exception {
+		final String identifier = Context.get().getUserAgentIdentifierByEmail(email);
+//		final String identifier = Context.getCurrent().getMainAgent().getIdentifier();
 		final QuestionList matchingQuestions = new QuestionList();
 
 		for (final Question question : questions)

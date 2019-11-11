@@ -31,6 +31,8 @@ public class CrowdsourcingCompletionTest extends AbstractQuestionBasedTestBase {
 		final Space space = createAndFetchTestSpace();
 		subscribeAgentToSpace(space, testAgent_eve, basicAuthHeader_eve);
 
+		System.err.println("Adam: (EMail=" + testAgent_adam.getEmail() + ")");
+
 		// create questions within the space
 		final ArrayList<Pair<String, Boolean>> questions = new ArrayList<Pair<String, Boolean>>();
 		questions.add(Pair.of("Is this a valid test question?", Boolean.TRUE));
@@ -45,7 +47,8 @@ public class CrowdsourcingCompletionTest extends AbstractQuestionBasedTestBase {
 
 		// request applicable question of adam
 		final WebTarget target = webClient.target(baseUrl + "/" + CrowdsourcingCompletionResource.RESOURCE_NAME + "/"
-				+ CrowdsourcingCompletionResource.NUMBER_OF_QUESTIONS_RESOURCE_NAME + "/" + space.getSpaceId());
+				+ CrowdsourcingCompletionResource.NUMBER_OF_QUESTIONS_RESOURCE_NAME + "/" + space.getSpaceId()
+				+ "?email=" + testAgent_adam.getEmail());
 		Builder request = target.request();
 		request = request.header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
 		final Response response = request.get();
