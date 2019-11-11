@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Before;
 
 import i5.las2peer.api.p2p.ServiceNameVersion;
+import i5.las2peer.api.security.Agent;
 import i5.las2peer.connectors.webConnector.WebConnector;
 import i5.las2peer.p2p.Node;
 import i5.las2peer.p2p.PastryNodeImpl;
@@ -28,6 +29,8 @@ import i5.las2peer.security.ServiceAgentImpl;
 import i5.las2peer.security.UserAgentImpl;
 import i5.las2peer.services.noracleService.model.Space;
 import i5.las2peer.services.noracleService.pojo.CreateSpacePojo;
+import i5.las2peer.services.noracleService.pojo.SubscribeSpacePojo;
+import i5.las2peer.services.noracleService.resources.AgentsResource;
 import i5.las2peer.services.noracleService.resources.SpacesResource;
 import i5.las2peer.testing.MockAgentFactory;
 import i5.las2peer.testing.TestSuite;
@@ -95,7 +98,7 @@ public abstract class AbstractNoracleServiceTestBase {
 				NoracleService.API_VERSION + ".0");
 		startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleVoteService",
 				NoracleService.API_VERSION + ".0");
-		startService(nodes.get(0), "i5.las2peer.services.noracleService.NoraclePreprocessingService",
+		startService(nodes.get(0), "i5.las2peer.services.noracleService.CrowdsourcingCompletionService",
 				NoracleService.API_VERSION + ".0");
 	}
 
@@ -148,13 +151,12 @@ public abstract class AbstractNoracleServiceTestBase {
 
 	@After
 	public void afterTest() {
-		for (final PastryNodeImpl node : nodes) {
+		for (final PastryNodeImpl node : nodes)
 			try {
 				node.shutDown();
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		}
 	}
 
 	/**
@@ -204,9 +206,22 @@ public abstract class AbstractNoracleServiceTestBase {
 	 */
 	protected Response requestSpaceWithAuthorizationHeader(final Response response, final String authorizationHeader) {
 		final String locationHeader = response.getHeaderString(HttpHeaders.LOCATION);
+		System.err.println(locationHeader);
 		final WebTarget targetSpace = webClient.target(locationHeader);
 		final Builder requestSpace = targetSpace.request().header(HttpHeaders.AUTHORIZATION, authorizationHeader);
 		return requestSpace.get();
+	}
+
+	protected void subscribeAgentToSpace(final Space testSpace, final Agent agent, final String authHeader) {
+		final SubscribeSpacePojo body = new SubscribeSpacePojo();
+		body.setSpaceId(testSpace.getSpaceId());
+		body.setSpaceSecret(testSpace.getSpaceSecret());
+		final WebTarget target = webClient.target(baseUrl + "/" + AgentsResource.RESOURCE_NAME + "/"
+				+ agent.getIdentifier() + "/" + AgentsResource.SUBSCRIPTIONS_RESOURCE_NAME);
+		final Builder request = target.request().header(HttpHeaders.AUTHORIZATION, authHeader);
+		final Response response = request.post(Entity.json(body));
+		Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+		Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
 	}
 
 	// TODO: asserts
