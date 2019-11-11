@@ -30,8 +30,17 @@ public abstract class AbstractQuestionBasedTestBase extends AbstractNoracleServi
 	 * @throws Exception multiple Exceptions that might occur
 	 */
 	protected String createTestQuestion(final String spaceId) throws Exception {
+		return createTestQuestion(spaceId, basicAuthHeader_adam);
+	}
+
+	protected String createTestQuestion(final String spaceId, final String authenficiationHeader) throws Exception {
+		return createTestQuestion(spaceId, authenficiationHeader, TEST_QUESTION_TEXT);
+	}
+
+	protected String createTestQuestion(final String spaceId, final String authenficiationHeader, final String text)
+			throws Exception {
 		// create question in space
-		final Response response = postQuestionCreation(spaceId);
+		final Response response = postQuestionCreation(spaceId, authenficiationHeader, text);
 		// assert no HTTP error
 		Assert.assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
 		Assert.assertEquals(MediaType.TEXT_HTML_TYPE, response.getMediaType());
@@ -46,7 +55,7 @@ public abstract class AbstractQuestionBasedTestBase extends AbstractNoracleServi
 		final Question question = responseQuestion.readEntity(Question.class);
 		// assert that the question has the desired properties
 		Assert.assertEquals(spaceId, question.getSpaceId());
-		Assert.assertEquals(TEST_QUESTION_TEXT, question.getText());
+		Assert.assertEquals(text, question.getText());
 		Assert.assertEquals(question.getTimestampCreated(), question.getTimestampLastModified());
 
 		return question.getQuestionId();
@@ -87,13 +96,22 @@ public abstract class AbstractQuestionBasedTestBase extends AbstractNoracleServi
 	 * @return the response to the POST-request
 	 */
 	protected Response postQuestionCreation(final String spaceId, final boolean useAuthentification) {
+		return postQuestionCreation(spaceId, basicAuthHeader_adam);
+	}
+
+	protected Response postQuestionCreation(final String spaceId, final String authentification_header) {
+		return postQuestionCreation(spaceId, authentification_header, TEST_QUESTION_TEXT);
+	}
+
+	protected Response postQuestionCreation(final String spaceId, final String authentification_header,
+			final String text) {
 		final CreateQuestionPojo body = new CreateQuestionPojo();
-		body.setText(TEST_QUESTION_TEXT);
+		body.setText(text);
 		final WebTarget target = webClient.target(
 				baseUrl + "/" + SpacesResource.RESOURCE_NAME + "/" + spaceId + "/" + QuestionsResource.RESOURCE_NAME);
 		final Builder request = target.request();
-		if (useAuthentification)
-			request.header(HttpHeaders.AUTHORIZATION, basicAuthHeader_adam);
+		if (authentification_header != null)
+			request.header(HttpHeaders.AUTHORIZATION, authentification_header);
 		final Response response = request.post(Entity.json(body));
 		return response;
 	}

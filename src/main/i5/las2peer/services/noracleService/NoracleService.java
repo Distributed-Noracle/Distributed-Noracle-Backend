@@ -5,6 +5,7 @@ import javax.ws.rs.Path;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
 import i5.las2peer.services.noracleService.resources.AgentsResource;
+import i5.las2peer.services.noracleService.resources.CrowdsourcingCompletionResource;
 import i5.las2peer.services.noracleService.resources.QuestionRelationsResource;
 import i5.las2peer.services.noracleService.resources.QuestionsResource;
 import i5.las2peer.services.noracleService.resources.SpacesResource;
@@ -14,14 +15,7 @@ import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
 
 @Api
-@SwaggerDefinition(
-		info = @Info(
-				title = "Noracle Service",
-				version = NoracleService.API_VERSION,
-				description = "A bundle service for the distributed Noracle system",
-				license = @License(
-						name = "BSD-3",
-						url = "https://github.com/Distributed-Noracle/Distributed-Noracle-Backend/blob/master/LICENSE.txt")))
+@SwaggerDefinition(info = @Info(title = "Noracle Service", version = NoracleService.API_VERSION, description = "A bundle service for the distributed Noracle system", license = @License(name = "BSD-3", url = "https://github.com/Distributed-Noracle/Distributed-Noracle-Backend/blob/master/LICENSE.txt")))
 @ServicePath("/" + NoracleService.RESOURCE_NAME)
 public class NoracleService extends RESTService {
 
@@ -35,6 +29,7 @@ public class NoracleService extends RESTService {
 		getResourceConfig().register(QuestionsResource.class);
 		getResourceConfig().register(QuestionRelationsResource.class);
 		getResourceConfig().register(AgentsResource.class);
+		getResourceConfig().register(CrowdsourcingCompletionResource.class);
 	}
 
 	@Path("/" + SpacesResource.RESOURCE_NAME)
@@ -45,6 +40,11 @@ public class NoracleService extends RESTService {
 	@Path("/" + AgentsResource.RESOURCE_NAME + "/{agentid}")
 	public AgentsResource agents() {
 		return new AgentsResource();
+	}
+
+	@Path("/" + CrowdsourcingCompletionResource.RESOURCE_NAME)
+	public CrowdsourcingCompletionResource test() {
+		return new CrowdsourcingCompletionResource();
 	}
 
 }
