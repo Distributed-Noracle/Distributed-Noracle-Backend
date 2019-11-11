@@ -45,11 +45,7 @@ public class CrowdsourcingCompletionResource implements ICrowdsourcingCompletion
 //		System.err.println("Questions: " + questions);
 
 		final QuestionList matchingQuestions = getQuestionsForAgent(questions, email);
-<<<<<<< HEAD
 //		System.err.println("Matching Questions: " + matchingQuestions);
-=======
-		System.err.println("Matching Questions: " + matchingQuestions);
->>>>>>> 9740e3c6fa48b8e6eeef0017ca90e1088130447d
 
 		final QuestionList acceptableQuestions = new QuestionList();
 		acceptableQuestions.addAll(matchingQuestions//
