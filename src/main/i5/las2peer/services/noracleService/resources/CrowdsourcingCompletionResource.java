@@ -33,7 +33,7 @@ public class CrowdsourcingCompletionResource implements ICrowdsourcingCompletion
 	@GET
 	@Path("/" + NUMBER_OF_QUESTIONS_RESOURCE_NAME + "/{spaceid}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getNumberOfQuestionsByMainAgentInSpace(@PathParam("spaceid") final String spaceId,
+	public Response getQuestionsByMailInSpace(@PathParam("spaceid") final String spaceId,
 			@QueryParam("email") final String email) throws Exception {
 		final Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
