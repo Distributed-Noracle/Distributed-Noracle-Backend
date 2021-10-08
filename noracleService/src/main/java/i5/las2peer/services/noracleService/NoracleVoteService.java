@@ -12,14 +12,18 @@ import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
 import i5.las2peer.api.security.Agent;
 import i5.las2peer.api.security.AnonymousAgent;
+import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.services.noracleService.api.INoracleVoteService;
 import i5.las2peer.services.noracleService.model.Vote;
 import i5.las2peer.services.noracleService.model.VoteEntry;
 import i5.las2peer.services.noracleService.model.VoteList;
+import i5.las2peer.services.noracleService.resources.SpacesResource;
 
 public class NoracleVoteService extends Service implements INoracleVoteService {
 
 	private static final int MAX_VOTES_PER_OBJECT = 1000000;
+
+	private final L2pLogger logger = L2pLogger.getInstance(SpacesResource.class.getName());
 
 	@Override
 	public Vote setVote(String agentId, String objectId, int vote) throws ServiceInvocationException {
@@ -136,9 +140,10 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 				Vote normalizedVote = new Vote(normalizedVal, vote.getVoterAgentId());
 				result.add(normalizedVote);
 			} catch (EnvelopeNotFoundException e) {
+				logger.warning( "EnvelopeNotFoundException inside NoracleVoteService.getAllVotes(...): " + e.getMessage());
 				break;
 			} catch (Exception e) {
-				// XXX logging
+				logger.warning( "Exception inside NoracleVoteService.getAllVotes(...): " + e.getMessage());
 			}
 		}
 		return result;

@@ -1,6 +1,6 @@
 <las2peerNode>
-	<adminName>Admin</adminName>
-	<adminEmail>admin@mail.com</adminEmail>
+	<adminName>Simon Breuer</adminName>
+	<adminEmail>simon.breuer@rwth-aachen.de</adminEmail>
 	<organization>Advanced Community Information Systems (ACIS) Group, RWTH Aachen University</organization>
-	<description>This node hosts a sample service.</description>
+	<description>This node hosts the noracle backend service.</description>
 </las2peerNode>

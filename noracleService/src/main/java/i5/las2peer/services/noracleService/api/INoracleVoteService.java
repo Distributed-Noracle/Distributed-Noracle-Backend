@@ -6,10 +6,10 @@ import i5.las2peer.services.noracleService.model.VoteList;
 
 public interface INoracleVoteService {
 
-	public Vote setVote(String agentId, String objectId, int value) throws ServiceInvocationException;
+	Vote setVote(String agentId, String objectId, int value) throws ServiceInvocationException;
 
-	public Vote getAgentVote(String objectId, String agentId) throws ServiceInvocationException;
+	Vote getAgentVote(String objectId, String agentId) throws ServiceInvocationException;
 
-	public VoteList getAllVotes(String objectId) throws ServiceInvocationException;
+	VoteList getAllVotes(String objectId) throws ServiceInvocationException;
 
 }

@@ -10,12 +10,15 @@ import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
 import i5.las2peer.api.security.Agent;
 import i5.las2peer.api.security.AnonymousAgent;
+import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.services.noracleService.api.INoracleAgentService;
 import i5.las2peer.services.noracleService.model.NoracleAgentProfile;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
+import i5.las2peer.services.noracleService.resources.SpacesResource;
 
 import java.util.Iterator;
+import java.util.logging.Level;
 
 /**
  * Noracle Agents Service
@@ -117,6 +120,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not fetch space subscription envelope", e);
 		} catch (EnvelopeNotFoundException e) {
+			logger.warning("EnvelopeNotFoundException... " + e.getMessage());
 			return new SpaceSubscriptionList();
 		}
 	}
@@ -197,6 +201,10 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not fetch agent profile", e);
 		} catch (EnvelopeNotFoundException e) {
+			logger.warning("EnvelopeNotFoundException: " + e.getMessage());
+			return new NoracleAgentProfile();
+		} catch (Exception e) {
+			logger.warning("Exception :" + e.getMessage());
 			return new NoracleAgentProfile();
 		}
 	}
@@ -208,5 +216,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 	private String buildAgentProfileId(String agentId) {
 		return "noracleagentprofile-" + agentId;
 	}
+
+	private final L2pLogger logger = L2pLogger.getInstance(SpacesResource.class.getName());
 
 }
