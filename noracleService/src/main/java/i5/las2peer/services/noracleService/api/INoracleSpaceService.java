@@ -6,10 +6,10 @@ import i5.las2peer.services.noracleService.model.SpaceSubscribersList;
 
 public interface INoracleSpaceService {
 
-	public Space createSpace(String name) throws ServiceInvocationException;
+	Space createSpace(String name) throws ServiceInvocationException;
 
-	public Space getSpace(String spaceId) throws ServiceInvocationException;
+	Space getSpace(String spaceId) throws ServiceInvocationException;
 	
-	public SpaceSubscribersList getSubscribers(String spaceId) throws ServiceInvocationException;
+	SpaceSubscribersList getSubscribers(String spaceId) throws ServiceInvocationException;
 
 }

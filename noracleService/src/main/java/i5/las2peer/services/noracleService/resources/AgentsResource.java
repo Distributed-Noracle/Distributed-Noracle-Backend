@@ -36,6 +36,31 @@ public class AgentsResource implements INoracleAgentService {
 	public static final String RESOURCE_NAME = "agents";
 	public static final String SUBSCRIPTIONS_RESOURCE_NAME = "spacesubscriptions";
 
+	@Override
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiResponses({ @ApiResponse(
+			code = HttpURLConnection.HTTP_OK,
+			message = "Subscriptions successfully fetched",
+			response = SpaceSubscriptionList.class),
+			@ApiResponse(
+					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
+					message = "Internal Server Error",
+					response = ExceptionEntity.class) })
+	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
+	public SpaceSubscriptionList getSpaceSubscriptions(@PathParam("agentid") String agentId)
+			throws ServiceInvocationException {
+		Serializable rmiResult = Context.get().invoke(
+				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
+				"getSpaceSubscriptions", agentId);
+		if (rmiResult instanceof SpaceSubscriptionList) {
+			return (SpaceSubscriptionList) rmiResult;
+		} else {
+			throw new InternalServiceException(
+					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+		}
+	}
+
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_HTML)
@@ -60,7 +85,8 @@ public class AgentsResource implements INoracleAgentService {
 					response = ExceptionEntity.class) })
 	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
 	public Response subscribeToSpace(@PathParam("agentid") String agentId, @ApiParam(
-			required = true) SubscribeSpacePojo subscribeSpacePojo) throws ServiceInvocationException {		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
+			required = true) SubscribeSpacePojo subscribeSpacePojo) throws ServiceInvocationException {
+		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
 			throw new ForbiddenException("You can only subscribe yourself to a space");
 		}
 		subscribeToSpace(subscribeSpacePojo.getSpaceId(), subscribeSpacePojo.getSpaceSecret());
@@ -215,31 +241,6 @@ public class AgentsResource implements INoracleAgentService {
 		Context.get().invoke(
 				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"unsubscribeFromSpace", spaceId);
-	}
-
-	@Override
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiResponses({ @ApiResponse(
-			code = HttpURLConnection.HTTP_OK,
-			message = "Subscriptions successfully fetched",
-			response = SpaceSubscriptionList.class),
-			@ApiResponse(
-					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
-					message = "Internal Server Error",
-					response = ExceptionEntity.class) })
-	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
-	public SpaceSubscriptionList getSpaceSubscriptions(@PathParam("agentid") String agentId)
-			throws ServiceInvocationException {
-		Serializable rmiResult = Context.get().invoke(
-				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"getSpaceSubscriptions", agentId);
-		if (rmiResult instanceof SpaceSubscriptionList) {
-			return (SpaceSubscriptionList) rmiResult;
-		} else {
-			throw new InternalServiceException(
-					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
-		}
 	}
 
 	@PUT

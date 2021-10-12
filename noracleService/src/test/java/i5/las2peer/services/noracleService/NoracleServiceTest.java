@@ -56,7 +56,7 @@ public class NoracleServiceTest {
 		 * @throws Exception
 		 */
 		@Before
-		public void beforeTest() throws Exception {
+		public void beforeTest() {
 
 			try {
 				nodes = TestSuite.launchNetwork(networkSize);
@@ -67,18 +67,18 @@ public class NoracleServiceTest {
 				webClient = ClientBuilder.newBuilder().register(MultiPartFeature.class)
 						.property(ClientProperties.FOLLOW_REDIRECTS, Boolean.FALSE).build();
 				startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleService",
-						NoracleService.API_VERSION + ".0");
+						NoracleService.API_VERSION);
 				startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleAgentService",
-						NoracleService.API_VERSION + ".0");
+						NoracleService.API_VERSION);
 				startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleSpaceService",
-						NoracleService.API_VERSION + ".0");
+						NoracleService.API_VERSION);
 				startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleQuestionService",
-						NoracleService.API_VERSION + ".0");
+						NoracleService.API_VERSION);
 				startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleQuestionRelationService",
-						NoracleService.API_VERSION + ".0");
+						NoracleService.API_VERSION);
 				startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleVoteSe" +
 								"rvice",
-						NoracleService.API_VERSION + ".0");
+						NoracleService.API_VERSION);
 				testAgent = MockAgentFactory.getAdam();
 				testAgent.unlock("adamspass");
 				PastryNodeImpl activeNode = nodes.get(0);
@@ -91,7 +91,7 @@ public class NoracleServiceTest {
 				basicAuthHeader2 = "basic " + Base64.getEncoder()
 						.encodeToString((testAgent2.getLoginName() + ":" + "evespass").getBytes(StandardCharsets.UTF_8));
 				baseUrl = connector.getHttpEndpoint() + "/" + NoracleService.RESOURCE_NAME + "/v"
-						+ NoracleService.API_VERSION + ".0";
+						+ NoracleService.API_VERSION;
 			} catch (Exception e) {
 				e.printStackTrace();
 				Assert.fail(e.toString());
@@ -112,7 +112,7 @@ public class NoracleServiceTest {
 		 * @throws Exception
 		 */
 		@After
-		public void afterTest() throws Exception {
+		public void afterTest() {
 			for (PastryNodeImpl node : nodes) {
 				try {
 					node.shutDown();
@@ -136,7 +136,7 @@ public class NoracleServiceTest {
 			}
 		}
 
-		protected Space createAndFetchTestSpace() throws Exception {
+		protected Space createAndFetchTestSpace() {
 			// create test space
 			CreateSpacePojo body = new CreateSpacePojo();
 			body.setName(TEST_SPACE_NAME);

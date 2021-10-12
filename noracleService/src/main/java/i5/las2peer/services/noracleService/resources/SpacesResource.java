@@ -5,12 +5,15 @@ import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.*;
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.api.p2p.ServiceNameVersion;
+import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.restMapper.ExceptionEntity;
+import i5.las2peer.services.noracleService.NoracleAgentService;
 import i5.las2peer.services.noracleService.NoracleService;
 import i5.las2peer.services.noracleService.NoracleSpaceService;
 import i5.las2peer.services.noracleService.api.INoracleSpaceService;
 import i5.las2peer.services.noracleService.model.Space;
 import i5.las2peer.services.noracleService.model.SpaceSubscribersList;
+import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.pojo.CreateSpacePojo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
@@ -33,6 +36,8 @@ import java.net.URISyntaxException;
 public class SpacesResource implements INoracleSpaceService {
 
 	public static final String RESOURCE_NAME = "spaces";
+
+	private final L2pLogger logger = L2pLogger.getInstance(SpacesResource.class.getName());
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -61,12 +66,24 @@ public class SpacesResource implements INoracleSpaceService {
 				obj.put("uid", Context.getCurrent().getMainAgent().getIdentifier());
 				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_9, obj.toJSONString());
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
+				logger.warning("Problems with monitoring event...");
 				e.printStackTrace();
 			}
 
-			return Response.created(new URI(null, null, RESOURCE_NAME + "/" + space.getSpaceId(), null)).build();
+			try {
+				SpaceSubscription rmiResult = (SpaceSubscription) Context.get().invoke(
+						new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
+						"subscribeToSpace", space.getSpaceId(), space.getSpaceSecret());
+			} catch (Exception ex) {
+				logger.warning("Error, while trying to subscribe to space: " + ex.getMessage());
+			}
+
+			// TODO: return https instead of http
+			URI uri = new URI(null, null, RESOURCE_NAME + "/" + space.getSpaceId(), null);
+			Response response = Response.created(uri).build();
+			return response;
 		} catch (URISyntaxException e) {
+			logger.warning("URISyntaxException: " + e.getMessage());
 			throw new InternalServerErrorException(e);
 		}
 	}
@@ -83,14 +100,12 @@ public class SpacesResource implements INoracleSpaceService {
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 		}
-		new AgentsResource().subscribeToSpace(space.getSpaceId(), space.getSpaceSecret());
 		return space;
 	}
 
 	@Override
 	@GET
 	@Path("/{spaceId}")
-	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
@@ -112,7 +127,7 @@ public class SpacesResource implements INoracleSpaceService {
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
-	public Space getSpace(@PathParam("spaceId") String spaceId) throws ServiceInvocationException {
+	public Space getSpace(@PathParam("spaceId") String spaceId) {
 		try {
 			Serializable rmiResult = Context.get().invoke(
 					new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
@@ -189,5 +204,4 @@ public class SpacesResource implements INoracleSpaceService {
 	public QuestionRelationsResource relations() {
 		return new QuestionRelationsResource();
 	}
-
 }

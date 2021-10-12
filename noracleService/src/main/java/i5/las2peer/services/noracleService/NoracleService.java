@@ -11,6 +11,7 @@ import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
 @Api
@@ -26,7 +27,7 @@ import javax.ws.rs.Path;
 public class NoracleService extends RESTService {
 
 	public static final String RESOURCE_NAME = "distributed-noracle";
-	public static final String API_VERSION = "0.7";
+	public static final String API_VERSION = "1.0.0";
 
 	@Override
 	protected void initResources() {
@@ -46,5 +47,9 @@ public class NoracleService extends RESTService {
 	public AgentsResource agents() {
 		return new AgentsResource();
 	}
+
+	@GET
+	@Path("/version")
+	public String version() { return this.API_VERSION; }
 
 }
