@@ -1,10 +1,12 @@
 package i5.las2peer.services.noracleService.model;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class SpaceSubscription implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = -3983233729934822604L;
 
 	private String spaceId;
 	private String[] selectedQuestionIds;

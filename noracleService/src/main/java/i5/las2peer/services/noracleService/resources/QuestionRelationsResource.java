@@ -32,6 +32,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.util.List;
 
 public class QuestionRelationsResource implements INoracleQuestionRelationService {
 
@@ -364,6 +365,11 @@ public class QuestionRelationsResource implements INoracleQuestionRelationServic
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 		}
+	}
+
+	@Override
+	public List<String> getQuestionRelationIds(String spaceId, String questionId) {
+		return null; // not used
 	}
 
 	@Path("/{relationId}/" + QuestionVotesResource.RESOURCE_NAME)

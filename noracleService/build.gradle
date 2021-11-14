@@ -12,6 +12,7 @@ repositories {
     // DBIS Archiva
     maven {
         url "https://archiva.dbis.rwth-aachen.de:9911/repository/internal/"
+        //url "https://repo1.maven.org/maven2/"
     }
 }
 
@@ -39,8 +40,9 @@ dependencies {
 
     // Add service dependencies here
     implementation 'com.google.code.gson:gson:2.8.7'
-
-
+    implementation 'org.apache.lucene:lucene-analyzers-common:8.0.0'
+    implementation 'com.github.jaytaylor:jaws:1.3.1'
+    implementation 'info.debatty:java-string-similarity:2.0.0'
 }
 
 configurations {

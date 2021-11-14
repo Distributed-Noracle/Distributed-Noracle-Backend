@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: noracle-pvc
+  namespace: ma-breuer
+spec:
+  volumeName: pvc-0ffc0082-344b-4225-96e2-fa3365cef71e
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: nfs-client
+  volumeMode: Filesystem

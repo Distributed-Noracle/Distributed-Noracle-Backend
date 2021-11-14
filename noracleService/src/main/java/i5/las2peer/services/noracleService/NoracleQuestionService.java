@@ -9,13 +9,14 @@ import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
 import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
 import i5.las2peer.api.security.*;
+import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.services.noracleService.api.INoracleQuestionService;
-import i5.las2peer.services.noracleService.model.Question;
-import i5.las2peer.services.noracleService.model.QuestionList;
-import i5.las2peer.services.noracleService.model.Space;
+import i5.las2peer.services.noracleService.model.*;
+import i5.las2peer.services.noracleService.resources.QuestionVotesResource;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -191,25 +192,69 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		return result;
 	}
 
+	@Override
+	public VotedQuestionList getAllVotedQuestions(String spaceId) throws ResourceNotFoundException {
+		logger.info("NoracleQuestionService -> getAllVotedQuestions() called with spaceId = " + spaceId);
+		VotedQuestionList votedQuestionList = new VotedQuestionList();
+		QuestionList questionList = new QuestionList();
+		for (int questionNumber = 1; questionNumber < MAX_QUESTIONS_PER_SPACE; questionNumber++) {
+			try {
+				if (!retrieveQuestion(questionList, spaceId, questionNumber)) {
+					break;
+				}
+			} catch (EnvelopeNotFoundException e) {
+				break; // found free question number
+			}
+		}
+
+		for (Question question : questionList) {
+			VotedQuestion votedQuestion = new VotedQuestion(question);
+			String objectId = QuestionVotesResource.buildObjectId(spaceId, question.getQuestionId());
+			Serializable rmiResult = null;
+			try {
+				rmiResult = Context.get().invoke(
+						new ServiceNameVersion(NoracleVoteService.class.getCanonicalName(), NoracleService.API_VERSION),
+						"getAllVotes", objectId);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			if (rmiResult instanceof VoteList) {
+				votedQuestion.setVotes((VoteList) rmiResult);
+			}
+			votedQuestionList.add(votedQuestion);
+		}
+
+		return votedQuestionList;
+	}
+
+	@Override
+	public ArrayList<VotedQuestion> getAllVotedQuestions(String spaceId, String agentId) throws ServiceInvocationException {
+		ArrayList<VotedQuestion> questionList = getAllVotedQuestions(spaceId);
+		for (VotedQuestion q : questionList) {
+			if (!q.getAuthorId().equals(agentId)) {
+				questionList.remove(q);
+			}
+		}
+		return questionList;
+	}
+
 	private boolean retrieveQuestion(QuestionList result, String spaceId, int questionNumber)
 			throws EnvelopeNotFoundException {
 		try {
 			Envelope spaceQuestionEnv = Context.get()
 					.requestEnvelope(buildSpaceQuestionNumberId(spaceId, questionNumber));
 			String questionId = (String) spaceQuestionEnv.getContent();
+			// logger.info("Found question with questionId: " + questionId);
 			Envelope questionEnv = Context.get().requestEnvelope(getQuestionEnvelopeIdentifier(questionId));
 			Question question = (Question) questionEnv.getContent();
-			// TODO check if author is a member of this space?
-//			String authorId = question.getAuthorId();
-//			if (authorId == null || authorId.isEmpty()) {
-//				return false;
-//			}
+
 			result.add(question);
 			return true;
 		} catch (EnvelopeNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
-			// XXX logging
+			logger.warning("Exception inside NoracleQuestionService -> retrieveQuestion(...)");
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -257,5 +302,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 			throw new InternalServiceException("Could not fetch question envelope", e);
 		}
 	}
+
+	private final L2pLogger logger = L2pLogger.getInstance(NoracleQuestionService.class.getName());
 
 }

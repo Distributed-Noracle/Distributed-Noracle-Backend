@@ -13,7 +13,6 @@ Please try out our app at: [dbis.rwth-aachen.de/noracle/](http://dbis.rwth-aache
 las2peer uses **Java 14**.
 
 ## Setup
-1. Build the project using `ant all`
 1. Copy *launcher-configuration.ini* to *etc/*
 1. Start using `./start-local.sh` for starting in the same shell (useful for testing), or `./start-node.sh` for starting Noracle in a screen (useful for production)
 

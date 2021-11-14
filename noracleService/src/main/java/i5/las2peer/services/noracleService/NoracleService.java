@@ -2,10 +2,7 @@ package i5.las2peer.services.noracleService;
 
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.services.noracleService.resources.AgentsResource;
-import i5.las2peer.services.noracleService.resources.QuestionRelationsResource;
-import i5.las2peer.services.noracleService.resources.QuestionsResource;
-import i5.las2peer.services.noracleService.resources.SpacesResource;
+import i5.las2peer.services.noracleService.resources.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
@@ -46,6 +43,11 @@ public class NoracleService extends RESTService {
 	@Path("/" + AgentsResource.RESOURCE_NAME + "/{agentid}")
 	public AgentsResource agents() {
 		return new AgentsResource();
+	}
+
+	@Path("/" + RecommenderResource.RESOURCE_NAME)
+	public RecommenderResource recommendations() {
+		return new RecommenderResource();
 	}
 
 	@GET

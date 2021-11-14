@@ -203,8 +203,8 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		return "group-" + spaceId;
 	}
 
-	private String getSpaceEnvelopeIdentifier(String questionId) {
-		return "space-" + questionId;
+	private String getSpaceEnvelopeIdentifier(String spaceId) {
+		return "space-" + spaceId;
 	}
 
 }

@@ -48,8 +48,7 @@ public class AgentsResource implements INoracleAgentService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
-	public SpaceSubscriptionList getSpaceSubscriptions(@PathParam("agentid") String agentId)
-			throws ServiceInvocationException {
+	public SpaceSubscriptionList getSpaceSubscriptions(@PathParam("agentid") String agentId) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"getSpaceSubscriptions", agentId);

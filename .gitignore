@@ -1,8 +1,8 @@
 /node-storage/
 /.las2peer/
 /tmp/
-/log/
 /lib/
+/log/
 /etc/ivy/ivy.jar
 /service/
 /out/

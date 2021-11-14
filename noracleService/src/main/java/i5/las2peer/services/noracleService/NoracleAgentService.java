@@ -18,7 +18,6 @@ import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 import i5.las2peer.services.noracleService.resources.SpacesResource;
 
 import java.util.Iterator;
-import java.util.logging.Level;
 
 /**
  * Noracle Agents Service

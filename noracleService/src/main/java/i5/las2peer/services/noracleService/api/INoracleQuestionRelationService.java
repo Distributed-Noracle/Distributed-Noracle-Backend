@@ -1,8 +1,11 @@
 package i5.las2peer.services.noracleService.api;
 
 import i5.las2peer.api.execution.ServiceInvocationException;
+import i5.las2peer.services.noracleService.model.Question;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
+
+import java.util.List;
 
 public interface INoracleQuestionRelationService {
 
@@ -17,4 +20,5 @@ public interface INoracleQuestionRelationService {
 	QuestionRelation changeQuestionRelation(String relationId, String name, String questionId1,
 			String questionId2, Boolean directed) throws ServiceInvocationException;
 
+	List<String> getQuestionRelationIds(String spaceId, String questionId);
 }
