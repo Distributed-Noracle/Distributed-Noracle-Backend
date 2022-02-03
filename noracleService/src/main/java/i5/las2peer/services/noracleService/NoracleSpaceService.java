@@ -175,16 +175,17 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 	@Override
 	public SpaceList getPublicSpaces() {
 		Envelope envelope = null;
+		SpaceList list = new SpaceList();
 		try {
 			envelope = Context.get().requestEnvelope(getPublicSpacesIdentifier());
+			list = (SpaceList) envelope.getContent();
 		} catch (EnvelopeAccessDeniedException e) {
 			e.printStackTrace();
 		} catch (EnvelopeNotFoundException e) {
-			e.printStackTrace();
+			// No public spaces
 		} catch (EnvelopeOperationFailedException e) {
 			e.printStackTrace();
 		}
-		SpaceList list = (SpaceList) envelope.getContent();
 		return list;
 	}
 

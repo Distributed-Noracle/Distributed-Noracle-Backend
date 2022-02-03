@@ -204,39 +204,13 @@ public class SpacesResource implements INoracleSpaceService {
 	@Path("/public")
 	@Produces(MediaType.APPLICATION_JSON)
 	public SpaceList getPublicSpaces() {
-		// logger.info("SpacesResource -> getPublicSpaces(..)");
+		logger.info("SpacesResource -> getPublicSpaces(..)");
 		try {
 			SpaceList list = (SpaceList) Context.get().invoke(
 					new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
 					"getPublicSpaces");
-			// logger.info("Returned list with size: " + list.size());
+			logger.info("Returned list with size: " + list.size());
 			return list;
-		} catch (InvocationBadArgumentException e) {
-			throw new BadRequestException(e.getMessage(), e.getCause());
-		} catch (ResourceNotFoundException e) {
-			throw new NotFoundException(e.getMessage(), e.getCause());
-		} catch (ServiceAccessDeniedException e) {
-			throw new ForbiddenException(e.getMessage(), e.getCause());
-		} catch (Exception e) {
-			throw new InternalServerErrorException("Exception during RMI call", e);
-		}
-	}
-
-	@GET
-	@Path("/{spaceId}/votecount")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Integer getSpaceVoteCount(@PathParam("spaceId") String spaceId) {
-		try {
-			VotedQuestionList list = (VotedQuestionList) Context.get().invoke(
-					new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
-					"getAllVotedQuestions");
-			Integer voteCount = 0;
-			for (VotedQuestion vq : list) {
-				if (vq.getVotes() != null) {
-					voteCount += vq.getVotes().size();
-				}
-			}
-			return voteCount;
 		} catch (InvocationBadArgumentException e) {
 			throw new BadRequestException(e.getMessage(), e.getCause());
 		} catch (ResourceNotFoundException e) {
