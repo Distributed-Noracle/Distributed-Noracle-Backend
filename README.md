@@ -10,12 +10,12 @@ Please try out our app at: https://noracle.tech4comp.dbis.rwth-aachen.de/
 
 ## Java
 
-las2peer uses **Java 14**.
+The application uses **Java 17** and **Gradle 7.3**.
 
 ## Run
 ```
 docker build -t noracle-service .
 docker run -p 8080:8080 -p 9011:9011 noracle-service
 ```
-The services are then available under http://localhost:8080.
+The service(s) are then available under http://localhost:8080/distributed-noracle.
 
