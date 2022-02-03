@@ -8,7 +8,6 @@ import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.services.noracleService.api.INoracleRecommenderService;
 import i5.las2peer.services.noracleService.model.*;
 import info.debatty.java.stringsimilarity.Cosine;
-import org.tartarus.snowball.ext.PorterStemmer;
 
 import java.io.*;
 import java.util.*;
@@ -17,7 +16,11 @@ import java.util.stream.Collectors;
 public class NoracleRecommenderService extends Service implements INoracleRecommenderService {
 
     private RecommenderQuestionList getRecommendations(String agentId, VotedQuestionList votedQuestionList) throws ServiceInvocationException {
-        //VotedQuestionList normQuestionList = normalizeQuestions(votedQuestionList);
+
+        // Normalize questions
+        /*rmiResult = Context.get().invoke(
+        new ServiceNameVersion(NoracleNormalizationService.class.getCanonicalName(), NoracleService.API_VERSION),
+        "normalizeQuestions", votedQuestionList);*/
 
         // Compute Utility of questions
         /*rmiResult = Context.get().invoke(
@@ -36,7 +39,6 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         RecommenderQuestionList recommendations = new RecommenderQuestionList();
         RecommenderQuestion rq;
         for (VotedQuestion q : topRecommendations) {
-            // VotedQuestion q = votedQuestionList.stream().filter(vq -> vq.getQuestionId().equals(normQ.getQuestionId())).findFirst().get();
 
             rq = new RecommenderQuestion();
             rq.setQuestion(q);
@@ -63,7 +65,6 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
 
     @Override
     public RecommenderQuestionList getRecommendedQuestions(String agentId) throws ServiceInvocationException {
-        // get all questions for user with agentId
         logger.info("NoracleRecommenderService -> getRecommendedQuestions() with agentid " + agentId);
 
         // Retrieving questions
@@ -84,20 +85,20 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
             rmiResult = Context.get().invoke(
                     new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
                     "getAllVotedQuestions", s.getSpaceId());
-
             if (rmiResult instanceof VotedQuestionList) {
                 votedQuestionList.addAll((VotedQuestionList) rmiResult);
             } else {
                 logger.warning("RmiResult not an instance of VotedQuestionList!");
             }
         }
+        RecommenderQuestionList recommenderQuestionList = getRecommendations(agentId, votedQuestionList);
 
-        return getRecommendations(agentId, votedQuestionList);
+        return recommenderQuestionList;
     }
 
     @Override
     public RecommenderQuestionList getRecommendedQuestionsForSpace(String agentId, String spaceId) throws ServiceInvocationException {
-        logger.info("NoracleRecommenderService -> getRecommendedQuestions() with agentid " + agentId + " and spaceId " + spaceId + " called");
+        logger.info("NoracleRecommenderService -> getRecommendedQuestionsForSpace() with agentid " + agentId + " and spaceId " + spaceId + " called");
 
         // Retrieving questions
         logger.info("Get all (voted) questions of space with spaceId " + spaceId);
@@ -113,149 +114,6 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         }
 
         return getRecommendations(agentId, votedQuestionList);
-
-/*        logger.info("Test Version");
-        String testParam = "Siiiiimon";
-        rmiResult = Context.get().invoke(
-                new ServiceNameVersion(NoracleNormalizationService.class.getCanonicalName(), NoracleService.API_VERSION),
-                "getVersion", testParam);
-        if (rmiResult instanceof String) {
-            logger.info(rmiResult.toString());
-        }*/
-
-/*        try {
-            rmiResult = Context.get().invoke(
-                    //"i5.las2peer.services.noracleService.NoracleNormalizationService@1.0.0",
-                    new ServiceNameVersion(NoracleNormalizationService.class.getCanonicalName(), NoracleService.API_VERSION),
-                    "getSimpleQuestion", new Question());
-            if (rmiResult instanceof Question) {
-                logger.info("Called worked!");
-            }
-        } catch (ServiceMethodNotFoundException ex) {
-            logger.info(ex.getMessage());
-        }*/
-
-        // Normalizing questions
-/*        logger.info("Normalize Questions");
-        rmiResult = Context.get().invoke(
-                new ServiceNameVersion(NoracleNormalizationService.class.getCanonicalName(), NoracleService.API_VERSION),
-                "normalizeQuestions", votedQuestionList);
-        VotedQuestionList normQuestionList = new VotedQuestionList();
-        if (rmiResult instanceof VotedQuestionList) {
-            normQuestionList = (VotedQuestionList) rmiResult;
-        }*/
-
-    }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // TEMP -> Irgendwann müssen wir das komplett in die Services verlagern!
-    // Leider können noch keine Service Funktionen aufgerufen werden, bei denen wir Objekte als Argumente geben
-    // Las2peer kann diese Service Funktionen nicht finden -> ServiceNotFoundException
-
-    // TEMP -> NormalizationService
-    public VotedQuestion normalizeQuestion(VotedQuestion question) {
-        logger.info("NoracleNormalizationService -> normalizeQuestion(...) called");
-        VotedQuestion normQuestion = new VotedQuestion(question);
-        String text = normQuestion.getText();
-        // 1. to lower case
-        text = text.toLowerCase();
-
-        // 2. Expanding contractions
-        text = expandContractions(text);
-
-        // 3. Removing dashes
-        text = text.replaceAll("[\\s\\-()]", " ");
-
-        // 4. Remove stop words
-        text = removeStopWords(text);
-
-        // 5. Stemming
-        text = stemming(text);
-
-        // 6. Remove all non-letter characters
-        //text = text.replaceAll("[^a-zA-Z ]", "");
-
-        // 7. Replacing words with synonyms
-        // TODO: Do actual replacing with words or index which leads to a pool of synonyms
-        //text = replaceWithSynonyms(text);
-
-        normQuestion.setText(text);
-
-        return normQuestion;
-    }
-
-    /*private String replaceWithSynonyms(String text) {
-        // TODO: Do actual replacing with words or index which leads to a pool of synonyms
-        File f = new File("WordNet/2.1/dict");
-        System.setProperty("wordnet.database.dir", f.toString());
-        WordNetDatabase database = WordNetDatabase.getFileInstance();
-        Synset[] synsets;
-        try {
-            synsets = database.getSynsets(text);
-        } catch (Exception ex) {
-            throw ex;
-        }
-        if (synsets.length > 0) {
-            ArrayList<String> al = new ArrayList<String>();
-            // add elements to al, including duplicates
-            HashSet hs = new HashSet();
-            for (int i = 0; i < synsets.length; i++) {
-                String[] wordForms = synsets[i].getWordForms();
-                for (int j = 0; j < wordForms.length; j++)
-                {
-                    al.add(wordForms[j]);
-                }
-
-
-                //removing duplicates
-                hs.addAll(al);
-                al.clear();
-                al.addAll(hs);
-            }
-            //showing all synsets
-            for (int k = 0; k < al.size(); k++) {
-                //System.out.println(al.get(k));
-            }
-        } else {
-            //System.err.println("No synsets exist that contain the word form '" + wordForm + "'");
-        }
-        return text;
-    }*/
-
-    private String removeStopWords(String inputString) {
-        inputString = inputString.replace(" a ", " ");
-        inputString = inputString.replace(" the ", " ");
-        // inputString = inputString.replace(" is ", " ");
-        inputString = inputString.replace(" are ", " ");
-        return inputString;
-    }
-
-    public VotedQuestionList normalizeQuestions(VotedQuestionList questionList) {
-        logger.info("NoracleNormalizationService -> normalizeQuestions(...) called");
-        questionList.stream().forEach(q -> logger.info(q.getText()));
-        VotedQuestionList normQuestionList = new VotedQuestionList();
-        for (VotedQuestion q : questionList) {
-            VotedQuestion normQ = normalizeQuestion(q);
-            normQuestionList.add(normQ);
-        }
-        return normQuestionList;
-    }
-
-    private String expandContractions(String inputString) {
-        inputString = inputString.replaceAll("n't", " not");
-        inputString = inputString.replaceAll("'re", " are");
-        inputString = inputString.replaceAll("'m", " am");
-        inputString = inputString.replaceAll("'ll", " will");
-        inputString = inputString.replaceAll("'ve", " have");
-        inputString = inputString.replaceAll("'s", " is");
-        return inputString;
-    }
-
-    private String stemming(String string) {
-        PorterStemmer stem = new PorterStemmer();
-        stem.setCurrent(string);
-        stem.stem();
-        return stem.getCurrent();
     }
 
     // TEMP -> Utility service!
@@ -266,6 +124,7 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
     private final double absoluteVoteCountWeight = 1;
     private final double positiveVoteCountWeight = 1;
     private final double negativeVoteCountWeight = -1;
+    // private final double timeWeight = 1;
 
     private final Cosine cosine = new Cosine();
 

@@ -1,5 +1,7 @@
 package i5.las2peer.services.noracleService;
 
+import edu.smu.tspell.wordnet.Synset;
+import edu.smu.tspell.wordnet.WordNetDatabase;
 import i5.las2peer.api.Service;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.services.noracleService.api.INoracleNormalizationService;
@@ -8,6 +10,10 @@ import i5.las2peer.services.noracleService.model.VotedQuestion;
 
 import i5.las2peer.services.noracleService.model.VotedQuestionList;
 import org.tartarus.snowball.ext.PorterStemmer;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 public class NoracleNormalizationService extends Service implements INoracleNormalizationService {
 
@@ -42,8 +48,7 @@ public class NoracleNormalizationService extends Service implements INoracleNorm
 
         return normQuestion;
     }
-
-    /*private String replaceWithSynonyms(String text) {
+private String replaceWithSynonyms(String text) {
         // TODO: Do actual replacing with words or index which leads to a pool of synonyms
         File f = new File("WordNet/2.1/dict");
         System.setProperty("wordnet.database.dir", f.toString());
@@ -79,7 +84,8 @@ public class NoracleNormalizationService extends Service implements INoracleNorm
             //System.err.println("No synsets exist that contain the word form '" + wordForm + "'");
         }
         return text;
-    }*/
+    }
+
 
     private String removeStopWords(String inputString) {
         inputString = inputString.replace(" a ", " ");

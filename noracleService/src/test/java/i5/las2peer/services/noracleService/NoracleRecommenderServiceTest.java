@@ -80,8 +80,6 @@ public class NoracleRecommenderServiceTest {
                     NoracleService.API_VERSION);
             startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleRecommenderService",
                     NoracleService.API_VERSION);
-            startService(nodes.get(0), "i5.las2peer.services.noracleService.NoracleNormalizationService",
-                    NoracleService.API_VERSION);
             testAgent = MockAgentFactory.getAdam();
             testAgent.unlock("adamspass");
             PastryNodeImpl activeNode = nodes.get(0);
@@ -135,6 +133,7 @@ public class NoracleRecommenderServiceTest {
 
     @Test
     public void testGetSimpleRecommendationsForSpace() {
+        long start = System.nanoTime();
         try {
             // create test space and questions with testAgent
             Space space = createAndFetchTestSpace();
@@ -169,6 +168,10 @@ public class NoracleRecommenderServiceTest {
             e.printStackTrace();
             Assert.fail(e.toString());
         }
+        long end = System.nanoTime();
+        System.out.println("start: " + start + "ns");
+        System.out.println("end: " + end + "ns");
+        System.out.println("result: " + (end-start));
     }
 
     @Test

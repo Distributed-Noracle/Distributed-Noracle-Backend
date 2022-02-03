@@ -258,7 +258,7 @@ public class NoracleServiceTest {
 			}
 		}
 
-		@Test
+/*		@Test
 		public void testUpdateSelectedQuestions() {
 			try {
 				String testSpaceId = createAndFetchTestSpace().getSpaceId();
@@ -291,7 +291,7 @@ public class NoracleServiceTest {
 				e.printStackTrace();
 				Assert.fail(e.toString());
 			}
-		}
+		}*/
 
 		@Test
 		public void testSpaceForeignSubscribeNoSecret() {

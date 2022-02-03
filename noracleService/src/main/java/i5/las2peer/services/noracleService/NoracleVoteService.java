@@ -124,8 +124,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 	}
 
 	@Override
-	public VoteList getAllVotes(String objectId) throws ServiceInvocationException {
-		logger.info("NoracleVoteService -> getAllVotes(...) called with objectId: " + objectId);
+	public VoteList getAllVotes(String objectId) {
 		VoteList result = new VoteList();
 		for (int num = 1; num < MAX_VOTES_PER_OBJECT; num++) {
 			try {

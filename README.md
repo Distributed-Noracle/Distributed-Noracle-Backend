@@ -12,7 +12,10 @@ Please try out our app at: https://noracle.tech4comp.dbis.rwth-aachen.de/
 
 las2peer uses **Java 14**.
 
-## Setup
-1. Copy *launcher-configuration.ini* to *etc/*
-1. Start using `./start-local.sh` for starting in the same shell (useful for testing), or `./start-node.sh` for starting Noracle in a screen (useful for production)
+## Run
+```
+docker build -t noracle-service .
+docker run -p 8080:8080 -p 9011:9011 noracle-service
+```
+The services are then available under http://localhost:8080.
 

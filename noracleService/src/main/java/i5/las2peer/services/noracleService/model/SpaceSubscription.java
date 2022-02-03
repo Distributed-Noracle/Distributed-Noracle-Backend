@@ -2,6 +2,8 @@ package i5.las2peer.services.noracleService.model;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpaceSubscription implements Serializable {
 
@@ -9,14 +11,14 @@ public class SpaceSubscription implements Serializable {
 	private static final long serialVersionUID = -3983233729934822604L;
 
 	private String spaceId;
-	private String[] selectedQuestionIds;
+	private List<String> selectedQuestionIds;
 
 	public SpaceSubscription() { // used in tests
 	}
 
 	public SpaceSubscription(String spaceId, String name) {
 		this.setSpaceId(spaceId);
-		this.setSelectedQuestionIds(new String[0]);
+		this.selectedQuestionIds = new ArrayList<>();
 	}
 
 	public String getSpaceId() {
@@ -27,11 +29,11 @@ public class SpaceSubscription implements Serializable {
 		this.spaceId = spaceId;
 	}
 
-	public String[] getSelectedQuestionIds() {
+	public List<String> getSelectedQuestionIds() {
 		return selectedQuestionIds;
 	}
 
-	public void setSelectedQuestionIds(String[] selectedQuestionIds) {
+	public void setSelectedQuestionIds(List<String> selectedQuestionIds) {
 		this.selectedQuestionIds = selectedQuestionIds;
 	}
 

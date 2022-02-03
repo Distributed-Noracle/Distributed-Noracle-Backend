@@ -194,7 +194,6 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 
 	@Override
 	public VotedQuestionList getAllVotedQuestions(String spaceId) throws ResourceNotFoundException {
-		logger.info("NoracleQuestionService -> getAllVotedQuestions() called with spaceId = " + spaceId);
 		VotedQuestionList votedQuestionList = new VotedQuestionList();
 		QuestionList questionList = new QuestionList();
 		for (int questionNumber = 1; questionNumber < MAX_QUESTIONS_PER_SPACE; questionNumber++) {
@@ -253,7 +252,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		} catch (EnvelopeNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.warning("Exception inside NoracleQuestionService -> retrieveQuestion(...)");
+			// logger.warning("Exception inside NoracleQuestionService -> retrieveQuestion(...)");
 			e.printStackTrace();
 		}
 		return false;

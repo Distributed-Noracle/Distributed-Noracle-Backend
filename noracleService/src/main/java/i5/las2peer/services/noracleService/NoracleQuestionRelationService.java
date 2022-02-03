@@ -206,7 +206,6 @@ public class NoracleQuestionRelationService extends Service implements INoracleQ
 
 	@Override
 	public List<String> getQuestionRelationIds(String spaceId, String questionId) {
-		logger.info("NoracleQuestionRelationService -> getQuestionRelationIds(...) called with spaceId = " + spaceId + " and questionId = " + questionId);
 		List<String> questionRelations = new ArrayList<>();
 		Envelope spaceQuestionRelationEnv;
 		Envelope questionEnv;
@@ -216,7 +215,6 @@ public class NoracleQuestionRelationService extends Service implements INoracleQ
 				String relationId = (String) spaceQuestionRelationEnv.getContent();
 				questionEnv = Context.get().requestEnvelope(getQuestionRelationEnvelopeIdentifier(relationId));
 				QuestionRelation qr = (QuestionRelation) questionEnv.getContent();
-				logger.info("Found Question Relation with 1st id = " + qr.getFirstQuestionId() + " and 2nd id = " + qr.getSecondQuestionId());
 				if (qr.getFirstQuestionId().equals(questionId)) {
 					questionRelations.add(qr.getSecondQuestionId());
 				} else if (qr.getSecondQuestionId().equals(questionId)) {
