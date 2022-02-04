@@ -32,7 +32,7 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                 .entrySet()
                 .stream()
                 .sorted(Map.Entry.<VotedQuestion, Double>comparingByValue().reversed())
-                .limit(3)
+                .limit(10)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 

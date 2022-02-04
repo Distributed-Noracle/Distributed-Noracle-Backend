@@ -192,6 +192,20 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		return result;
 	}
 
+	public QuestionList getAllQuestions(String spaceId) {
+		QuestionList questionList = new QuestionList();
+		for (int questionNumber = 1; questionNumber < MAX_QUESTIONS_PER_SPACE; questionNumber++) {
+			try {
+				if (!retrieveQuestion(questionList, spaceId, questionNumber)) {
+					break;
+				}
+			} catch (EnvelopeNotFoundException e) {
+				break;
+			}
+		}
+		return questionList;
+	}
+
 	@Override
 	public VotedQuestionList getAllVotedQuestions(String spaceId) throws ResourceNotFoundException {
 		VotedQuestionList votedQuestionList = new VotedQuestionList();

@@ -172,7 +172,6 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		}
 	}
 
-	@Override
 	public SpaceList getPublicSpaces() {
 		Envelope envelope = null;
 		SpaceList list = new SpaceList();
