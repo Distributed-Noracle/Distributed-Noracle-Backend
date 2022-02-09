@@ -11,14 +11,14 @@ public class SpaceSubscription implements Serializable {
 	private static final long serialVersionUID = -3983233729934822604L;
 
 	private String spaceId;
-	private List<String> selectedQuestionIds;
+	//private List<String> selectedQuestionIds;
 
-	public SpaceSubscription() { // used in tests
+	public SpaceSubscription() { // used in test
 	}
 
 	public SpaceSubscription(String spaceId, String name) {
 		this.setSpaceId(spaceId);
-		this.selectedQuestionIds = new ArrayList<>();
+		//this.selectedQuestionIds = new ArrayList<>();
 	}
 
 	public String getSpaceId() {
@@ -29,12 +29,12 @@ public class SpaceSubscription implements Serializable {
 		this.spaceId = spaceId;
 	}
 
-	public List<String> getSelectedQuestionIds() {
+/*	public List<String> getSelectedQuestionIds() {
 		return selectedQuestionIds;
 	}
 
-	public void setSelectedQuestionIds(List<String> selectedQuestionIds) {
+	public void setSelectedQuestionIds(List<String>selectedQuestionIds) {
 		this.selectedQuestionIds = selectedQuestionIds;
-	}
+	}*/
 
 }

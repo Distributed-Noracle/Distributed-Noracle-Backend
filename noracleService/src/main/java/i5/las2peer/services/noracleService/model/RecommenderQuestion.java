@@ -13,23 +13,23 @@ public class RecommenderQuestion implements Serializable {
         this.authorName = "unknown user";
     }
 
-    public RecommenderQuestion(List<String> questionNeighbourIds, VotedQuestion question, String authorName) {
+/*    public RecommenderQuestion(QuestionNeighbourIds questionNeighbourIds, VotedQuestion question, String authorName) {
         this.questionNeighbourIds = questionNeighbourIds;
         this.question = question;
         this.authorName = authorName;
-    }
+    }*/
 
-    private List<String> questionNeighbourIds;
+    //private QuestionNeighbourIds questionNeighbourIds;
     private VotedQuestion question;
     private String authorName;
 
-    public List<String> getQuestionNeighbourIds() {
+/*    public List<String> getQuestionNeighbourIds() {
         return questionNeighbourIds;
-    }
+    }*/
 
-    public void setQuestionNeighbourIds(List<String> questionNeighbourIds) {
+/*    public void setQuestionNeighbourIds(QuestionNeighbourIds questionNeighbourIds) {
         this.questionNeighbourIds = questionNeighbourIds;
-    }
+    }*/
 
     public Question getQuestion() {
         return question;

@@ -3,9 +3,14 @@ package i5.las2peer.services.noracleService.resources;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import i5.las2peer.api.Context;
-import i5.las2peer.api.execution.InternalServiceException;
-import i5.las2peer.api.execution.ServiceInvocationException;
+import i5.las2peer.api.execution.*;
 import i5.las2peer.api.p2p.ServiceNameVersion;
+import i5.las2peer.api.persistency.Envelope;
+import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
+import i5.las2peer.api.persistency.EnvelopeNotFoundException;
+import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
+import i5.las2peer.api.security.AgentNotFoundException;
+import i5.las2peer.api.security.AgentOperationFailedException;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleAgentService;
@@ -26,7 +31,9 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RecommenderResource implements INoracleRecommenderService {
     public static final String RESOURCE_NAME = "recommend";
@@ -68,17 +75,21 @@ public class RecommenderResource implements INoracleRecommenderService {
                     response = ExceptionEntity.class) })
     @Path("/{agentId}")
     public RecommenderQuestionList getRecommendedQuestions(@PathParam("agentId") String agentId) throws ServiceInvocationException {
-        // logger.info("RecommenderResource -> getRecommendedQuestions() with agentid " + agentId);
+        logger.info("RecommenderResource -> getRecommendedQuestions() with agentid " + agentId);
         Serializable rmiResult = Context.get().invoke(
                 new ServiceNameVersion(NoracleRecommenderService.class.getCanonicalName(), NoracleService.API_VERSION),
                 "getRecommendedQuestions", agentId);
+        logger.info("recommendations: check rmi Result");
         if (rmiResult instanceof RecommenderQuestionList) {
+            logger.info("return recommendations!");
             return (RecommenderQuestionList) rmiResult;
         } else {
             throw new InternalServiceException(
                     "Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call -> getRecommendedQuestions(...)");
         }
     }
+
+    // Everything related to the Noracle Bot
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -92,23 +103,56 @@ public class RecommenderResource implements INoracleRecommenderService {
                     message = "Internal Server Error",
                     response = ExceptionEntity.class) })
     @Path("/bot")
-    public BotResponse getRecommendedQuestionsForBot(@ApiParam(required = true) String request) {
-        RecommenderQuestionList recommenderQuestionList = new RecommenderQuestionList();
-
+    public BotResponse getRecommendedQuestionsForBot(@ApiParam(required = true) String request) throws AgentOperationFailedException, AgentNotFoundException, ServiceNotAvailableException, ServiceInvocationFailedException, ServiceNotFoundException, ServiceAccessDeniedException, ServiceNotAuthorizedException, ServiceMethodNotFoundException, InternalServiceException {
         Gson gson = new Gson();
         BotRequest botRequest;
-        try {
-            // Read out data and save it into object
-            botRequest = gson.fromJson(request, BotRequest.class);
-            System.out.println(botRequest.getMsg());
-            System.out.println(botRequest.getBotName());
-            System.out.println(botRequest.getChannel());
-            System.out.println(botRequest.getIntent());
-            System.out.println(botRequest.getEntities());
-            System.out.println(botRequest.getEmail());
-            System.out.println(botRequest.getUser());
-            System.out.println(botRequest.getTime());
+        botRequest = gson.fromJson(request, BotRequest.class);
 
+        System.out.println(botRequest.getMsg());
+        System.out.println(botRequest.getBotName());
+        System.out.println(botRequest.getChannel());
+        System.out.println(botRequest.getIntent());
+        System.out.println(botRequest.getEntities());
+        System.out.println(botRequest.getEmail());
+        System.out.println(botRequest.getUser());
+        System.out.println(botRequest.getTime());
+
+        if (botRequest.getMsg().startsWith("http")) {
+            return getRecommendationsFromSpaceLink(botRequest);
+        } else if (botRequest.getIntent().equals("number_selection")) {
+            // Recommendations for your saved spaces
+            if (botRequest.getMsg().equals("1")) {
+                try {
+                    Envelope env = Context.get().requestEnvelope(buildBotSpacesId(botRequest.getUser()));
+                    List<String> spaceIds = (List<String>) env.getContent();
+                    RecommenderQuestionList rqList = new RecommenderQuestionList();
+                    // Read out users profile
+                    String loginName = botRequest.getUser();
+                    String agentId = Context.get().getUserAgentIdentifierByLoginName(loginName);
+
+                    for (String spaceId : spaceIds) {
+                        RecommenderQuestionList list = (RecommenderQuestionList) Context.get().invoke(
+                                new ServiceNameVersion(NoracleRecommenderService.class.getCanonicalName(), NoracleService.API_VERSION),
+                                "getRecommendedQuestionsForSpace", agentId, spaceId);
+                        rqList.addAll(list);
+                    }
+                    return createBotResponseFromRecommendations(rqList);
+                } catch (EnvelopeNotFoundException | EnvelopeAccessDeniedException | EnvelopeOperationFailedException e) {
+                    return new BotResponse("You do not have any saved spaces.", true);
+                }
+            // Recommendations for a specific space
+            } else if (botRequest.getMsg().equals("2")) {
+                return new BotResponse("Can you send me the invitation link of the space where you want to get recommendations from?", false);
+            }
+        }
+
+        return new BotResponse("Sorry, but I cannot answer.", true);
+
+    }
+
+    private BotResponse getRecommendationsFromSpaceLink(BotRequest botRequest) {
+        RecommenderQuestionList recommenderQuestionList = new RecommenderQuestionList();
+        try {
             // invite the bot into the space
             String invitationLink = botRequest.getMsg();
             String spaceSecret = "";
@@ -148,6 +192,23 @@ public class RecommenderResource implements INoracleRecommenderService {
                         "Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call -> getRecommendedQuestions(...)");
             }
 
+            // Create or extend envelope
+            Envelope env;
+            List<String> spaceIdList;
+            try {
+                env = Context.get().requestEnvelope(buildBotSpacesId(botRequest.getUser()));
+                spaceIdList = (List<String>) env.getContent();
+                if (!spaceIdList.contains(spaceId)) {
+                    spaceIdList.add(spaceId);
+                }
+            } catch (EnvelopeNotFoundException ex) {
+                env = Context.get().createEnvelope(buildBotSpacesId(botRequest.getUser()));
+                spaceIdList = new ArrayList<>();
+                spaceIdList.add(spaceId);
+            }
+            env.setContent((Serializable) spaceIdList);
+            Context.get().storeEnvelope(env);
+
             rmiResult = Context.get().invoke(
                     new ServiceNameVersion(NoracleRecommenderService.class.getCanonicalName(), NoracleService.API_VERSION),
                     "getRecommendedQuestionsForSpace", agentId, spaceId);
@@ -159,21 +220,35 @@ public class RecommenderResource implements INoracleRecommenderService {
             }
 
         } catch (JsonSyntaxException ex) {
-            System.out.println("Input " + request + " is invalid json.");
+            System.out.println("Input is invalid json.");
             System.out.println(ex.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            // error
+            ex.printStackTrace();
         }
 
         if (recommenderQuestionList.isEmpty()) {
             return new BotResponse("Sorry, I could not find any recommendations for you :(", true);
         }
 
-        String text = "Here are the top " + recommenderQuestionList.size() + " questions for you :)\n";
+        return createBotResponseFromRecommendations(recommenderQuestionList);
+    }
+
+    private BotResponse createBotResponseFromRecommendations(RecommenderQuestionList recommenderQuestionList) {
+        // TODO: Order by Utility!!!
+        if (recommenderQuestionList.size() > 5) {
+            Collections.shuffle(recommenderQuestionList);
+        }
+        int nrRec = Math.min(5, recommenderQuestionList.size());
+
+        String text = "Here are the top " + nrRec + " questions for you :)\n";
         int index = 1;
         DateFormat formatter1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         DateFormat formatter2 = new SimpleDateFormat("E, dd MMM yyyy HH:mm");
         for (RecommenderQuestion rq : recommenderQuestionList) {
+            if (index == nrRec + 1) {
+                break;
+            }
             if (!text.isEmpty()) {
                 text += "\n";
             }
@@ -196,6 +271,10 @@ public class RecommenderResource implements INoracleRecommenderService {
             index++;
         }
         return new BotResponse(text, true);
+    }
+
+    private String buildBotSpacesId(String user) {
+        return "bot-recommender-spaces-" + user;
     }
 
     private final L2pLogger logger = L2pLogger.getInstance(RecommenderResource.class.getName());

@@ -193,7 +193,8 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 			SpaceSubscriptionList spaceSubscriptionList = (SpaceSubscriptionList) env.getContent();
 			for (SpaceSubscription spaceSubscription : spaceSubscriptionList) {
 				if (spaceSubscription.getSpaceId().equals(spaceId)) {
-					spaceSubscription.setSelectedQuestionIds(selectedQuestions);
+					// TODO: is this line important?
+					//spaceSubscription.setSelectedQuestionIds(selectedQuestions);
 					env.setContent(spaceSubscriptionList);
 					try {
 						Context.get().storeEnvelope(env, mainAgent);

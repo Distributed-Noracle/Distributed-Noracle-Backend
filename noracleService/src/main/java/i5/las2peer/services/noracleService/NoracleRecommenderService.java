@@ -52,10 +52,10 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                 rq.setAuthorName(ap.getName());
             }
 
-            rmiResult = Context.get().invoke(
+/*            rmiResult = Context.get().invoke(
                     new ServiceNameVersion(NoracleQuestionRelationService.class.getCanonicalName(), NoracleService.API_VERSION),
                     "getQuestionRelationIds", q.getSpaceId(), q.getQuestionId());
-            rq.setQuestionNeighbourIds((List<String>) rmiResult);
+            rq.setQuestionNeighbourIds((QuestionNeighbourIds) rmiResult);*/
 
             recommendations.add(rq);
         }

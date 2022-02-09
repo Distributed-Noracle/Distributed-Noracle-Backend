@@ -41,16 +41,16 @@ public class AgentsResource implements INoracleAgentService {
 
 	@Override
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiResponses({ @ApiResponse(
+/*	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
 			message = "Subscriptions successfully fetched",
 			response = SpaceSubscriptionList.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
-					response = ExceptionEntity.class) })
+					response = ExceptionEntity.class) })*/
 	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
+	@Produces(MediaType.APPLICATION_JSON)
 	public SpaceSubscriptionList getSpaceSubscriptions(@PathParam("agentid") String agentId) throws ServiceInvocationException {
 		logger.info("AgentsResource -> getSpaceSubscriptions(...) with agentid: " + agentId);
 		Serializable rmiResult = Context.get().invoke(
