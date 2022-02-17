@@ -22,6 +22,7 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 
+import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -104,6 +105,24 @@ public class SpacesResource implements INoracleSpaceService {
 		}
 		return space;
 	}
+
+    @Override
+    @DELETE
+    @Path("/{spaceId}")
+    //@Produces(MediaType.APPLICATION_JSON)
+    public void deleteSpace(@PathParam("spaceId") String spaceId) throws ServiceInvocationException {
+        Serializable rmiResult = Context.get().invoke(
+                new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
+                "deleteSpace", spaceId);
+        /*Space space;
+        if (rmiResult instanceof Space) {
+            space = (Space) rmiResult;
+        } else {
+            throw new InternalServiceException(
+                    "Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+        }
+        return space;*/
+    }
 
 	@Override
 	@GET
