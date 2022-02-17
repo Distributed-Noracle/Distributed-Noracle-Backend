@@ -56,6 +56,7 @@ public class RecommenderResource implements INoracleRecommenderService {
                 new ServiceNameVersion(NoracleRecommenderService.class.getCanonicalName(), NoracleService.API_VERSION),
                 "getRecommendedQuestionsForSpace", agentId, spaceId);
         if (rmiResult instanceof RecommenderQuestionList) {
+            logger.info("Computed " + ((RecommenderQuestionList) rmiResult).size() + " recommended questions!");
             return (RecommenderQuestionList) rmiResult;
         } else {
             throw new InternalServiceException(

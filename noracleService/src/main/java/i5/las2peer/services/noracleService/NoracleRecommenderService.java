@@ -113,6 +113,8 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
             logger.warning("RmiResult not an instance of VotedQuestionList!");
         }
 
+        logger.info("Found " + votedQuestionList.size() + " voted questions!");
+
         return getRecommendations(agentId, votedQuestionList);
     }
 
@@ -129,7 +131,7 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
     private final Cosine cosine = new Cosine();
 
     private HashMap<VotedQuestion, Double> computeUtilityForQuestions(String agentId, VotedQuestionList questions) {
-        logger.info("NoracleQuestionUtilityService -> computeUtilityForQuestions(...)");
+        // logger.info("NoracleQuestionUtilityService -> computeUtilityForQuestions(...)");
         HashMap<VotedQuestion, Double> utilityMap = new HashMap<>();
         double utility;
         for (VotedQuestion q : questions) {
@@ -178,7 +180,7 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
     }
 
     private double computeMaxCosineSimilarity(String agentId, VotedQuestion question) {
-        logger.info("NoracleQuestionUtilityService -> computeMaxCosineSimilarity(...)");
+        // logger.info("NoracleQuestionUtilityService -> computeMaxCosineSimilarity(...)");
         if (question == null) {
             return 0;
         }
@@ -201,12 +203,12 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
             logger.warning("Exception inside computeMaxCosineSimilarity:");
             ex.printStackTrace();
         }
-        logger.info("maxCosineSimilarity: " + maxCosineSimilarity);
+        // logger.info("maxCosineSimilarity: " + maxCosineSimilarity);
         return maxCosineSimilarity;
     }
 
     private double computeMaxVoteSimilarity(String agentId, VotedQuestion question) {
-        logger.info("NoracleQuestionUtilityService -> computeMaxVoteSimilarity(...)");
+        // logger.info("NoracleQuestionUtilityService -> computeMaxVoteSimilarity(...)");
         double maxVoteSimilarity = 0.0;
         String spaceId = question.getSpaceId();
         try {
@@ -222,7 +224,7 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        logger.info("maxVoteSimilarity: " + maxVoteSimilarity);
+        // logger.info("maxVoteSimilarity: " + maxVoteSimilarity);
         return maxVoteSimilarity;
     }
 

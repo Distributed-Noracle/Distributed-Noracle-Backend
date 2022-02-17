@@ -189,7 +189,7 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 	}
 
 	public void joinSpace(String spaceId, String spaceSecret) throws ServiceInvocationException {
-		logger.info("NoracleSpaceService -> joinSpace() with spaceId " + spaceId + " and spaceSecret " + spaceSecret + " called");
+		// logger.info("NoracleSpaceService -> joinSpace() with spaceId " + spaceId + " and spaceSecret " + spaceSecret + " called");
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");
 		} else if (spaceSecret == null || spaceSecret.isEmpty()) {

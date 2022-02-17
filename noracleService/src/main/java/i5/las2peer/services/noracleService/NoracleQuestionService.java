@@ -208,6 +208,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 
 	@Override
 	public VotedQuestionList getAllVotedQuestions(String spaceId) throws ResourceNotFoundException {
+		logger.info("NoracleQuestionService -> getAllVotedQuestions(...) called");
 		VotedQuestionList votedQuestionList = new VotedQuestionList();
 		QuestionList questionList = new QuestionList();
 		for (int questionNumber = 1; questionNumber < MAX_QUESTIONS_PER_SPACE; questionNumber++) {
@@ -219,6 +220,8 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 				break; // found free question number
 			}
 		}
+
+		logger.info("Found " + questionList.size() + " questions!");
 
 		for (Question question : questionList) {
 			VotedQuestion votedQuestion = new VotedQuestion(question);

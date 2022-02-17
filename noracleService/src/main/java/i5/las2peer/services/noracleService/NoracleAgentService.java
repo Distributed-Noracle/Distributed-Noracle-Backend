@@ -53,10 +53,10 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		try {
 			try {
 				env = Context.get().requestEnvelope(envIdentifier);
-				logger.info("(SpaceSubscriptionList) env.getContent()");
+				//logger.info("(SpaceSubscriptionList) env.getContent()");
 				subscriptionList = (SpaceSubscriptionList) env.getContent();
 			} catch (EnvelopeNotFoundException e) {
-				logger.info("Context.get().createEnvelope(envIdentifier);");
+				//logger.info("Context.get().createEnvelope(envIdentifier);");
 				env = Context.get().createEnvelope(envIdentifier);
 				subscriptionList = new SpaceSubscriptionList();
 			}
@@ -65,7 +65,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not create envelope for space subscription", e);
 		}
-		logger.info("subscriptionList.add(subscription);");
+		//logger.info("subscriptionList.add(subscription);");
 		subscriptionList.add(subscription);
 		env.setContent(subscriptionList);
 		try {
@@ -75,15 +75,15 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not store space subscription envelope", e);
 		}
-		logger.info("return subscription");
-		logger.info(subscription.toString());
-		logger.info(subscription.getSpaceId());
+		//logger.info("return subscription");
+		//logger.info(subscription.toString());
+		//logger.info(subscription.getSpaceId());
 		return subscription;
 	}
 
 	@Override
 	public Boolean checkIfAlreadySubscribedToSpace(String agentId, String spaceId) throws ServiceInvocationException {
-		logger.info("NoracleAgentService -> checkIfAlreadySubscribedToSpace(...)");
+		//logger.info("NoracleAgentService -> checkIfAlreadySubscribedToSpace(...)");
 		SpaceSubscriptionList subscriptionList = getSubscriptionListForAgent(agentId);
 		if (subscriptionList == null) {
 			return false;
@@ -99,7 +99,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 	}
 
 	public SpaceSubscriptionList getSubscriptionListForAgent(String agentId) throws ServiceInvocationException {
-		logger.info("NoracleAgentService -> getSubscriptionListForAgent(...)");
+		//logger.info("NoracleAgentService -> getSubscriptionListForAgent(...)");
 		String envIdentifier = buildSubscriptionId(agentId);
 		Envelope env;
 		SpaceSubscriptionList subscriptionList;
@@ -160,16 +160,16 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 
 	@Override
 	public SpaceSubscriptionList getSpaceSubscriptions(String agentId) throws ServiceInvocationException {
-		logger.info("NoracleAgentService -> getSpaceSubscriptions(...)");
+		//logger.info("NoracleAgentService -> getSpaceSubscriptions(...)");
 		String envIdentifier = buildSubscriptionId(agentId);
 		try {
-			logger.info("Context.get().requestEnvelope(envIdentifier);");
+			//logger.info("Context.get().requestEnvelope(envIdentifier);");
 			Envelope env = Context.get().requestEnvelope(envIdentifier);
-			logger.info("(SpaceSubscriptionList) env.getContent()");
+			//logger.info("(SpaceSubscriptionList) env.getContent()");
 			SpaceSubscriptionList spaceSubscriptionList = (SpaceSubscriptionList) env.getContent();
-			logger.info("Size of List: " + spaceSubscriptionList.size());
+			//logger.info("Size of List: " + spaceSubscriptionList.size());
 			for (SpaceSubscription s : spaceSubscriptionList) {
-				logger.info(s.getSpaceId());
+				//logger.info(s.getSpaceId());
 			}
 			return spaceSubscriptionList;
 		} catch (EnvelopeAccessDeniedException e) {
@@ -194,7 +194,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 			for (SpaceSubscription spaceSubscription : spaceSubscriptionList) {
 				if (spaceSubscription.getSpaceId().equals(spaceId)) {
 					// TODO: is this line important?
-					//spaceSubscription.setSelectedQuestionIds(selectedQuestions);
+					// spaceSubscription.setSelectedQuestionIds(selectedQuestions);
 					env.setContent(spaceSubscriptionList);
 					try {
 						Context.get().storeEnvelope(env, mainAgent);
