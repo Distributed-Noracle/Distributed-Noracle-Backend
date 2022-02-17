@@ -129,6 +129,62 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 	}
 
 	@Override
+	public void deleteSpace(String spaceId) throws ServiceInvocationException {
+		// Delete space and reclaim corresponding envelopes
+		try {
+			Context.get().reclaimEnvelope(getInviteMappingIdentifier(spaceId));
+		} catch (EnvelopeAccessDeniedException e) {
+			e.printStackTrace();
+		} catch (EnvelopeNotFoundException e) {
+			e.printStackTrace();
+		} catch (EnvelopeOperationFailedException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			Context.get().reclaimEnvelope(getMemberMappingIdentifier(spaceId));
+		} catch (EnvelopeAccessDeniedException e) {
+			e.printStackTrace();
+		} catch (EnvelopeNotFoundException e) {
+			e.printStackTrace();
+		} catch (EnvelopeOperationFailedException e) {
+			e.printStackTrace();
+		}
+
+		//Space space = null;
+		try {
+			//space = (Space) Context.get().requestEnvelope(getSpaceEnvelopeIdentifier(spaceId));
+			Context.get().reclaimEnvelope(getSpaceEnvelopeIdentifier(spaceId));
+		} catch (EnvelopeAccessDeniedException e) {
+			e.printStackTrace();
+		} catch (EnvelopeNotFoundException e) {
+			e.printStackTrace();
+		} catch (EnvelopeOperationFailedException e) {
+			e.printStackTrace();
+		}
+
+		// Handle public spaces
+		Envelope envelope;
+		try {
+			envelope = Context.get().requestEnvelope(getPublicSpacesIdentifier());
+			SpaceList list = (SpaceList) envelope.getContent();
+			if (list != null) {
+				list.removeIf(s -> s.getSpaceId().equals(spaceId));
+			}
+			envelope.setContent(list);
+			Context.get().storeEnvelope(envelope);
+		} catch (EnvelopeOperationFailedException e) {
+			e.printStackTrace();
+		} catch (EnvelopeNotFoundException e) {
+			e.printStackTrace();
+		} catch (EnvelopeAccessDeniedException e) {
+			e.printStackTrace();
+		}
+
+		//return space;
+	}
+
+	@Override
 	public Space getSpace(String spaceId) throws ServiceInvocationException {
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");

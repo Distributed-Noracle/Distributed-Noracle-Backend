@@ -13,6 +13,8 @@ public interface INoracleSpaceService {
 
 	Space createSpace(String name, boolean isPrivate) throws ServiceInvocationException;
 
+	void deleteSpace(String spaceId) throws ServiceInvocationException;
+
 	Space getSpace(String spaceId) throws ServiceInvocationException;
 	
 	SpaceSubscribersList getSubscribers(String spaceId) throws ServiceInvocationException;
