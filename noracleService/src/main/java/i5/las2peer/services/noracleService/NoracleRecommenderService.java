@@ -28,11 +28,19 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                 "computeUtilityForQuestions", agentId, votedQuestionList);*/
         HashMap<VotedQuestion, Double> recommendationUtility = computeUtilityForQuestions(agentId, votedQuestionList);
 
-        List<VotedQuestion> topRecommendations = recommendationUtility
+/*        List<VotedQuestion> topRecommendations = recommendationUtility
                 .entrySet()
                 .stream()
                 .sorted(Map.Entry.<VotedQuestion, Double>comparingByValue().reversed())
                 .limit(9)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());*/
+
+        // Sort by recommendation utility
+        List<VotedQuestion> topRecommendations = recommendationUtility
+                .entrySet()
+                .stream()
+                .sorted(Map.Entry.<VotedQuestion, Double>comparingByValue().reversed())
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
@@ -92,8 +100,13 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
             }
         }
         RecommenderQuestionList recommenderQuestionList = getRecommendations(agentId, votedQuestionList);
+        RecommenderQuestionList sublist = new RecommenderQuestionList();
 
-        return recommenderQuestionList;
+        recommenderQuestionList
+                .stream()
+                .limit(9)
+                .forEach(r -> sublist.add(r));
+        return sublist;
     }
 
     @Override
@@ -115,7 +128,14 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
 
         logger.info("Found " + votedQuestionList.size() + " voted questions!");
 
-        return getRecommendations(agentId, votedQuestionList);
+        RecommenderQuestionList recommenderQuestionList = getRecommendations(agentId, votedQuestionList);
+        RecommenderQuestionList sublist = new RecommenderQuestionList();
+        recommenderQuestionList
+                .stream()
+                .limit(6)
+                .forEach(r -> sublist.add(r));
+
+        return sublist;
     }
 
     // TEMP -> Utility service!
