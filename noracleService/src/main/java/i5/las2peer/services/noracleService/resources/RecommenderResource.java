@@ -237,10 +237,10 @@ public class RecommenderResource implements INoracleRecommenderService {
 
     private BotResponse createBotResponseFromRecommendations(RecommenderQuestionList recommenderQuestionList) {
         // TODO: Order by Utility!!!
-        if (recommenderQuestionList.size() > 5) {
+        if (recommenderQuestionList.size() > 6) {
             Collections.shuffle(recommenderQuestionList);
         }
-        int nrRec = Math.min(5, recommenderQuestionList.size());
+        int nrRec = Math.min(6, recommenderQuestionList.size());
 
         String text = "Here are the top " + nrRec + " questions for you :)\n";
         int index = 1;
