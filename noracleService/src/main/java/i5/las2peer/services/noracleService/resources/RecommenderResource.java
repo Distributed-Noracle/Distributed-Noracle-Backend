@@ -139,15 +139,20 @@ public class RecommenderResource implements INoracleRecommenderService {
                     }
                     return createBotResponseFromRecommendations(rqList);
                 } catch (EnvelopeNotFoundException | EnvelopeAccessDeniedException | EnvelopeOperationFailedException e) {
-                    return new BotResponse("You do not have any saved spaces.", true);
+                    String msg = "You do not have any saved spaces.";
+                    msg += "\n" + optionMsg;
+                    return new BotResponse(msg, false);
                 }
             // Recommendations for a specific space
             } else if (botRequest.getMsg().equals("2")) {
-                return new BotResponse("Can you send me the invitation link of the space where you want to get recommendations from?", false);
+                return new BotResponse("Can you send me the invitation (share) link of the space where you want to get recommendations from?", false);
+            } else if (botRequest.getMsg().equals("3")) {
+                return new BotResponse("Okay :/", true);
             }
         }
 
-        return new BotResponse("Sorry, but I cannot answer.", true);
+        String msg = "Sorry, but I cannot answer.\n\n" + optionMsg;
+        return new BotResponse(msg, false);
 
     }
 
@@ -163,7 +168,8 @@ public class RecommenderResource implements INoracleRecommenderService {
                 spaceSecret = invitationLink.substring(invitationLink.indexOf("?pw=") + 4);
                 spaceId = invitationLink.substring(invitationLink.indexOf("/spaces/") + 8, invitationLink.indexOf("?pw="));
             } catch (MalformedURLException | IndexOutOfBoundsException ex) {
-                return new BotResponse("Sorry, but I cannot use this link.", true);
+                String msg = "Sorry, but I cannot use this link.\n\n" + optionMsg;
+                return new BotResponse(msg, false);
             }
 
             // Read out users profile
@@ -279,4 +285,9 @@ public class RecommenderResource implements INoracleRecommenderService {
     }
 
     private final L2pLogger logger = L2pLogger.getInstance(RecommenderResource.class.getName());
+
+    private final String optionMsg = "1. Recommended questions for your saved spaces\\n" +
+            "2. Recommended questions for a specific space (+ save the space)\\n" +
+            "3. Cancel\\n" +
+            "Please specify one option (1 - 3).";
 }
