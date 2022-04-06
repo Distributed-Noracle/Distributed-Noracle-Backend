@@ -21,7 +21,7 @@ import i5.las2peer.services.noracleService.resources.SpacesResource;
 
 public class NoracleVoteService extends Service implements INoracleVoteService {
 
-	private static final int MAX_VOTES_PER_OBJECT = 1000000;
+	public static final int MAX_VOTES_PER_OBJECT = 100000;
 
 	private final L2pLogger logger = L2pLogger.getInstance(SpacesResource.class.getName());
 

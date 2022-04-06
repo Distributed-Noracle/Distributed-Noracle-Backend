@@ -2,6 +2,7 @@ package i5.las2peer.services.noracleService.model;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class VotedQuestion extends Question implements Serializable {
 
@@ -22,6 +23,9 @@ public class VotedQuestion extends Question implements Serializable {
 		this.setTimestampCreated(q.getTimestampCreated());
 		this.setTimestampLastModified(q.getTimestampLastModified());
 		this.setDepth(q.getDepth());
+		if (q instanceof VotedQuestion) {
+			this.setVotes(((VotedQuestion) q).getVotes());
+		}
 	}
 	
 	public VoteList getVotes() {

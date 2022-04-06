@@ -2,6 +2,7 @@ package i5.las2peer.services.noracleService.model;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Instant;
 
 public class Question implements Serializable {
 
@@ -17,6 +18,8 @@ public class Question implements Serializable {
 	private int depth;
 
 	public Question() { // used in tests
+		this.timestampCreated = Instant.now().toString();
+		this.timestampLastModified = Instant.now().toString();
 	}
 
 	public Question(String questionId, String text, String spaceId, String authorId, String timestampCreated) {

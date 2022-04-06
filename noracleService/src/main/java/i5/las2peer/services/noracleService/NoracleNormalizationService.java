@@ -124,14 +124,5 @@ private String replaceWithSynonyms(String text) {
         return stem.getCurrent();
     }
 
-    public Question getSimpleQuestion(Question q) {
-        logger.info("NoracleNormalizationService -> getSimpleQuestion(...) called");
-        return q;
-    }
-
-    public String getVersion(String testParam) {
-        return NoracleService.API_VERSION + " / " + testParam;
-    }
-
     private final L2pLogger logger = L2pLogger.getInstance(NoracleNormalizationService.class.getName());
 }

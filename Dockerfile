@@ -2,14 +2,14 @@ FROM openjdk:17-jdk-alpine
 
 ENV HTTP_PORT=8080
 ENV HTTPS_PORT=8443
-ENV LAS2PEER_PORT=9011
+ENV LAS2PEER_PORT=32061
 ENV NODE_ID_SEED=382251
 
 RUN apk add --update bash mysql-client apache-ant tzdata curl && rm -f /var/cache/apk/*
 RUN addgroup -g 1000 -S las2peer && \
     adduser -u 1000 -S las2peer -G las2peer
 
-COPY --chown=las2peer:las2peer . /src
+COPY --chown=las2peer:las2peer . /src+
 WORKDIR /src
 
 # run the rest as unprivileged user

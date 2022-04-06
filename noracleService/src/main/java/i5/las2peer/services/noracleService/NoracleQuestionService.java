@@ -142,7 +142,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 
 	private String buildQuestionId() {
 		String result = "";
-		for (int c = 0; c < 10; c++) {
+		for (int c = 0; c < 20; c++) {
 			result += myRandom.nextInt(10);
 		}
 		return result;
@@ -208,7 +208,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 
 	@Override
 	public VotedQuestionList getAllVotedQuestions(String spaceId) throws ResourceNotFoundException {
-		logger.info("NoracleQuestionService -> getAllVotedQuestions(...) called");
+		//logger.info("NoracleQuestionService -> getAllVotedQuestions(...) called");
 		VotedQuestionList votedQuestionList = new VotedQuestionList();
 		QuestionList questionList = new QuestionList();
 		for (int questionNumber = 1; questionNumber < MAX_QUESTIONS_PER_SPACE; questionNumber++) {
@@ -221,11 +221,12 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 			}
 		}
 
-		logger.info("Found " + questionList.size() + " questions!");
+		//logger.info("Found " + questionList.size() + " questions!");
 
 		for (Question question : questionList) {
 			VotedQuestion votedQuestion = new VotedQuestion(question);
 			String objectId = QuestionVotesResource.buildObjectId(spaceId, question.getQuestionId());
+			//logger.info("objectId: " + objectId);
 			Serializable rmiResult = null;
 			try {
 				rmiResult = Context.get().invoke(
@@ -235,7 +236,13 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 				ex.printStackTrace();
 			}
 			if (rmiResult instanceof VoteList) {
+				//System.out.println("rmiResult instanceof VoteList");
+				VoteList list = (VoteList) rmiResult;
+				if (list != null) {
+					//list.stream().forEach(v -> System.out.println(v.getValue()));
+				}
 				votedQuestion.setVotes((VoteList) rmiResult);
+				//System.out.println(votedQuestion.getVotes().size());
 			}
 			votedQuestionList.add(votedQuestion);
 		}
@@ -246,11 +253,12 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 	@Override
 	public ArrayList<VotedQuestion> getAllVotedQuestions(String spaceId, String agentId) throws ServiceInvocationException {
 		ArrayList<VotedQuestion> questionList = getAllVotedQuestions(spaceId);
-		for (VotedQuestion q : questionList) {
+		questionList.removeIf(q -> !q.getAuthorId().equals(agentId));
+/*		for (VotedQuestion q : questionList) {
 			if (!q.getAuthorId().equals(agentId)) {
 				questionList.remove(q);
 			}
-		}
+		}*/
 		return questionList;
 	}
 

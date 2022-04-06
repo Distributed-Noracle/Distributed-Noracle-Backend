@@ -161,6 +161,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 	@Override
 	public SpaceSubscriptionList getSpaceSubscriptions(String agentId) throws ServiceInvocationException {
 		//logger.info("NoracleAgentService -> getSpaceSubscriptions(...)");
+		//long start = System.currentTimeMillis();
 		String envIdentifier = buildSubscriptionId(agentId);
 		try {
 			//logger.info("Context.get().requestEnvelope(envIdentifier);");
@@ -168,9 +169,11 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 			//logger.info("(SpaceSubscriptionList) env.getContent()");
 			SpaceSubscriptionList spaceSubscriptionList = (SpaceSubscriptionList) env.getContent();
 			//logger.info("Size of List: " + spaceSubscriptionList.size());
-			for (SpaceSubscription s : spaceSubscriptionList) {
+			//for (SpaceSubscription s : spaceSubscriptionList) {
 				//logger.info(s.getSpaceId());
-			}
+			//}
+			//long end = System.currentTimeMillis();
+			//System.out.println("getSpaceSubscriptions(...) took in seconds: "+ ((end-start) / 1000.0));
 			return spaceSubscriptionList;
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");

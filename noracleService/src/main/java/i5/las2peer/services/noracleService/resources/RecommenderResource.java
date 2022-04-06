@@ -52,11 +52,14 @@ public class RecommenderResource implements INoracleRecommenderService {
     public RecommenderQuestionList getRecommendedQuestionsForSpace(@PathParam("agentId") String agentId,
                                                            @PathParam("spaceId") String spaceId) throws ServiceInvocationException {
         logger.info("RecommenderResource -> getRecommendedQuestions() with agentid " + agentId + " and spaceId " + spaceId + " called");
+        //long start = System.currentTimeMillis();
         Serializable rmiResult = Context.get().invoke(
                 new ServiceNameVersion(NoracleRecommenderService.class.getCanonicalName(), NoracleService.API_VERSION),
                 "getRecommendedQuestionsForSpace", agentId, spaceId);
         if (rmiResult instanceof RecommenderQuestionList) {
-            logger.info("Computed " + ((RecommenderQuestionList) rmiResult).size() + " recommended questions!");
+            //logger.info("Computed " + ((RecommenderQuestionList) rmiResult).size() + " recommended questions!");
+            //long end = System.currentTimeMillis();
+            //System.out.println("getRecommendedQuestionsForSpace(...) took in seconds: "+ ((end-start) / 1000.0));
             return (RecommenderQuestionList) rmiResult;
         } else {
             throw new InternalServiceException(
@@ -77,12 +80,15 @@ public class RecommenderResource implements INoracleRecommenderService {
     @Path("/{agentId}")
     public RecommenderQuestionList getRecommendedQuestions(@PathParam("agentId") String agentId) throws ServiceInvocationException {
         logger.info("RecommenderResource -> getRecommendedQuestions() with agentid " + agentId);
+        //long start = System.currentTimeMillis();
         Serializable rmiResult = Context.get().invoke(
                 new ServiceNameVersion(NoracleRecommenderService.class.getCanonicalName(), NoracleService.API_VERSION),
                 "getRecommendedQuestions", agentId);
-        logger.info("recommendations: check rmi Result");
+        //logger.info("recommendations: check rmi Result");
         if (rmiResult instanceof RecommenderQuestionList) {
-            logger.info("return recommendations!");
+            //logger.info("return recommendations!");
+            //long end = System.currentTimeMillis();
+            //System.out.println("getRecommendedQuestions(...) took in seconds: "+ ((end-start) / 1000.0));
             return (RecommenderQuestionList) rmiResult;
         } else {
             throw new InternalServiceException(
@@ -91,7 +97,6 @@ public class RecommenderResource implements INoracleRecommenderService {
     }
 
     // Everything related to the Noracle Bot
-
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_HTML)
@@ -259,22 +264,25 @@ public class RecommenderResource implements INoracleRecommenderService {
             if (!text.isEmpty()) {
                 text += "\n";
             }
+            // Markdown style [text](https://url.com)
             String q = rq.getQuestion().getText();
             q = q.replace("\n", "").replace("\r", "");
-            text += index + ". " + q;
-            text += ", Asked by " + rq.getAuthorName();
+            //text += index + ". [" + q + "]";
+            text += ":speech_balloon: [" + q + "]";
+
+            text += "(https://noracle.tech4comp.dbis.rwth-aachen.de/spaces/";
+            text += rq.getQuestion().getSpaceId();
+            text += "?sq=%5B%22";
+            text += rq.getQuestion().getQuestionId();
+            text += "%22%5D)";
 
             try {
                 Date date = formatter1.parse(rq.getQuestion().getTimestampCreated());
+                text += ", Asked by " + rq.getAuthorName();
                 text += ", Created at " + formatter2.format(date) + "\n";
             } catch (ParseException ex) {
                 logger.warning(ex.getMessage());
             }
-            text += "https://noracle.tech4comp.dbis.rwth-aachen.de/spaces/";
-            text += rq.getQuestion().getSpaceId();
-            text += "?sq=%5B%22";
-            text += rq.getQuestion().getQuestionId();
-            text += "%22%5D";
             index++;
         }
         return new BotResponse(text, true);
