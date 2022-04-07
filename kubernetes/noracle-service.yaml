@@ -27,7 +27,7 @@ spec:
             - name: LAS2PEER_PORT
               value: '32061'
             - name: NODE_ID_SEED
-              value: '32061'
+              value: '382251'
             - name: BOOTSTRAP
               value: las2peer-bootstrap.sbf-dev:32011
           volumeMounts:

@@ -77,7 +77,7 @@ public class NoracleQuestionService extends Service implements INoracleQuestionS
 		}
 		env.addReader(targetReaderGroup);
 		Question question = new Question(questionId, text, questionSpaceId, mainAgent.getIdentifier(),
-				Instant.now().toString());
+				Instant.now().toString());;
 		env.setContent(question);
 		try {
 			Context.get().storeEnvelope(env, mainAgent);

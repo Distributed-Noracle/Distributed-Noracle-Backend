@@ -7,7 +7,5 @@
 /service
 .gitignore
 agent-developer.xml
-launcher-configuration.ini
 LICENSE
-noracle-generate-examples.sh
 README.md

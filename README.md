@@ -9,7 +9,6 @@ Please try out our app at: https://noracle.tech4comp.dbis.rwth-aachen.de/
 ---------------
 
 ## Java
-
 The application uses **Java 17** and **Gradle 7.3**.
 
 ## Run
