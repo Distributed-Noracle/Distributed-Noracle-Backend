@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 public class NoracleRecommenderService extends Service implements INoracleRecommenderService {
 
-    private RecommenderQuestionList getRecommendations(String agentId, VotedQuestionList votedQuestionList) throws ServiceInvocationException {
+    private RecommenderQuestionList getRecommendations(String agentId, VotedQuestionList votedQuestionList, int limit) throws ServiceInvocationException {
 
         // Normalize questions - At the moment not possible in NoracleNormalizationService because
         // no complex objects can be passed with serialization
@@ -59,6 +59,7 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                 .entrySet()
                 .stream()
                 .sorted(Map.Entry.<VotedQuestion, Double>comparingByValue().reversed())
+                .limit(limit * 2)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
@@ -103,7 +104,17 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         //long end2 = System.currentTimeMillis();
         //System.out.println("create RecommenderQuestionList took in seconds: "+ ((end2-start2) / 1000.0));
 
-        return recommendations;
+        // shuffle for some randomness
+        Collections.shuffle(recommendations);
+
+        // take only up to "limit" (argument) recommendations
+        RecommenderQuestionList sublist = new RecommenderQuestionList();
+        recommendations
+                .stream()
+                .limit(limit)
+                .forEach(r -> sublist.add(r));
+
+        return sublist;
     }
 
     @Override
@@ -139,14 +150,14 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         //long end = System.currentTimeMillis();
         //System.out.println("getAllVotedQuestions(...) for all spaces took in seconds: "+ ((end-start) / 1000.0));
 
-        RecommenderQuestionList recommenderQuestionList = getRecommendations(agentId, votedQuestionList);
-        RecommenderQuestionList sublist = new RecommenderQuestionList();
+        RecommenderQuestionList recommenderQuestionList = getRecommendations(agentId, votedQuestionList, 9);
+/*        RecommenderQuestionList sublist = new RecommenderQuestionList();
 
         recommenderQuestionList
                 .stream()
                 .limit(9)
-                .forEach(r -> sublist.add(r));
-        return sublist;
+                .forEach(r -> sublist.add(r));*/
+        return recommenderQuestionList;
     }
 
     @Override
@@ -180,14 +191,13 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         //long end = System.currentTimeMillis();
         //System.out.println("retrieveAllQuestions(...) took in seconds: "+ ((end-start) / 1000.0));
 
-        RecommenderQuestionList recommenderQuestionList = getRecommendations(agentId, votedQuestionList);
-        RecommenderQuestionList sublist = new RecommenderQuestionList();
+        RecommenderQuestionList recommenderQuestionList = getRecommendations(agentId, votedQuestionList, 6);
+/*        RecommenderQuestionList sublist = new RecommenderQuestionList();
         recommenderQuestionList
                 .stream()
-                .limit(6)
-                .forEach(r -> sublist.add(r));
-
-        return sublist;
+                .limit(12)
+                .forEach(r -> sublist.add(r));*/
+        return recommenderQuestionList;
     }
 
     // #########################################################################
@@ -212,6 +222,7 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         //this.loadingTime = 0.0;
         //this.computationTime = 0.0;
         HashMap<VotedQuestion, Double> utilityMap = new HashMap<>();
+        Date oldestDate = getOldestDate(questions);
         double utility;
         for (VotedQuestion q : questions) {
             utility = 0.0;
@@ -227,7 +238,7 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                 double negativeVoteCount = negativeVoteCountWeight * computeVoteCount(q, -1);
                 double timeFeature = 0.0;
                 try {
-                    timeFeature = timeFeatureWeight * computeTimeFeature(questions, q);
+                    timeFeature = timeFeatureWeight * computeTimeFeature(q, oldestDate);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -254,6 +265,10 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                 //System.out.println("total utility: " + utility);
             }
 
+            // never recommend questions that are asked by the user itself
+            if (questionAsked) {
+                utility = -100.0;
+            }
             utilityMap.put(q, utility);
         }
         //long end = System.currentTimeMillis();
@@ -263,16 +278,9 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         return utilityMap;
     }
 
-    private boolean alreadyVoted(VotedQuestion q, String agentId) {
-        if (q.getVotes() != null) {
-            return q.getVotes().stream().anyMatch(v -> v.getVoterAgentId().equals(agentId));
-        }
-        return false;
-    }
-
-    private double computeTimeFeature(VotedQuestionList questions, VotedQuestion q) throws ParseException {
+    private Date getOldestDate(VotedQuestionList questions) {
         if (questions.size() == 0) {
-            return 0.0;
+            return new Date();
         }
         String timestampLastModified = questions.get(0).getTimestampLastModified();
         Date oldestDate = getDate(timestampLastModified);
@@ -283,6 +291,17 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
             //System.out.println(date.getTime());
             oldestDate = date.getTime() < oldestDate.getTime() ? date : oldestDate;
         }
+        return oldestDate;
+    }
+
+    private boolean alreadyVoted(VotedQuestion q, String agentId) {
+        if (q.getVotes() != null) {
+            return q.getVotes().stream().anyMatch(v -> v.getVoterAgentId().equals(agentId));
+        }
+        return false;
+    }
+
+    private double computeTimeFeature(VotedQuestion q, Date oldestDate) throws ParseException {
         double secondsToToday = System.currentTimeMillis() / 1000.0;
         double seconds1 = secondsToToday - (getDate(q.getTimestampLastModified()).getTime() / 1000.0);
         double seconds2 = secondsToToday - (oldestDate.getTime() / 1000.0);
