@@ -215,7 +215,10 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         double utility;
         for (VotedQuestion q : questions) {
             utility = 0.0;
-            if (!q.getAuthorId().equals(agentId)) {
+            boolean questionAsked = q.getAuthorId().equals(agentId);
+            boolean alreadyVoted = alreadyVoted(q, agentId);
+            // check if user did not create the question or gave already a vote to it
+            if (!questionAsked && !alreadyVoted) {
                 double cosineSimilarity  = cosineSimilarityWeight * computeMaxCosineSimilarity(agentId, q);
                 double voteSimilarity    = voteSimilarityWeight * computeMaxVoteSimilarity(agentId, q);
                 double relativePositiveVoteCount = relativePositiveVoteCountWeight * computeRelativePositiveVoteCount(questions, q);
@@ -229,8 +232,8 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                     e.printStackTrace();
                 }
 
-                /*
-                System.out.println(q.getText());
+
+                /*System.out.println(q.getText());
                 System.out.println("cosineSimilarity: " + cosineSimilarity);
                 System.out.println("voteSimilarity: " + voteSimilarity);
                 System.out.println("relativePositiveVoteCount: " + relativePositiveVoteCount);
@@ -258,6 +261,13 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         //System.out.println("Loading time in seconds: " + loadingTime);
         //System.out.println("Computation time in seconds: " + computationTime);
         return utilityMap;
+    }
+
+    private boolean alreadyVoted(VotedQuestion q, String agentId) {
+        if (q.getVotes() != null) {
+            return q.getVotes().stream().anyMatch(v -> v.getVoterAgentId().equals(agentId));
+        }
+        return false;
     }
 
     private double computeTimeFeature(VotedQuestionList questions, VotedQuestion q) throws ParseException {
@@ -460,10 +470,13 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         // 4. Remove stop words
         text = removeStopWords(text);
 
-        // 5. Stemming
+        // 5. Remove question marks
+        text = text.replace("?", "");
+
+        // 6. Stemming
         text = stemming(text);
 
-        // 6. Remove all non-letter characters
+        // 7. Remove all non-letter characters
         //text = text.replaceAll("[^a-zA-Z ]", "");
 
         // 7. Replacing words with synonyms
