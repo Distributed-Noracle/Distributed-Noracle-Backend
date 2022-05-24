@@ -60,7 +60,7 @@ private String replaceWithSynonyms(String text) {
             throw ex;
         }
         if (synsets.length > 0) {
-            ArrayList<String> al = new ArrayList<String>();
+            ArrayList<String> al = new ArrayList<>();
             // add elements to al, including duplicates
             HashSet hs = new HashSet();
             for (int i = 0; i < synsets.length; i++) {

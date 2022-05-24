@@ -16,7 +16,6 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,47 +38,23 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         //HashMap<VotedQuestion, Double> recommendationUtility = computeUtilityForQuestions(agentId, votedQuestionList);
         HashMap<VotedQuestion, Double> recommendationUtility = computeUtilityForQuestions(agentId, normVotedQuestionList);
 
-/*        List<VotedQuestion> topRecommendations = recommendationUtility
-                .entrySet()
-                .stream()
-                .sorted(Map.Entry.<VotedQuestion, Double>comparingByValue().reversed())
-                .limit(9)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());*/
-
-        // Sort by recommendation utility
-        //long start = System.currentTimeMillis();
-        /*List<VotedQuestion> topRecommendations = recommendationUtility
-                .entrySet()
-                .stream()
-                .sorted(Map.Entry.<VotedQuestion, Double>comparingByValue().reversed())
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());*/
         List<VotedQuestion> topNormRecommendations = recommendationUtility
                 .entrySet()
                 .stream()
                 .sorted(Map.Entry.<VotedQuestion, Double>comparingByValue().reversed())
-                .limit(limit * 2)
+                .limit(limit)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
         // re-normalize
         List<VotedQuestion> topRecommendations = new VotedQuestionList();
         for (int i = 0; i < topNormRecommendations.size(); i++) {
-/*            VotedQuestion vq = votedQuestionList.get(i);
-            if(topNormRecommendations.stream().anyMatch(t -> t.getQuestionId() == vq.getQuestionId())) {
-                topRecommendations.add(vq);
-            }*/
             VotedQuestion vq = topNormRecommendations.get(i);
             votedQuestionList.stream().filter(t -> t.getQuestionId().equals(vq.getQuestionId())).findFirst().ifPresent(v -> topRecommendations.add(v));
         }
 
-        //long end = System.currentTimeMillis();
-        //System.out.println("sort by recommendation utility took in seconds: "+ ((end-start) / 1000.0));
-
         RecommenderQuestionList recommendations = new RecommenderQuestionList();
         RecommenderQuestion rq;
-        //long start2 = System.currentTimeMillis();
         for (VotedQuestion q : topRecommendations) {
 
             rq = new RecommenderQuestion();
@@ -94,27 +69,10 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                 rq.setAuthorName(ap.getName());
             }
 
-/*            rmiResult = Context.get().invoke(
-                    new ServiceNameVersion(NoracleQuestionRelationService.class.getCanonicalName(), NoracleService.API_VERSION),
-                    "getQuestionRelationIds", q.getSpaceId(), q.getQuestionId());
-            rq.setQuestionNeighbourIds((QuestionNeighbourIds) rmiResult);*/
-
             recommendations.add(rq);
         }
-        //long end2 = System.currentTimeMillis();
-        //System.out.println("create RecommenderQuestionList took in seconds: "+ ((end2-start2) / 1000.0));
 
-        // shuffle for some randomness
-        Collections.shuffle(recommendations);
-
-        // take only up to "limit" (argument) recommendations
-        RecommenderQuestionList sublist = new RecommenderQuestionList();
-        recommendations
-                .stream()
-                .limit(limit)
-                .forEach(r -> sublist.add(r));
-
-        return sublist;
+        return recommendations;
     }
 
     @Override
@@ -135,7 +93,6 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
             logger.warning("RmiResult not an instance of SpaceSubscriptionList!");
         }
 
-        //long start = System.currentTimeMillis();
         VotedQuestionList votedQuestionList = new VotedQuestionList();
         for (SpaceSubscription s : spaces) {
             rmiResult = Context.get().invoke(
@@ -147,16 +104,8 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                 logger.warning("RmiResult not an instance of VotedQuestionList!");
             }
         }
-        //long end = System.currentTimeMillis();
-        //System.out.println("getAllVotedQuestions(...) for all spaces took in seconds: "+ ((end-start) / 1000.0));
 
         RecommenderQuestionList recommenderQuestionList = getRecommendations(agentId, votedQuestionList, 9);
-/*        RecommenderQuestionList sublist = new RecommenderQuestionList();
-
-        recommenderQuestionList
-                .stream()
-                .limit(9)
-                .forEach(r -> sublist.add(r));*/
         return recommenderQuestionList;
     }
 
@@ -166,7 +115,6 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
 
         // Retrieving questions
         //logger.info("Get all (voted) questions of space with spaceId " + spaceId);
-        //long start = System.currentTimeMillis();
         Serializable rmiResult = Context.get().invoke(
                 new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
                 "getAllVotedQuestions", spaceId);
@@ -188,15 +136,8 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         }
 
         //logger.info("Found " + votedQuestionList.size() + " voted questions!");
-        //long end = System.currentTimeMillis();
-        //System.out.println("retrieveAllQuestions(...) took in seconds: "+ ((end-start) / 1000.0));
 
         RecommenderQuestionList recommenderQuestionList = getRecommendations(agentId, votedQuestionList, 6);
-/*        RecommenderQuestionList sublist = new RecommenderQuestionList();
-        recommenderQuestionList
-                .stream()
-                .limit(12)
-                .forEach(r -> sublist.add(r));*/
         return recommenderQuestionList;
     }
 
@@ -211,40 +152,51 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
     private final double negativeVoteCountWeight = -10000;
     private final double timeFeatureWeight = 1;
 
-    private final Cosine cosine = new Cosine();
+    private final double sumWeights = cosineSimilarityWeight +
+            voteSimilarityWeight +
+            relativePositiveVoteCountWeight +
+            relativeNegativeVoteCountWeight +
+            positiveVoteCountWeight +
+            negativeVoteCountWeight +
+            timeFeatureWeight;
 
-    //private double loadingTime = 0;
-    //private double computationTime = 0;
+    private final Cosine cosine = new Cosine();
 
     private HashMap<VotedQuestion, Double> computeUtilityForQuestions(String agentId, VotedQuestionList questions) {
         logger.info("NoracleQuestionUtilityService -> computeUtilityForQuestions(...)");
-        //long start = System.currentTimeMillis();
-        //this.loadingTime = 0.0;
-        //this.computationTime = 0.0;
         HashMap<VotedQuestion, Double> utilityMap = new HashMap<>();
-        Date oldestDate = getOldestDate(questions);
+        Date oldestDate = null;
+        try {
+            oldestDate = getOldestDate(questions);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         double utility;
         for (VotedQuestion q : questions) {
+
+            //logger.info("compute utility for question: " + q.getText());
             utility = 0.0;
             boolean questionAsked = q.getAuthorId().equals(agentId);
             boolean alreadyVoted = alreadyVoted(q, agentId);
             // check if user did not create the question or gave already a vote to it
             if (!questionAsked && !alreadyVoted) {
                 double cosineSimilarity  = cosineSimilarityWeight * computeMaxCosineSimilarity(agentId, q);
-                double voteSimilarity    = voteSimilarityWeight * computeMaxVoteSimilarity(agentId, q);
+                double voteSimilarity = voteSimilarityWeight * computeMaxVoteSimilarity(agentId, q);
                 double relativePositiveVoteCount = relativePositiveVoteCountWeight * computeRelativePositiveVoteCount(questions, q);
                 double relativeNegativeVoteCount = relativeNegativeVoteCountWeight * computeRelativeNegativeVoteCount(questions, q);
                 double positiveVoteCount = positiveVoteCountWeight * computeVoteCount(q, 1);
                 double negativeVoteCount = negativeVoteCountWeight * computeVoteCount(q, -1);
                 double timeFeature = 0.0;
                 try {
-                    timeFeature = timeFeatureWeight * computeTimeFeature(q, oldestDate);
+                    if (oldestDate != null) {
+                        timeFeature = timeFeatureWeight * computeTimeFeature(q, oldestDate);
+                    }
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
 
-
-                /*System.out.println(q.getText());
+                /*
+                System.out.println(q.getText());
                 System.out.println("cosineSimilarity: " + cosineSimilarity);
                 System.out.println("voteSimilarity: " + voteSimilarity);
                 System.out.println("relativePositiveVoteCount: " + relativePositiveVoteCount);
@@ -254,13 +206,16 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
                 System.out.println("timeFeature: " + timeFeature);
                 */
 
-                utility = cosineSimilarity +
+                utility =
+                        cosineSimilarity +
                         voteSimilarity +
                         relativePositiveVoteCount +
                         relativeNegativeVoteCount +
                         positiveVoteCount +
                         negativeVoteCount +
                         timeFeature;
+
+                utility /= sumWeights;
 
                 //System.out.println("total utility: " + utility);
             }
@@ -269,12 +224,9 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
             if (questionAsked) {
                 utility = -100.0;
             }
+            //logger.info("Utility is " + utility);
             utilityMap.put(q, utility);
         }
-        //long end = System.currentTimeMillis();
-        //System.out.println("computeUtilityForQuestions(...) took in seconds: "+ ((end-start) / 1000.0));
-        //System.out.println("Loading time in seconds: " + loadingTime);
-        //System.out.println("Computation time in seconds: " + computationTime);
         return utilityMap;
     }
 
@@ -344,25 +296,19 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         double maxCosineSimilarity = 0.0;
         String spaceId = question.getSpaceId();
         try {
-            long start = System.currentTimeMillis();
             Serializable rmiResult = Context.get().invoke(
                     new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
                     "getAllVotedQuestions", spaceId, agentId);
-            long end = System.currentTimeMillis();
-            //this.loadingTime += (end-start);
 
             VotedQuestionList userQuestions = new VotedQuestionList();
             if (rmiResult instanceof VotedQuestionList) {
                 userQuestions = (VotedQuestionList) rmiResult;
             }
 
-            //start = System.currentTimeMillis();
             for (VotedQuestion userQuestion : userQuestions) {
                 double cosineSimilarity = cosine.similarity(userQuestion.getText(), question.getText());
                 maxCosineSimilarity = Math.max(maxCosineSimilarity, cosineSimilarity);
             }
-            //end = System.currentTimeMillis();
-            //this.computationTime += (end-start);
         } catch (Exception ex) {
             logger.warning("Exception inside computeMaxCosineSimilarity:");
             ex.printStackTrace();
@@ -376,21 +322,15 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         double maxVoteSimilarity = 0.0;
         String spaceId = question.getSpaceId();
         try {
-            //long start = System.currentTimeMillis();
             Serializable rmiResult = Context.get().invoke(
                     new ServiceNameVersion(NoracleQuestionService.class.getCanonicalName(), NoracleService.API_VERSION),
                     "getAllVotedQuestions", spaceId, agentId);
-            //long end = System.currentTimeMillis();
-            //this.loadingTime += (end-start);
 
             VotedQuestionList userQuestions = (VotedQuestionList) rmiResult;
-            //start = System.currentTimeMillis();
             for (VotedQuestion userQuestion : userQuestions) {
                 double voteSimilarity = computeVoteSimilarity(userQuestion, question);
                 maxVoteSimilarity = Math.max(maxVoteSimilarity, voteSimilarity);
             }
-            //end = System.currentTimeMillis();
-            //this.computationTime += (end-start);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -445,7 +385,6 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
     }
 
     private double computeRelativeVoteCount(VotedQuestionList questions, VotedQuestion q, int value) {
-        //long start = System.currentTimeMillis();
         if (q == null || q.getVotes() == null) {
             return 0.0;
         }
@@ -461,8 +400,6 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
         if (voteCountAll > 0) {
             relativeVoteCount = (1.0 / voteCountAll) * voteCount;
         }
-        //long end = System.currentTimeMillis();
-        //this.computationTime += (end-start);
         return relativeVoteCount;
     }
 
@@ -556,15 +493,12 @@ public class NoracleRecommenderService extends Service implements INoracleRecomm
 
     public VotedQuestionList normalizeQuestions(VotedQuestionList questionList) {
         logger.info("NoracleNormalizationService -> normalizeQuestions(...) called");
-        //long start = System.currentTimeMillis();
         //questionList.stream().forEach(q -> logger.info(q.getText()));
         VotedQuestionList normQuestionList = new VotedQuestionList();
         for (VotedQuestion q : questionList) {
             VotedQuestion normQ = normalizeQuestion(q);
             normQuestionList.add(normQ);
         }
-        //long end = System.currentTimeMillis();
-        //System.out.println("normalizeQuestions(...) took in seconds: "+ ((end-start) / 1000.0));
         return normQuestionList;
     }
 

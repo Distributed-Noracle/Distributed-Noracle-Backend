@@ -17,4 +17,3 @@ docker build -t noracle-service .
 docker run -p 8080:8080 -p 9011:9011 noracle-service
 ```
 The service(s) are then available under http://localhost:8080/distributed-noracle.
-

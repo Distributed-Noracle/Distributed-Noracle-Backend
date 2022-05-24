@@ -5,10 +5,7 @@ import com.google.gson.JsonSyntaxException;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.execution.*;
 import i5.las2peer.api.p2p.ServiceNameVersion;
-import i5.las2peer.api.persistency.Envelope;
-import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
-import i5.las2peer.api.persistency.EnvelopeNotFoundException;
-import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
+import i5.las2peer.api.persistency.*;
 import i5.las2peer.api.security.AgentNotFoundException;
 import i5.las2peer.api.security.AgentOperationFailedException;
 import i5.las2peer.logging.L2pLogger;
@@ -32,8 +29,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RecommenderResource implements INoracleRecommenderService {
     public static final String RESOURCE_NAME = "recommend";
@@ -219,7 +214,10 @@ public class RecommenderResource implements INoracleRecommenderService {
                 spaceIdList.add(spaceId);
             }
             env.setContent((Serializable) spaceIdList);
-            Context.get().storeEnvelope(env);
+            Context.get().storeEnvelope(env, (toStore, inNetwork) -> {
+                logger.info("onCollision was called....");
+                return toStore;
+            });
 
             rmiResult = Context.get().invoke(
                     new ServiceNameVersion(NoracleRecommenderService.class.getCanonicalName(), NoracleService.API_VERSION),
@@ -289,7 +287,7 @@ public class RecommenderResource implements INoracleRecommenderService {
     }
 
     private String buildBotSpacesId(String user) {
-        return "bot-recommender-spaces-" + user;
+        return "bot-recommender-spaces-user-" + user;
     }
 
     private final L2pLogger logger = L2pLogger.getInstance(RecommenderResource.class.getName());

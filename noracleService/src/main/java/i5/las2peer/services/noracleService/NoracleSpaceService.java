@@ -3,10 +3,7 @@ package i5.las2peer.services.noracleService;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.Service;
 import i5.las2peer.api.execution.*;
-import i5.las2peer.api.persistency.Envelope;
-import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
-import i5.las2peer.api.persistency.EnvelopeNotFoundException;
-import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
+import i5.las2peer.api.persistency.*;
 import i5.las2peer.api.security.*;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.security.GroupAgentImpl;
@@ -172,7 +169,10 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 				list.removeIf(s -> s.getSpaceId().equals(spaceId));
 			}
 			envelope.setContent(list);
-			Context.get().storeEnvelope(envelope);
+			Context.get().storeEnvelope(envelope, (toStore, inNetwork) -> {
+				logger.info("onCollision was called....");
+				return toStore;
+			});
 		} catch (EnvelopeOperationFailedException e) {
 			e.printStackTrace();
 		} catch (EnvelopeNotFoundException e) {

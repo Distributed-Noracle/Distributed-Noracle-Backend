@@ -27,7 +27,7 @@ import javax.ws.rs.core.MediaType;
 public class NoracleService extends RESTService {
 
 	public static final String RESOURCE_NAME = "distributed-noracle";
-	public static final String API_VERSION = "1.0.0";
+	public static final String API_VERSION = "1.0.1";
 
 	@Override
 	protected void initResources() {

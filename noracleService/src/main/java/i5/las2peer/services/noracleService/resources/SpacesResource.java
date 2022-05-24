@@ -111,6 +111,7 @@ public class SpacesResource implements INoracleSpaceService {
     @Path("/{spaceId}")
     //@Produces(MediaType.APPLICATION_JSON)
     public void deleteSpace(@PathParam("spaceId") String spaceId) throws ServiceInvocationException {
+		//logger.info("delete space called with spaceId = " + spaceId);
         Serializable rmiResult = Context.get().invoke(
                 new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
                 "deleteSpace", spaceId);
