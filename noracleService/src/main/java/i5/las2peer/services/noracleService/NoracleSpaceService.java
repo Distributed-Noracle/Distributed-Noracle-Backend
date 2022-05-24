@@ -3,23 +3,19 @@ package i5.las2peer.services.noracleService;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.Service;
 import i5.las2peer.api.execution.*;
-import i5.las2peer.api.persistency.Envelope;
-import i5.las2peer.api.persistency.EnvelopeAccessDeniedException;
-import i5.las2peer.api.persistency.EnvelopeNotFoundException;
-import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
+import i5.las2peer.api.persistency.*;
 import i5.las2peer.api.security.*;
+import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.security.GroupAgentImpl;
 import i5.las2peer.security.UserAgentImpl;
 import i5.las2peer.serialization.SerializationException;
 import i5.las2peer.services.noracleService.api.INoracleSpaceService;
-import i5.las2peer.services.noracleService.model.NoracleAgentProfile;
-import i5.las2peer.services.noracleService.model.Space;
-import i5.las2peer.services.noracleService.model.SpaceInviteAgent;
-import i5.las2peer.services.noracleService.model.SpaceSubscribersList;
+import i5.las2peer.services.noracleService.model.*;
 import i5.las2peer.tools.CryptoException;
 
+import java.io.Serializable;
 import java.security.SecureRandom;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Noracle Space Service
@@ -38,7 +34,7 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 	}
 
 	@Override
-	public Space createSpace(String name) throws ServiceInvocationException {
+	public Space createSpace(String name, boolean isPrivate) throws ServiceInvocationException {
 		Agent mainAgent = Context.get().getMainAgent();
 		if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceNotAuthorizedException("You have to be logged in to create a space");
@@ -89,14 +85,103 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		}
 		env.addReader(spaceMemberGroupAgent);
 		Space space = new Space(spaceId, spaceSecret, name, mainAgent.getIdentifier(),
-				spaceMemberGroupAgent.getIdentifier());
+				spaceMemberGroupAgent.getIdentifier(), isPrivate);
 		env.setContent(space);
 		try {
 			Context.get().storeEnvelope(env, mainAgent);
 		} catch (EnvelopeAccessDeniedException | EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not store space envelope", e);
 		}
+
+		// Handle public spaces
+		if(!isPrivate) {
+			Envelope envelope;
+			try {
+				envelope = Context.get().requestEnvelope(getPublicSpacesIdentifier());
+				SpaceList list = (SpaceList) envelope.getContent();
+				list.add(space);
+				envelope.setContent(list);
+				Context.get().storeEnvelope(envelope, mainAgent);
+			} catch (EnvelopeOperationFailedException e) {
+				e.printStackTrace();
+			} catch (EnvelopeNotFoundException e) {
+				try {
+					envelope = Context.get().createEnvelope(getPublicSpacesIdentifier());
+					envelope.setPublic();
+					SpaceList list = new SpaceList();
+					list.add(space);
+					envelope.setContent(list);
+					Context.get().storeEnvelope(envelope, mainAgent);
+				} catch (EnvelopeOperationFailedException ex) {
+					ex.printStackTrace();
+				} catch (EnvelopeAccessDeniedException ex) {
+					ex.printStackTrace();
+				}
+			} catch (EnvelopeAccessDeniedException e) {
+				e.printStackTrace();
+			}
+		}
+
 		return space;
+	}
+
+	@Override
+	public void deleteSpace(String spaceId) throws ServiceInvocationException {
+		// Delete space and reclaim corresponding envelopes
+		try {
+			Context.get().reclaimEnvelope(getInviteMappingIdentifier(spaceId));
+		} catch (EnvelopeAccessDeniedException e) {
+			e.printStackTrace();
+		} catch (EnvelopeNotFoundException e) {
+			e.printStackTrace();
+		} catch (EnvelopeOperationFailedException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			Context.get().reclaimEnvelope(getMemberMappingIdentifier(spaceId));
+		} catch (EnvelopeAccessDeniedException e) {
+			e.printStackTrace();
+		} catch (EnvelopeNotFoundException e) {
+			e.printStackTrace();
+		} catch (EnvelopeOperationFailedException e) {
+			e.printStackTrace();
+		}
+
+		//Space space = null;
+		try {
+			//space = (Space) Context.get().requestEnvelope(getSpaceEnvelopeIdentifier(spaceId));
+			Context.get().reclaimEnvelope(getSpaceEnvelopeIdentifier(spaceId));
+		} catch (EnvelopeAccessDeniedException e) {
+			e.printStackTrace();
+		} catch (EnvelopeNotFoundException e) {
+			e.printStackTrace();
+		} catch (EnvelopeOperationFailedException e) {
+			e.printStackTrace();
+		}
+
+		// Handle public spaces
+		Envelope envelope;
+		try {
+			envelope = Context.get().requestEnvelope(getPublicSpacesIdentifier());
+			SpaceList list = (SpaceList) envelope.getContent();
+			if (list != null) {
+				list.removeIf(s -> s.getSpaceId().equals(spaceId));
+			}
+			envelope.setContent(list);
+			Context.get().storeEnvelope(envelope, (toStore, inNetwork) -> {
+				logger.info("onCollision was called....");
+				return toStore;
+			});
+		} catch (EnvelopeOperationFailedException e) {
+			e.printStackTrace();
+		} catch (EnvelopeNotFoundException e) {
+			e.printStackTrace();
+		} catch (EnvelopeAccessDeniedException e) {
+			e.printStackTrace();
+		}
+
+		//return space;
 	}
 
 	@Override
@@ -143,7 +228,24 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		}
 	}
 
+	public SpaceList getPublicSpaces() {
+		Envelope envelope = null;
+		SpaceList list = new SpaceList();
+		try {
+			envelope = Context.get().requestEnvelope(getPublicSpacesIdentifier());
+			list = (SpaceList) envelope.getContent();
+		} catch (EnvelopeAccessDeniedException e) {
+			e.printStackTrace();
+		} catch (EnvelopeNotFoundException e) {
+			// No public spaces
+		} catch (EnvelopeOperationFailedException e) {
+			e.printStackTrace();
+		}
+		return list;
+	}
+
 	public void joinSpace(String spaceId, String spaceSecret) throws ServiceInvocationException {
+		// logger.info("NoracleSpaceService -> joinSpace() with spaceId " + spaceId + " and spaceSecret " + spaceSecret + " called");
 		if (spaceId == null || spaceId.isEmpty()) {
 			throw new InvocationBadArgumentException("No space id given");
 		} else if (spaceSecret == null || spaceSecret.isEmpty()) {
@@ -203,8 +305,14 @@ public class NoracleSpaceService extends Service implements INoracleSpaceService
 		return "group-" + spaceId;
 	}
 
-	private String getSpaceEnvelopeIdentifier(String questionId) {
-		return "space-" + questionId;
+	private String getSpaceEnvelopeIdentifier(String spaceId) {
+		return "space-" + spaceId;
 	}
+
+	private String getPublicSpacesIdentifier() {
+		return "spaces-public";
+	}
+
+	private final L2pLogger logger = L2pLogger.getInstance(NoracleSpaceService.class.getName());
 
 }

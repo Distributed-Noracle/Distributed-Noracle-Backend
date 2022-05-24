@@ -15,10 +15,10 @@ import i5.las2peer.services.noracleService.api.INoracleAgentService;
 import i5.las2peer.services.noracleService.model.NoracleAgentProfile;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
-import i5.las2peer.services.noracleService.resources.SpacesResource;
 
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.logging.Level;
+import java.util.List;
 
 /**
  * Noracle Agents Service
@@ -37,6 +37,12 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} else if (mainAgent instanceof AnonymousAgent) {
 			throw new ServiceAccessDeniedException("You have to be logged in to subscribe to a space");
 		}
+
+		// Check if we are already subscribed to space
+		if (checkIfAlreadySubscribedToSpace(mainAgent.getIdentifier(), spaceId)) {
+			return new SpaceSubscription(spaceId, spaceSecret);
+		}
+
 		Context.get().invoke(
 				new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"joinSpace", spaceId, spaceSecret);
@@ -47,8 +53,10 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		try {
 			try {
 				env = Context.get().requestEnvelope(envIdentifier);
+				//logger.info("(SpaceSubscriptionList) env.getContent()");
 				subscriptionList = (SpaceSubscriptionList) env.getContent();
 			} catch (EnvelopeNotFoundException e) {
+				//logger.info("Context.get().createEnvelope(envIdentifier);");
 				env = Context.get().createEnvelope(envIdentifier);
 				subscriptionList = new SpaceSubscriptionList();
 			}
@@ -57,6 +65,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not create envelope for space subscription", e);
 		}
+		//logger.info("subscriptionList.add(subscription);");
 		subscriptionList.add(subscription);
 		env.setContent(subscriptionList);
 		try {
@@ -66,7 +75,47 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		} catch (EnvelopeOperationFailedException e) {
 			throw new InternalServiceException("Could not store space subscription envelope", e);
 		}
+		//logger.info("return subscription");
+		//logger.info(subscription.toString());
+		//logger.info(subscription.getSpaceId());
 		return subscription;
+	}
+
+	@Override
+	public Boolean checkIfAlreadySubscribedToSpace(String agentId, String spaceId) throws ServiceInvocationException {
+		//logger.info("NoracleAgentService -> checkIfAlreadySubscribedToSpace(...)");
+		SpaceSubscriptionList subscriptionList = getSubscriptionListForAgent(agentId);
+		if (subscriptionList == null) {
+			return false;
+		}
+		Iterator<SpaceSubscription> itSubscription = subscriptionList.iterator();
+		while (itSubscription.hasNext()) {
+			SpaceSubscription subscription = itSubscription.next();
+			if (subscription.getSpaceId().equals(spaceId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public SpaceSubscriptionList getSubscriptionListForAgent(String agentId) throws ServiceInvocationException {
+		//logger.info("NoracleAgentService -> getSubscriptionListForAgent(...)");
+		String envIdentifier = buildSubscriptionId(agentId);
+		Envelope env;
+		SpaceSubscriptionList subscriptionList;
+		try {
+			try {
+				env = Context.get().requestEnvelope(envIdentifier);
+				subscriptionList = (SpaceSubscriptionList) env.getContent();
+			} catch (EnvelopeNotFoundException e) {
+				return null;
+			}
+		} catch (EnvelopeAccessDeniedException e) {
+			throw new ServiceAccessDeniedException("Envelope Access Denied");
+		} catch (EnvelopeOperationFailedException e) {
+			throw new InternalServiceException("Could not read envelope for space unsubscription", e);
+		}
+		return subscriptionList;
 	}
 
 	@Override
@@ -111,10 +160,21 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 
 	@Override
 	public SpaceSubscriptionList getSpaceSubscriptions(String agentId) throws ServiceInvocationException {
+		//logger.info("NoracleAgentService -> getSpaceSubscriptions(...)");
+		//long start = System.currentTimeMillis();
 		String envIdentifier = buildSubscriptionId(agentId);
 		try {
+			//logger.info("Context.get().requestEnvelope(envIdentifier);");
 			Envelope env = Context.get().requestEnvelope(envIdentifier);
-			return (SpaceSubscriptionList) env.getContent();
+			//logger.info("(SpaceSubscriptionList) env.getContent()");
+			SpaceSubscriptionList spaceSubscriptionList = (SpaceSubscriptionList) env.getContent();
+			//logger.info("Size of List: " + spaceSubscriptionList.size());
+			//for (SpaceSubscription s : spaceSubscriptionList) {
+				//logger.info(s.getSpaceId());
+			//}
+			//long end = System.currentTimeMillis();
+			//System.out.println("getSpaceSubscriptions(...) took in seconds: "+ ((end-start) / 1000.0));
+			return spaceSubscriptionList;
 		} catch (EnvelopeAccessDeniedException e) {
 			throw new ServiceAccessDeniedException("Envelope Access Denied");
 		} catch (EnvelopeOperationFailedException e) {
@@ -126,16 +186,18 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 	}
 
 	@Override
-	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, String[] selectedQuestions)
+	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, List<String> selectedQuestions)
 			throws ServiceInvocationException {
 		Agent mainAgent = Context.get().getMainAgent();
 		String envIdentifier = buildSubscriptionId(agentId);
+
 		try {
 			Envelope env = Context.get().requestEnvelope(envIdentifier);
 			SpaceSubscriptionList spaceSubscriptionList = (SpaceSubscriptionList) env.getContent();
 			for (SpaceSubscription spaceSubscription : spaceSubscriptionList) {
 				if (spaceSubscription.getSpaceId().equals(spaceId)) {
-					spaceSubscription.setSelectedQuestionIds(selectedQuestions);
+					// TODO: is this line important?
+					// spaceSubscription.setSelectedQuestionIds(selectedQuestions);
 					env.setContent(spaceSubscriptionList);
 					try {
 						Context.get().storeEnvelope(env, mainAgent);
@@ -159,6 +221,7 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 
 	@Override
 	public NoracleAgentProfile updateAgentProfile(String agentName) throws ServiceInvocationException {
+		logger.info("NoracleAgentService -> updateAgentProfile(...)");
 		Agent mainAgent = Context.get().getMainAgent();
 		String envIdentifier = buildAgentProfileId(mainAgent.getIdentifier());
 		Envelope env;
@@ -217,6 +280,6 @@ public class NoracleAgentService extends Service implements INoracleAgentService
 		return "noracleagentprofile-" + agentId;
 	}
 
-	private final L2pLogger logger = L2pLogger.getInstance(SpacesResource.class.getName());
+	private final L2pLogger logger = L2pLogger.getInstance(NoracleAgentService.class.getName());
 
 }

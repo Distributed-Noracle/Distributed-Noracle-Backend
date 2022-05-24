@@ -9,11 +9,14 @@ import i5.las2peer.api.persistency.EnvelopeNotFoundException;
 import i5.las2peer.api.persistency.EnvelopeOperationFailedException;
 import i5.las2peer.api.security.Agent;
 import i5.las2peer.api.security.AnonymousAgent;
+import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.services.noracleService.api.INoracleQuestionRelationService;
 import i5.las2peer.services.noracleService.model.QuestionRelation;
 import i5.las2peer.services.noracleService.model.QuestionRelationList;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -156,8 +159,8 @@ public class NoracleQuestionRelationService extends Service implements INoracleQ
 				} catch (EnvelopeNotFoundException e) {
 					break;
 				}
-				String questionId = (String) spaceQuestionRelationEnv.getContent();
-				Envelope questionEnv = Context.get().requestEnvelope(getQuestionRelationEnvelopeIdentifier(questionId));
+				String relationId = (String) spaceQuestionRelationEnv.getContent();
+				Envelope questionEnv = Context.get().requestEnvelope(getQuestionRelationEnvelopeIdentifier(relationId));
 				result.add((QuestionRelation) questionEnv.getContent());
 			} catch (Exception e) {
 				// XXX logging
@@ -201,4 +204,34 @@ public class NoracleQuestionRelationService extends Service implements INoracleQ
 		}
 	}
 
+	@Override
+	public List<String> getQuestionRelationIds(String spaceId, String questionId) {
+		List<String> questionRelations = new ArrayList<>();
+		Envelope spaceQuestionRelationEnv;
+		Envelope questionEnv;
+		for (int relationNumber = 1; relationNumber < MAX_RELATIONS_PER_SPACE; ++relationNumber) {
+			try {
+				spaceQuestionRelationEnv = Context.get().requestEnvelope(buildSpaceQuestionRelationNumberId(spaceId, relationNumber));
+				String relationId = (String) spaceQuestionRelationEnv.getContent();
+				questionEnv = Context.get().requestEnvelope(getQuestionRelationEnvelopeIdentifier(relationId));
+				QuestionRelation qr = (QuestionRelation) questionEnv.getContent();
+				if (qr.getFirstQuestionId().equals(questionId)) {
+					questionRelations.add(qr.getSecondQuestionId());
+				} else if (qr.getSecondQuestionId().equals(questionId)) {
+					questionRelations.add(qr.getFirstQuestionId());
+				} else {
+					// do nothing, no necessary relation
+				}
+			} catch (EnvelopeNotFoundException e) {
+				break; // no relation left
+			} catch (EnvelopeOperationFailedException e) {
+				e.printStackTrace();
+			} catch (EnvelopeAccessDeniedException e) {
+				e.printStackTrace();
+			}
+		}
+		return questionRelations;
+	}
+
+	private final L2pLogger logger = L2pLogger.getInstance(NoracleRecommenderService.class.getName());
 }

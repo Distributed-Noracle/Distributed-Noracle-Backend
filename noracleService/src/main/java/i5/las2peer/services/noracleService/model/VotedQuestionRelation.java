@@ -1,8 +1,11 @@
 package i5.las2peer.services.noracleService.model;
 
+import java.io.Serial;
+
 public class VotedQuestionRelation extends QuestionRelation {
 
-	private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 937101316665902373L;
 
 	private VoteList votes;
 

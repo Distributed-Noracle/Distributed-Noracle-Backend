@@ -1,8 +1,13 @@
 package i5.las2peer.services.noracleService.model;
 
-public class VotedQuestion extends Question {
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.ArrayList;
 
-	private static final long serialVersionUID = 1L;
+public class VotedQuestion extends Question implements Serializable {
+
+	@Serial
+	private static final long serialVersionUID = -7969518021993650216L;
 
 	private VoteList votes;
 	
@@ -18,6 +23,9 @@ public class VotedQuestion extends Question {
 		this.setTimestampCreated(q.getTimestampCreated());
 		this.setTimestampLastModified(q.getTimestampLastModified());
 		this.setDepth(q.getDepth());
+		if (q instanceof VotedQuestion) {
+			this.setVotes(((VotedQuestion) q).getVotes());
+		}
 	}
 	
 	public VoteList getVotes() {

@@ -1,10 +1,12 @@
 package i5.las2peer.services.noracleService.model;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class VoteEntry implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = -602296952601769113L;
 
 	private String objectId;
 	private int pubIndex;

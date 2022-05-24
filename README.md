@@ -4,16 +4,16 @@ Distributed Noracle Backend
 [![Build Status](https://jenkins.dbis.rwth-aachen.de/buildStatus/icon?job=Distributed-Noracle-Backend)](https://jenkins.dbis.rwth-aachen.de/job/Distributed-Noracle-Backend/)
 
 This suite of microservices forms the backend of the Distributed Noracle Project.
-Please try out our app at: [dbis.rwth-aachen.de/noracle/](http://dbis.rwth-aachen.de/noracle/)
+Please try out our app at: https://noracle.tech4comp.dbis.rwth-aachen.de/
 
 ---------------
 
 ## Java
+The application uses **Java 17** and **Gradle 7.3**.
 
-las2peer uses **Java 14**.
-
-## Setup
-1. Build the project using `ant all`
-1. Copy *launcher-configuration.ini* to *etc/*
-1. Start using `./start-local.sh` for starting in the same shell (useful for testing), or `./start-node.sh` for starting Noracle in a screen (useful for production)
-
+## Run
+```
+docker build -t noracle-service .
+docker run -p 8080:8080 -p 9011:9011 noracle-service
+```
+The service(s) are then available under http://localhost:8080/distributed-noracle.

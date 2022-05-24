@@ -1,18 +1,18 @@
 package i5.las2peer.services.noracleService;
 
+import i5.las2peer.api.Context;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.services.noracleService.resources.AgentsResource;
-import i5.las2peer.services.noracleService.resources.QuestionRelationsResource;
-import i5.las2peer.services.noracleService.resources.QuestionsResource;
-import i5.las2peer.services.noracleService.resources.SpacesResource;
+import i5.las2peer.services.noracleService.model.BotResponse;
+import i5.las2peer.services.noracleService.model.NoracleAgent;
+import i5.las2peer.services.noracleService.resources.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 
 @Api
 @SwaggerDefinition(
@@ -27,7 +27,7 @@ import javax.ws.rs.Path;
 public class NoracleService extends RESTService {
 
 	public static final String RESOURCE_NAME = "distributed-noracle";
-	public static final String API_VERSION = "1.0.0";
+	public static final String API_VERSION = "1.0.1";
 
 	@Override
 	protected void initResources() {
@@ -48,8 +48,31 @@ public class NoracleService extends RESTService {
 		return new AgentsResource();
 	}
 
+	@Path("/" + RecommenderResource.RESOURCE_NAME)
+	public RecommenderResource recommendations() {
+		return new RecommenderResource();
+	}
+
 	@GET
 	@Path("/version")
-	public String version() { return this.API_VERSION; }
+	public String version() {
+
+		return this.API_VERSION;
+	}
+
+	@GET
+	@Path("/versionForBot")
+	@Produces(MediaType.APPLICATION_JSON)
+	public BotResponse versionForBot() {
+		return new BotResponse("The version of the Distributed Noracle application is " + this.API_VERSION, true);
+	}
+
+	@GET
+	@Path("/mainAgent")
+	@Produces(MediaType.APPLICATION_JSON)
+	public NoracleAgent getMainAgentId() {
+		String agentid = Context.get().getMainAgent().getIdentifier();
+		return new NoracleAgent(agentid);
+	}
 
 }

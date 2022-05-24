@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: noracle-service
+  namespace: ma-breuer
+  labels:
+    app: noracle-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: noracle-service
+  template:
+    metadata:
+      labels:
+        app: noracle-service
+    spec:
+      volumes:
+        - name: noracle-storage-persistent
+          persistentVolumeClaim:
+            claimName: noracle-pvc
+      containers:
+        - name: noracle-service
+          image: >-
+            registry.tech4comp.dbis.rwth-aachen.de/rwthacis/noracle-service:1.0.0
+          env:
+            - name: LAS2PEER_PORT
+              value: '32061'
+            - name: NODE_ID_SEED
+              value: '382251'
+            - name: BOOTSTRAP
+              value: las2peer-bootstrap.sbf-dev:32011
+          volumeMounts:
+            - name: noracle-storage-persistent
+              mountPath: /src/node-storage

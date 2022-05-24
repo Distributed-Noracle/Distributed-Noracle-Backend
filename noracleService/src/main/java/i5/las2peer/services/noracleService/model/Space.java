@@ -1,26 +1,30 @@
 package i5.las2peer.services.noracleService.model;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class Space implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 8800170853451989942L;
 
 	private String spaceId;
 	private String spaceSecret;
 	private String name;
 	private String spaceOwnerId;
 	private String spaceReaderGroupId;
+	private boolean isPrivate;
 
 	public Space() { // used in tests
 	}
 
-	public Space(String spaceId, String spaceSecret, String name, String spaceOwnerId, String spaceReaderGroupId) {
+	public Space(String spaceId, String spaceSecret, String name, String spaceOwnerId, String spaceReaderGroupId, boolean isPrivate) {
 		this.setSpaceId(spaceId);
 		this.setSpaceSecret(spaceSecret);
 		this.setName(name);
 		this.setSpaceOwnerId(spaceOwnerId);
 		this.setSpaceReaderGroupId(spaceReaderGroupId);
+		this.setPrivate(isPrivate);
 	}
 
 	public String getSpaceId() {
@@ -63,4 +67,11 @@ public class Space implements Serializable {
 		this.spaceReaderGroupId = spaceReaderGroupId;
 	}
 
+	public boolean isPrivate() {
+		return isPrivate;
+	}
+
+	public void setPrivate(boolean aPrivate) {
+		isPrivate = aPrivate;
+	}
 }

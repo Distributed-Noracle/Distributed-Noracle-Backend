@@ -5,6 +5,7 @@ import i5.las2peer.api.execution.InternalServiceException;
 import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.api.p2p.ServiceNameVersion;
+import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleAgentService;
 import i5.las2peer.services.noracleService.NoracleService;
@@ -28,6 +29,8 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 
 @Api(
 		tags = { AgentsResource.RESOURCE_NAME })
@@ -38,21 +41,22 @@ public class AgentsResource implements INoracleAgentService {
 
 	@Override
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiResponses({ @ApiResponse(
+/*	@ApiResponses({ @ApiResponse(
 			code = HttpURLConnection.HTTP_OK,
 			message = "Subscriptions successfully fetched",
 			response = SpaceSubscriptionList.class),
 			@ApiResponse(
 					code = HttpURLConnection.HTTP_INTERNAL_ERROR,
 					message = "Internal Server Error",
-					response = ExceptionEntity.class) })
+					response = ExceptionEntity.class) })*/
 	@Path("/" + SUBSCRIPTIONS_RESOURCE_NAME)
-	public SpaceSubscriptionList getSpaceSubscriptions(@PathParam("agentid") String agentId)
-			throws ServiceInvocationException {
+	@Produces(MediaType.APPLICATION_JSON)
+	public SpaceSubscriptionList getSpaceSubscriptions(@PathParam("agentid") String agentId) throws ServiceInvocationException {
+		logger.info("AgentsResource -> getSpaceSubscriptions(...) with agentid: " + agentId);
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
 				"getSpaceSubscriptions", agentId);
+		logger.info("AgentsResource -> RMI Result: " + ((SpaceSubscriptionList) rmiResult).size());
 		if (rmiResult instanceof SpaceSubscriptionList) {
 			return (SpaceSubscriptionList) rmiResult;
 		} else {
@@ -138,6 +142,9 @@ public class AgentsResource implements INoracleAgentService {
 					response = ExceptionEntity.class) })
 	public NoracleAgentProfile updateAgentProfile(@PathParam("agentid") String agentId, @ApiParam(
 			required = true) ChangeProfilePojo createProfilePojo) throws ServiceInvocationException {
+		logger.info("AgentsResource -> updateAgentProfile");
+		logger.info("mainAgentId: " + Context.get().getMainAgent().getIdentifier());
+		logger.info("agentId: " + agentId);
 		if (!Context.get().getMainAgent().getIdentifier().equals(agentId)) {
 			throw new ForbiddenException("Only update your own profile");
 		}
@@ -259,15 +266,17 @@ public class AgentsResource implements INoracleAgentService {
 			@PathParam("spaceId") String spaceId, @ApiParam(
 					required = true) UpdateSelectedQuestionsPojo updateSelectedQuestionsPojo)
 			throws ServiceInvocationException {
+		logger.info("AgentsResource -> updateSelectedQuestions(...)");
 		return updateSpaceSubscription(agentId, spaceId, updateSelectedQuestionsPojo.getSelectedQuestions());
 	}
 
 	@Override
 	public SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, @ApiParam(
-			required = true) String[] selectedQuestions) throws ServiceInvocationException {
+			required = true) List<String> selectedQuestions) throws ServiceInvocationException {
+		logger.info("AgentsResource -> updateSpaceSubscription(...)");
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleAgentService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"updateSpaceSubscription", agentId, spaceId, selectedQuestions);
+				"updateSpaceSubscription", agentId, spaceId, (Serializable) selectedQuestions);
 		if (rmiResult instanceof SpaceSubscription) {
 			return (SpaceSubscription) rmiResult;
 		} else {
@@ -275,5 +284,12 @@ public class AgentsResource implements INoracleAgentService {
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 		}
 	}
+
+	@Override
+	public Boolean checkIfAlreadySubscribedToSpace(String agentId, String spaceId) throws ServiceInvocationException {
+		return null;
+	}
+
+	private final L2pLogger logger = L2pLogger.getInstance(AgentsResource.class.getName());
 
 }

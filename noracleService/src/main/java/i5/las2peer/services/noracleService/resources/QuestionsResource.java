@@ -316,7 +316,7 @@ public class QuestionsResource implements INoracleQuestionService {
 		QuestionList questionList = getQuestions(spaceId, order, limit, startAt);
 		
 		VotedQuestionList votedQuestionList = new VotedQuestionList();
-		for (Question question:questionList) {
+		for (Question question : questionList) {
 			VotedQuestion votedQuestion = new VotedQuestion(question);
 			String objectId = QuestionVotesResource.buildObjectId(spaceId, question.getQuestionId());
 			Serializable rmiResult = Context.get().invoke(
@@ -368,6 +368,16 @@ public class QuestionsResource implements INoracleQuestionService {
 			throw new InternalServiceException(
 					"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 		}
+	}
+
+	@Override
+	public VotedQuestionList getAllVotedQuestions(String spaceId) throws ServiceInvocationException {
+		return null;
+	}
+
+	@Override
+	public VotedQuestionList getAllVotedQuestions(String spaceId, String agentId) throws ServiceInvocationException {
+		return null;
 	}
 
 	@PUT

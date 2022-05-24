@@ -1,14 +1,16 @@
 package i5.las2peer.services.noracleService.pojo;
 
+import java.util.List;
+
 public class UpdateSelectedQuestionsPojo {
 
-	private String[] selectedQuestions;
+	private List<String> selectedQuestions;
 
-	public String[] getSelectedQuestions() {
+	public List<String> getSelectedQuestions() {
 		return selectedQuestions;
 	}
 
-	public void setSelectedQuestions(String[] selectedQuestions) {
+	public void setSelectedQuestions(List<String> selectedQuestions) {
 		this.selectedQuestions = selectedQuestions;
 	}
 

@@ -1,0 +1,11 @@
+/.gradle
+/.idea
+/kubernetes
+/lib
+/log
+/node-storage
+/service
+.gitignore
+agent-developer.xml
+LICENSE
+README.md

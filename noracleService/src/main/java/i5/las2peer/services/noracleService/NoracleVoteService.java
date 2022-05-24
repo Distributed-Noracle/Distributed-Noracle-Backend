@@ -21,7 +21,7 @@ import i5.las2peer.services.noracleService.resources.SpacesResource;
 
 public class NoracleVoteService extends Service implements INoracleVoteService {
 
-	private static final int MAX_VOTES_PER_OBJECT = 1000000;
+	public static final int MAX_VOTES_PER_OBJECT = 100000;
 
 	private final L2pLogger logger = L2pLogger.getInstance(SpacesResource.class.getName());
 
@@ -124,7 +124,7 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 	}
 
 	@Override
-	public VoteList getAllVotes(String objectId) throws ServiceInvocationException {
+	public VoteList getAllVotes(String objectId) {
 		VoteList result = new VoteList();
 		for (int num = 1; num < MAX_VOTES_PER_OBJECT; num++) {
 			try {
@@ -140,7 +140,6 @@ public class NoracleVoteService extends Service implements INoracleVoteService {
 				Vote normalizedVote = new Vote(normalizedVal, vote.getVoterAgentId());
 				result.add(normalizedVote);
 			} catch (EnvelopeNotFoundException e) {
-				logger.warning( "EnvelopeNotFoundException inside NoracleVoteService.getAllVotes(...): " + e.getMessage());
 				break;
 			} catch (Exception e) {
 				logger.warning( "Exception inside NoracleVoteService.getAllVotes(...): " + e.getMessage());

@@ -19,12 +19,19 @@ export SERVICE3=${SERVICE_NAME}.'NoracleSpaceService'@${SERVICE_VERSION}
 export SERVICE4=${SERVICE_NAME}.'NoracleQuestionService'@${SERVICE_VERSION}
 export SERVICE5=${SERVICE_NAME}.'NoracleQuestionRelationService'@${SERVICE_VERSION}
 export SERVICE6=${SERVICE_NAME}.'NoracleAgentService'@${SERVICE_VERSION}
+export SERVICE7=${SERVICE_NAME}.'NoracleRecommenderService'@${SERVICE_VERSION}
+
+# Currently, these services cannot be used, because object serialization in the network does not work
+export SERVICE8=${SERVICE_NAME}.'NoracleNormalizationService'@${SERVICE_VERSION}
+export SERVICE9=${SERVICE_NAME}.'NoracleQuestionUtilityService'@${SERVICE_VERSION}
+
 echo deploy $SERVICE1
 echo deploy $SERVICE2
 echo deploy $SERVICE3
 echo deploy $SERVICE4
 echo deploy $SERVICE5
 echo deploy $SERVICE6
+echo deploy $SERVICE7
 
 function set_in_service_config {
     sed -i "s?${1}[[:blank:]]*=.*?${1}=${2}?g" ${SERVICE_PROPERTY_FILE}
@@ -54,7 +61,7 @@ fi
 # prevent glob expansion in lib/*
 echo prevent glob expansion in lib
 set -f
-LAUNCH_COMMAND='java -cp lib/* i5.las2peer.tools.L2pNodeLauncher -s service -p '"${LAS2PEER_PORT} ${SERVICE_EXTRA_ARGS}"
+LAUNCH_COMMAND='java -cp lib/* --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED i5.las2peer.tools.L2pNodeLauncher -s service -p '"${LAS2PEER_PORT} ${SERVICE_EXTRA_ARGS}"
 if [[ ! -z "${BOOTSTRAP}" ]]; then
     LAUNCH_COMMAND="${LAUNCH_COMMAND} -b ${BOOTSTRAP}"
 fi
@@ -84,12 +91,12 @@ echo start the service within a las2peer node
 if [[ -z "${@}" ]]
 then
     if [ -n "$LAS2PEER_ETH_HOST" ]; then
-        echo ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED --ethereum-mnemonic "$(selectMnemonic)" uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE2}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE3}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE4}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE5}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE6}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector "node=getNodeAsEthereumNode()" "registry=node.getRegistryClient()" "n=getNodeAsEthereumNode()" "r=n.getRegistryClient()"
-        exec ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED --ethereum-mnemonic "$(selectMnemonic)" uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE2}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE3}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE4}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE5}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE6}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector "node=getNodeAsEthereumNode()" "registry=node.getRegistryClient()" "n=getNodeAsEthereumNode()" "r=n.getRegistryClient()"
+        echo ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED --ethereum-mnemonic "$(selectMnemonic)" uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE2}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE3}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE4}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE5}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE6}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE7}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector "node=getNodeAsEthereumNode()" "registry=node.getRegistryClient()" "n=getNodeAsEthereumNode()" "r=n.getRegistryClient()"
+        exec ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED --ethereum-mnemonic "$(selectMnemonic)" uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE2}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE3}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE4}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE5}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE6}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE7}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector "node=getNodeAsEthereumNode()" "registry=node.getRegistryClient()" "n=getNodeAsEthereumNode()" "r=n.getRegistryClient()"
         #exec ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED --observer --ethereum-mnemonic "$(selectMnemonic)" uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE2}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE3}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE4}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE5}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE6}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector "node=getNodeAsEthereumNode()" "registry=node.getRegistryClient()" "n=getNodeAsEthereumNode()" "r=n.getRegistryClient()"
     else
-        echo ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE2}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE3}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE4}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE5}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE6}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector
-        exec ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE2}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE3}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE4}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE5}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE6}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector
+        echo ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE2}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE3}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE4}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE5}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE6}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE7}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector
+        exec ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE2}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE3}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE4}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE5}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE6}""'", "'""${SERVICE_PASSPHRASE}""'"\) startService\("'""${SERVICE7}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector
         #exec ${LAUNCH_COMMAND} --node-id-seed $NODE_ID_SEED --observer uploadStartupDirectory startService\("'""${SERVICE1}""'", "'""${SERVICE_PASSPHRASE}""'"\) startWebConnector
     fi
 else

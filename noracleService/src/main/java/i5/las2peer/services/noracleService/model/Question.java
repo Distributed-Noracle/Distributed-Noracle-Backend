@@ -1,10 +1,13 @@
 package i5.las2peer.services.noracleService.model;
 
+import java.io.Serial;
 import java.io.Serializable;
+import java.time.Instant;
 
 public class Question implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 220865019536362474L;
 
 	private String questionId;
 	private String text;
@@ -15,6 +18,8 @@ public class Question implements Serializable {
 	private int depth;
 
 	public Question() { // used in tests
+		this.timestampCreated = Instant.now().toString();
+		this.timestampLastModified = Instant.now().toString();
 	}
 
 	public Question(String questionId, String text, String spaceId, String authorId, String timestampCreated) {
@@ -25,6 +30,16 @@ public class Question implements Serializable {
 		this.timestampCreated = timestampCreated;
 		this.timestampLastModified = timestampCreated;
 		this.depth = 0;
+	}
+
+	public Question(Question question) {
+		this.questionId = question.questionId;
+		this.text = question.text;
+		this.spaceId = question.spaceId;
+		this.authorId = question.authorId;
+		this.timestampCreated = question.timestampCreated;
+		this.timestampLastModified = question.timestampLastModified;
+		this.depth = question.depth;
 	}
 
 	public String getQuestionId() {

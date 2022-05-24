@@ -5,6 +5,8 @@ import i5.las2peer.services.noracleService.model.NoracleAgentProfile;
 import i5.las2peer.services.noracleService.model.SpaceSubscription;
 import i5.las2peer.services.noracleService.model.SpaceSubscriptionList;
 
+import java.util.List;
+
 public interface INoracleAgentService {
 
 	NoracleAgentProfile updateAgentProfile(String agentName) throws ServiceInvocationException;
@@ -17,7 +19,9 @@ public interface INoracleAgentService {
 
 	SpaceSubscriptionList getSpaceSubscriptions(String agentId) throws ServiceInvocationException;
 
-	SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, String[] selectedQuestions)
+	SpaceSubscription updateSpaceSubscription(String agentId, String spaceId, List<String> selectedQuestions)
 			throws ServiceInvocationException;
+
+	Boolean checkIfAlreadySubscribedToSpace(String agentId, String spaceId) throws ServiceInvocationException;
 
 }

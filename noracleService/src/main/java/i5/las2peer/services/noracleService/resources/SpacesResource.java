@@ -8,12 +8,11 @@ import i5.las2peer.api.p2p.ServiceNameVersion;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.restMapper.ExceptionEntity;
 import i5.las2peer.services.noracleService.NoracleAgentService;
+import i5.las2peer.services.noracleService.NoracleQuestionService;
 import i5.las2peer.services.noracleService.NoracleService;
 import i5.las2peer.services.noracleService.NoracleSpaceService;
 import i5.las2peer.services.noracleService.api.INoracleSpaceService;
-import i5.las2peer.services.noracleService.model.Space;
-import i5.las2peer.services.noracleService.model.SpaceSubscribersList;
-import i5.las2peer.services.noracleService.model.SpaceSubscription;
+import i5.las2peer.services.noracleService.model.*;
 import i5.las2peer.services.noracleService.pojo.CreateSpacePojo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
@@ -23,6 +22,7 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 
+import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 @Api(
 		tags = { SpacesResource.RESOURCE_NAME })
@@ -55,7 +56,9 @@ public class SpacesResource implements INoracleSpaceService {
 					response = ExceptionEntity.class) })
 	public Response createSpace(@ApiParam(
 			required = true) CreateSpacePojo createSpacePojo) throws ServiceInvocationException {
-		Space space = createSpace(createSpacePojo.getName());
+		//logger.info("SpacesResource -> CreateSpace: " + createSpacePojo.getName() + ", " + createSpacePojo.isPrivate());
+		Space space = createSpace(createSpacePojo.getName(), createSpacePojo.isPrivate());
+		//logger.info("Created Space: " + space.getName() + "/" + space.getSpaceId() + "/" + space.getSpaceSecret());
 		try {
 
 			Gson gson = new Gson();
@@ -89,10 +92,10 @@ public class SpacesResource implements INoracleSpaceService {
 	}
 
 	@Override
-	public Space createSpace(String name) throws ServiceInvocationException {
+	public Space createSpace(String name, boolean isPrivate) throws ServiceInvocationException {
 		Serializable rmiResult = Context.get().invoke(
 				new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
-				"createSpace", name);
+				"createSpace", name, isPrivate);
 		Space space;
 		if (rmiResult instanceof Space) {
 			space = (Space) rmiResult;
@@ -102,6 +105,25 @@ public class SpacesResource implements INoracleSpaceService {
 		}
 		return space;
 	}
+
+    @Override
+    @DELETE
+    @Path("/{spaceId}")
+    //@Produces(MediaType.APPLICATION_JSON)
+    public void deleteSpace(@PathParam("spaceId") String spaceId) throws ServiceInvocationException {
+		//logger.info("delete space called with spaceId = " + spaceId);
+        Serializable rmiResult = Context.get().invoke(
+                new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
+                "deleteSpace", spaceId);
+        /*Space space;
+        if (rmiResult instanceof Space) {
+            space = (Space) rmiResult;
+        } else {
+            throw new InternalServiceException(
+                    "Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
+        }
+        return space;*/
+    }
 
 	@Override
 	@GET
@@ -128,11 +150,13 @@ public class SpacesResource implements INoracleSpaceService {
 					message = "Internal Server Error",
 					response = ExceptionEntity.class) })
 	public Space getSpace(@PathParam("spaceId") String spaceId) {
+		//logger.info("SpacesResource -> getSpace with spaceId: " + spaceId);
 		try {
 			Serializable rmiResult = Context.get().invoke(
 					new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
 					"getSpace", spaceId);
 			if (rmiResult instanceof Space) {
+				//logger.info("found space with: " + ((Space) rmiResult).getName() + "/" + ((Space) rmiResult).getSpaceSecret());
 				return (Space) rmiResult;
 			} else {
 				throw new InternalServiceException(
@@ -184,6 +208,29 @@ public class SpacesResource implements INoracleSpaceService {
 				throw new InternalServiceException(
 						"Unexpected result (" + rmiResult.getClass().getCanonicalName() + ") of RMI call");
 			}
+		} catch (InvocationBadArgumentException e) {
+			throw new BadRequestException(e.getMessage(), e.getCause());
+		} catch (ResourceNotFoundException e) {
+			throw new NotFoundException(e.getMessage(), e.getCause());
+		} catch (ServiceAccessDeniedException e) {
+			throw new ForbiddenException(e.getMessage(), e.getCause());
+		} catch (Exception e) {
+			throw new InternalServerErrorException("Exception during RMI call", e);
+		}
+	}
+
+	@Override
+	@GET
+	@Path("/public")
+	@Produces(MediaType.APPLICATION_JSON)
+	public SpaceList getPublicSpaces() {
+		logger.info("SpacesResource -> getPublicSpaces(..)");
+		try {
+			SpaceList list = (SpaceList) Context.get().invoke(
+					new ServiceNameVersion(NoracleSpaceService.class.getCanonicalName(), NoracleService.API_VERSION),
+					"getPublicSpaces");
+			logger.info("Returned list with size: " + list.size());
+			return list;
 		} catch (InvocationBadArgumentException e) {
 			throw new BadRequestException(e.getMessage(), e.getCause());
 		} catch (ResourceNotFoundException e) {
